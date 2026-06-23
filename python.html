@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoboBuddy Python 3D</title>
+  <link rel="icon" href="data:,">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R8K8CD1Y8S"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R8K8CD1Y8S');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260612-3d-pages1">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260611-footerstatus1">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.184.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="python-draft-page" data-preview-storage-key="roboadmin.python3dPreviewMode.v1" data-default-preview-mode="sketch">
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div class="topbar__logo topbar__logo--image" data-scheduled-logo aria-hidden="true" hidden>
+        <img data-scheduled-logo-img alt="" width="52" height="52">
+      </div>
+      <div>
+        <h1 class="topbar__title"><i class="topbar__title-icon" data-lucide="braces" aria-hidden="true"></i> RoboBuddy Python 3D</h1>
+        <p class="topbar__subtitle">Blockly to Python Lab</p>
+      </div>
+    </div>
+
+    <div class="topbar__controls">
+      <nav class="topbar__page-nav" aria-label="Pages">
+        <a class="btn btn--load btn--page" id="btnMainPage" href="index.html" title="Open Main 3D Page" data-hint="Open Main 3D Page">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Main 3D</span>
+        </a>
+        <a class="btn btn--load btn--page" href="python.html" aria-current="page" title="Open Python 3D Page" data-hint="Open Python 3D Page">
+          <i data-lucide="braces"></i>
+          <span>Python 3D</span>
+        </a>
+        <a class="btn btn--load btn--page" href="gemini.html" title="Open Gemini 3D Page" data-hint="Open Gemini 3D Page">
+          <i data-lucide="sparkles"></i>
+          <span>Gemini 3D</span>
+        </a>
+        <a class="btn btn--load btn--page btn--docs" href="python-docs.html" title="Open Python interpreter documentation" data-hint="Open Python interpreter documentation">
+          <i data-lucide="book-open"></i>
+          <span>Docs</span>
+        </a>
+      </nav>
+      <div class="topbar__status" aria-live="polite">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Disconnected</span>
+      </div>
+      <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth)" data-hint="Connect Serial (USB/Bluetooth)">
+        <i data-lucide="plug"></i>
+        <span>Connect</span>
+      </button>
+      <button class="btn btn--home" id="btnHome" title="Home Position" data-hint="Home Position">
+        <i data-lucide="home"></i>
+        <span>Home</span>
+      </button>
+      <button class="btn btn--stop-big" id="btnEmergencyStop" title="Emergency Stop (Esc)" data-hint="Emergency Stop (Esc)">
+        <i data-lucide="octagon-alert"></i>
+        <span>STOP</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="python-draft">
+    <section class="python-draft__panel python-draft__panel--blocks" aria-label="Blockly workspace">
+      <div class="python-draft__panel-header">
+        <div class="panel-label"><i data-lucide="puzzle"></i> Blockly</div>
+      </div>
+      <div id="pythonBlocklyDiv"></div>
+      <div class="python-draft__runbar python-draft__actionbar">
+        <label class="motors-toggle motors-toggle--block" for="pythonMotorsEnabled">
+          <i data-lucide="power"></i>
+          <span>Motors Enabled</span>
+          <input type="checkbox" id="pythonMotorsEnabled">
+        </label>
+        <span class="python-draft__action-divider" aria-hidden="true"></span>
+        <div class="python-draft__actions python-draft__actions--run">
+          <span class="python-draft__tool" data-hint="Run Blockly program">
+            <button class="btn btn--run python-draft__icon-btn python-draft__action-btn" id="btnRunBlocks" aria-label="Run Blockly program" type="button" title="Run Blockly program" data-hint="Run Blockly program">
+              <i data-lucide="play"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Convert blocks to Python">
+            <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnConvertPython" aria-label="Convert blocks to Python" type="button" title="Convert blocks to Python" data-hint="Convert blocks to Python">
+              <i data-lucide="wand-sparkles"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Convert and run Python">
+            <button class="btn btn--run python-draft__icon-btn python-draft__action-btn" id="btnConvertRunPython" aria-label="Convert and run Python" type="button" title="Convert and run Python" data-hint="Convert and run Python">
+              <i data-lucide="square-play"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Load example blocks">
+            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadExample" aria-label="Load example blocks" type="button" title="Load example blocks" data-hint="Load example blocks">
+              <i data-lucide="folder-open"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Save blocks">
+            <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnSaveBlocks" aria-label="Save blocks" type="button" title="Save blocks" data-hint="Save blocks">
+              <i data-lucide="save"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Load user blocks">
+            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadUserBlocks" aria-label="Load user blocks" type="button" title="Load user blocks" data-hint="Load user blocks">
+              <i data-lucide="upload"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Clear blocks">
+            <button class="btn btn--clear python-draft__icon-btn python-draft__action-btn" id="btnClearWorkspace" aria-label="Clear blocks" type="button" title="Clear blocks" data-hint="Clear blocks">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+      <xml id="pythonToolbox" style="display: none"></xml>
+    </section>
+
+    <div
+      class="python-draft__splitter"
+      data-python-splitter="left"
+      role="separator"
+      tabindex="0"
+      aria-orientation="vertical"
+      aria-label="Resize Blockly and Python panels"
+      aria-valuemin="18"
+      aria-valuemax="58"
+      aria-valuenow="40.7"
+      aria-valuetext="Blockly 40.7 percent"
+      title="Resize Blockly and Python panels"
+      data-hint="Resize Blockly and Python panels"
+    ></div>
+
+    <section class="python-draft__panel python-draft__panel--python" aria-label="Python editor">
+      <div class="python-draft__panel-header">
+        <div class="panel-label"><i data-lucide="file-code-2"></i> Python</div>
+        <div class="python-draft__header-actions">
+          <p class="python-draft__runtime" id="pythonRuntimeStatus" data-tone="warning" aria-live="polite">Loading Python runtime...</p>
+        </div>
+      </div>
+      <textarea
+        id="pythonEditor"
+        class="python-draft__editor"
+        spellcheck="false"
+        aria-label="Python code editor"
+      ># Convert blocks or write Python here.
+arm.home()
+arm.wait(0.5)
+arm.move_joint("base", 110, speed=50)
+print("Python command list ready")</textarea>
+      <div class="python-draft__actionbar python-draft__actionbar--python">
+        <div class="python-draft__actions python-draft__actions--python" aria-label="Python actions">
+          <span class="python-draft__tool" data-hint="Run Python program">
+            <button class="btn btn--run python-draft__icon-btn python-draft__action-btn" id="btnRunPython" aria-label="Run Python program" type="button" title="Run Python program" data-hint="Run Python program">
+              <i data-lucide="play"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Pause active program">
+            <button class="btn btn--home python-draft__icon-btn python-draft__action-btn" id="btnDraftPause" aria-label="Pause active program" type="button" title="Pause active program" data-hint="Pause active program">
+              <i data-lucide="pause"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Stop active program">
+            <button class="btn btn--stop python-draft__icon-btn python-draft__action-btn" id="btnDraftStop" aria-label="Stop active program" type="button" title="Stop active program" data-hint="Stop active program">
+              <i data-lucide="square"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Save Python">
+            <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnSavePython" aria-label="Save Python" type="button" title="Save Python" data-hint="Save Python">
+              <i data-lucide="save"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Load Python">
+            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadPython" aria-label="Load Python" type="button" title="Load Python" data-hint="Load Python">
+              <i data-lucide="file-up"></i>
+            </button>
+          </span>
+          <span class="python-draft__tool" data-hint="Copy Python">
+            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnCopyPython" aria-label="Copy Python" type="button" title="Copy Python" data-hint="Copy Python">
+              <i data-lucide="copy"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+      <div class="python-draft__effect">
+        <p class="blockly-controls__status" id="pythonEffectStatus" data-tone="ready" aria-live="polite">Build blocks, then convert to Python.</p>
+        <p class="python-draft__summary"><span>Commands</span><strong id="pythonCommandSummary">-</strong></p>
+      </div>
+    </section>
+
+    <div
+      class="python-draft__splitter"
+      data-python-splitter="right"
+      role="separator"
+      tabindex="0"
+      aria-orientation="vertical"
+      aria-label="Resize Python and Arm Preview panels"
+      aria-valuemin="58.7"
+      aria-valuemax="82"
+      aria-valuenow="77.5"
+      aria-valuetext="Python 36.8 percent"
+      title="Resize Python and Arm Preview panels"
+      data-hint="Resize Python and Arm Preview panels"
+    ></div>
+
+    <aside class="python-draft__panel python-draft__panel--side" aria-label="Preview and output">
+      <section class="python-draft__preview">
+        <div class="python-draft__preview-header">
+          <div class="panel-label"><i data-lucide="eye"></i> Arm Preview</div>
+          <div class="preview-mode-toggle" role="group" aria-label="Arm preview mode">
+            <button class="preview-mode-toggle__button is-active" type="button" id="btnPreviewSketch" data-preview-mode="sketch3d" aria-pressed="true" title="3D Sketch" data-hint="3D Sketch">3D Sketch</button>
+            <button class="preview-mode-toggle__button" type="button" id="btnPreviewCurrent" data-preview-mode="current" aria-pressed="false" title="2D Sketch" data-hint="2D Sketch">2D Sketch</button>
+          </div>
+        </div>
+        <div class="gemini-draft__preview-body">
+          <div class="python-draft__preview-panel" id="pythonPreviewSketchPanel" data-preview-panel="sketch3d">
+            <div class="arm-preview-container arm-preview-container--3d python-draft__arm-stage">
+              <svg id="pythonArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Robot arm preview fallback"></svg>
+              <div class="arm-preview-3d" data-arm-preview-3d hidden>
+                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot arm preview"></div>
+                <div class="arm-preview-3d__toolbar">
+                  <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
+                  <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
+                    <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+                    <span>Camera</span>
+                  </button>
+                </div>
+              </div>
+              <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
+            </div>
+          </div>
+          <div class="python-draft__preview-panel" id="pythonPreviewCurrentPanel" data-preview-panel="current" hidden>
+            <div class="arm-preview-container python-draft__arm-stage">
+              <svg id="pythonArmSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Robot arm preview"></svg>
+            </div>
+          </div>
+          <div class="python-draft__joints" aria-label="Current joint values">
+            <div><span>Base</span><strong id="pythonJointValue0">90 deg</strong></div>
+            <div><span>Shoulder</span><strong id="pythonJointValue1">90 deg</strong></div>
+            <div><span>Elbow</span><strong id="pythonJointValue2">90 deg</strong></div>
+            <div><span>Wrist Rot</span><strong id="pythonJointValue3">90 deg</strong></div>
+            <div><span>Wrist Tilt</span><strong id="pythonJointValue4">90 deg</strong></div>
+            <div><span>Gripper</span><strong id="pythonJointValue5">90 deg</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="python-draft__output-panel">
+        <button class="gemini-draft__console-toggle python-draft__output-toggle" id="btnOutputPanelToggle" type="button" aria-expanded="false" aria-controls="pythonOutputPanelBody" title="Show Output & Serial" data-hint="Show Output & Serial">
+          <span><i data-lucide="chevron-right" aria-hidden="true"></i> Output &amp; Serial</span>
+          <i data-lucide="terminal" aria-hidden="true"></i>
+        </button>
+        <div class="python-draft__output-body" id="pythonOutputPanelBody" hidden>
+          <section class="python-draft__console">
+            <div class="python-draft__panel-header">
+              <div class="panel-label"><i data-lucide="terminal"></i> Python Output</div>
+              <span class="python-draft__tool" data-hint="Clear Python output">
+                <button class="btn btn--clear python-draft__icon-btn python-draft__output-btn" id="btnClearOutput" aria-label="Clear Python output" type="button" title="Clear Python output" data-hint="Clear Python output">
+                  <i data-lucide="eraser"></i>
+                </button>
+              </span>
+            </div>
+            <div class="serial-console python-draft__log" id="pythonOutputLog" aria-live="polite"></div>
+          </section>
+
+          <section class="python-draft__console">
+            <div class="panel-label"><i data-lucide="radio"></i> Serial</div>
+            <div class="serial-console python-draft__log" id="pythonSerialLog" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" id="programStatusIcon" class="bottombar__status-icon"></i>
+      <span id="programStatus">Ready</span>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/blockly@12.5.1/blockly.min.js" integrity="sha384-SxxR8fpocVLJMl6kYyBm33uuy9U1yy0gMrMavfyCd3lQRer3qaBMlcVb0VSAfzop" crossorigin="anonymous"></script>
+  <script src="js/serial.js"></script>
+  <script src="js/blocks.js"></script>
+  <script src="js/generators.js"></script>
+  <script src="js/runner.js?v=20260610-firmware-sim"></script>
+  <script src="js/arm-preview.js?v=20260611-3d-preview"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260611-layout-pan1"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/file-workflows.js"></script>
+  <script src="js/python-emitter.js?v=20260529-no-uh"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js" integrity="sha384-ZYmwuq4n2gOcNxMSiJ6jyTj+BbIrilr7p6dlq6q5nmSWKmsH9UU4K1qqjycMkfmR" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js" integrity="sha384-Xy+2exU6lBoT4OpUOtnQb+cUpn+nlJQEHvRobWVtwz6wIsw4oNoO7xyd/l8rYgMy" crossorigin="anonymous"></script>
+  <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
+  <script src="js/scheduled-logo.js?v=20260608-ui"></script>
+  <script src="js/python-draft.js?v=20260612-3d-pages1"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoboBuddy Python Interpreter Docs</title>
+  <link rel="icon" href="data:,">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R8K8CD1Y8S"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R8K8CD1Y8S');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260608-docs">
+</head>
+<body class="python-docs-page">
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div class="topbar__logo topbar__logo--image" data-scheduled-logo aria-hidden="true" hidden>
+        <img data-scheduled-logo-img alt="" width="52" height="52">
+      </div>
+      <div>
+        <h1 class="topbar__title">RoboBuddy Python Docs</h1>
+        <p class="topbar__subtitle">Student Interpreter Reference</p>
+      </div>
+    </div>
+
+    <div class="topbar__controls">
+      <nav class="topbar__page-nav" aria-label="Pages">
+        <a class="btn btn--load btn--page" href="index.html" title="Open Main Page" data-hint="Open Main Page">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Main Page</span>
+        </a>
+        <a class="btn btn--load btn--page" href="python.html" title="Open Python Page" data-hint="Open Python Page">
+          <i data-lucide="braces"></i>
+          <span>Python</span>
+        </a>
+        <a class="btn btn--load btn--page" href="gemini.html" title="Open Gemini Page" data-hint="Open Gemini Page">
+          <i data-lucide="sparkles"></i>
+          <span>Gemini</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="python-docs">
+    <aside class="python-docs__toc-shell">
+      <nav class="python-docs__nav" aria-label="Python documentation sections">
+        <div class="panel-label"><i data-lucide="list"></i> Contents</div>
+        <a href="#quick-start">Quick Start</a>
+        <a href="#safety-model">Safety Model</a>
+        <a href="#arm-api">Arm API</a>
+        <a href="#joint-reference">Joint Reference</a>
+        <a href="#python-basics">Python Basics</a>
+        <a href="#gemini-syntax">Gemini Page Syntax</a>
+        <a href="#examples">Examples</a>
+        <a href="#common-errors">Common Errors</a>
+      </nav>
+    </aside>
+
+    <article class="python-docs__content">
+      <section class="python-docs__hero" id="quick-start">
+        <div>
+          <div class="panel-label"><i data-lucide="play"></i> Quick Start</div>
+          <h2>Write real Python that builds safe robot commands.</h2>
+          <p>
+            This interpreter runs real Python, but the robot API is provided by RoboBuddy.
+            Your Python code uses the <code>arm</code> object to build a command list.
+            RoboBuddy validates that list, then runs it through the same preview and robot runner used by Blockly.
+          </p>
+        </div>
+        <pre class="python-docs__code"><code>arm.home()
+arm.move_joint("base", 100, speed=50)
+arm.wait(0.5)
+print(arm.get_angles())</code></pre>
+      </section>
+
+      <section class="python-docs__section" id="safety-model">
+        <div class="panel-label"><i data-lucide="shield-check"></i> Safety Model</div>
+        <div class="python-docs__callout">
+          <strong>The Python code does not write directly to the robotic arm.</strong>
+          <span>It creates commands, then RoboBuddy checks limits, speed, timing, and command shape before running them.</span>
+        </div>
+        <div class="python-docs__grid python-docs__grid--three">
+          <div class="python-docs__card">
+            <h3>Real Python</h3>
+            <p>The editor runs Python in Pyodide. Variables, loops, lists, functions, math expressions, and <code>print()</code> work.</p>
+          </div>
+          <div class="python-docs__card">
+            <h3>Restricted Sandbox</h3>
+            <p>No direct serial, DOM, file, network, package install, <code>input()</code>, or normal import access is exposed to student code.</p>
+          </div>
+          <div class="python-docs__card">
+            <h3>Runner Controlled</h3>
+            <p>After validation, movement is executed by RoboBuddy's existing program runner, preview, stop, and emergency-stop paths.</p>
+          </div>
+        </div>
+        <div class="python-docs__limits" aria-label="Runtime limits">
+          <div>
+            <span>Commands</span>
+            <strong>1000 max</strong>
+          </div>
+          <div>
+            <span>Python time</span>
+            <strong>8 seconds</strong>
+          </div>
+          <div>
+            <span>Speed</span>
+            <strong>1..100</strong>
+          </div>
+          <div>
+            <span>Wait</span>
+            <strong>0..30s</strong>
+          </div>
+          <div>
+            <span>Smooth move</span>
+            <strong>0.2..10s</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="python-docs__section" id="arm-api">
+        <div class="panel-label"><i data-lucide="bot"></i> Arm API</div>
+        <h2>The <code>arm</code> object</h2>
+        <p>
+          <code>arm</code> is a RoboBuddy classroom object. It is available automatically in the Python editor.
+          Do not import it.
+        </p>
+
+        <div class="python-docs__api-list">
+          <section class="python-docs__api-card">
+            <h3><code>arm.move_joint(joint, angle, speed=50)</code></h3>
+            <p>Move one joint to a target angle. Use a joint name such as <code>"base"</code> or a number from <code>0</code> to <code>5</code>. Speed must be <code>1..100</code>.</p>
+            <pre class="python-docs__code"><code>arm.move_joint("shoulder", 120, speed=45)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.move_arm(..., speed=50)</code></h3>
+            <p>Plan all six joints in base, shoulder, elbow, wrist rotation, wrist tilt, and gripper order. Omitted joints keep their current planned angle. Speed must be <code>1..100</code>.</p>
+            <pre class="python-docs__code"><code>arm.move_arm(
+  base=90,
+  shoulder=110,
+  elbow=70,
+  wrist_rot=90,
+  wrist_tilt=100,
+  gripper=80,
+  speed=45
+)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.home()</code></h3>
+            <p>Move to the default home pose: all six joints at <code>90</code> degrees.</p>
+            <pre class="python-docs__code"><code>arm.home()</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.wait(seconds)</code></h3>
+            <p>Add a delay between movements. The accepted range is <code>0</code> to <code>30</code> seconds.</p>
+            <pre class="python-docs__code"><code>arm.wait(0.5)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.gripper_open(speed=55)</code></h3>
+            <p>Open the gripper to the classroom default open angle, <code>50</code>. Speed must be <code>1..100</code>.</p>
+            <pre class="python-docs__code"><code>arm.gripper_open()
+arm.wait(0.3)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.gripper_close(speed=55)</code></h3>
+            <p>Close the gripper to the classroom default close angle, <code>120</code>. Speed must be <code>1..100</code>.</p>
+            <pre class="python-docs__code"><code>arm.gripper_close(speed=45)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.smooth_move(joint, start, end, seconds=1.5)</code></h3>
+            <p>Move one joint gradually from a start angle to an end angle. Duration must be <code>0.2</code> to <code>10</code> seconds.</p>
+            <pre class="python-docs__code"><code>arm.smooth_move("shoulder", 65, 120, seconds=1.2)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.save_pose(name)</code></h3>
+            <p>Save the current planned angles under a pose name for the current Python run.</p>
+            <pre class="python-docs__code"><code>arm.save_pose("pickup")</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.go_to_pose(name, speed=50)</code></h3>
+            <p>Ask the runner to move to a saved pose. Speed must be <code>1..100</code>. If the pose name is unknown, the runner reports that it was not found.</p>
+            <pre class="python-docs__code"><code>arm.go_to_pose("pickup", speed=45)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.emergency_stop()</code></h3>
+            <p>Add an emergency-stop command to the generated command list. Use the red STOP button for immediate operator stop.</p>
+            <pre class="python-docs__code"><code>arm.emergency_stop()</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3><code>arm.get_angles()</code></h3>
+            <p>Return the current planned angles as a list in joint order.</p>
+            <pre class="python-docs__code"><code>print(arm.get_angles())</code></pre>
+          </section>
+        </div>
+      </section>
+
+      <section class="python-docs__section" id="joint-reference">
+        <div class="panel-label"><i data-lucide="sliders-horizontal"></i> Joint Reference</div>
+        <div class="python-docs__table-wrap">
+          <table class="python-docs__table">
+            <thead>
+              <tr>
+                <th>Joint</th>
+                <th>Index</th>
+                <th>Allowed angle</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>base</code></td><td>0</td><td>20..130</td><td><code>arm.move_joint("base", 90)</code></td></tr>
+              <tr><td><code>shoulder</code></td><td>1</td><td>15..165</td><td><code>arm.move_joint("shoulder", 120)</code></td></tr>
+              <tr><td><code>elbow</code></td><td>2</td><td>0..180</td><td><code>arm.move_joint("elbow", 75)</code></td></tr>
+              <tr><td><code>wrist_rot</code></td><td>3</td><td>0..180</td><td><code>arm.move_joint("wrist_rot", 90)</code></td></tr>
+              <tr><td><code>wrist_tilt</code></td><td>4</td><td>0..180</td><td><code>arm.move_joint("wrist_tilt", 110)</code></td></tr>
+              <tr><td><code>gripper</code></td><td>5</td><td>25..130</td><td><code>arm.move_joint("gripper", 80)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="python-docs__section" id="python-basics">
+        <div class="panel-label"><i data-lucide="code-2"></i> Python Basics In This Lab</div>
+        <div class="python-docs__grid python-docs__grid--two">
+          <div class="python-docs__card">
+            <h3>Allowed helpers</h3>
+            <p>These built-ins are available:</p>
+            <p class="python-docs__tokens">
+              <code>abs</code><code>bool</code><code>dict</code><code>enumerate</code><code>float</code><code>int</code><code>len</code><code>list</code><code>max</code><code>min</code><code>print</code><code>range</code><code>round</code><code>str</code><code>sum</code><code>tuple</code>
+            </p>
+          </div>
+          <div class="python-docs__card">
+            <h3>Math is already provided</h3>
+            <p>Use <code>math</code> directly. Do not write <code>import math</code> in this sandbox.</p>
+            <pre class="python-docs__code"><code>angle = 90 + round(20 * math.sin(1))
+arm.move_joint("base", angle)</code></pre>
+          </div>
+          <div class="python-docs__card">
+            <h3>Not exposed here</h3>
+            <p>This student interpreter does not provide file access, package installs, network calls, browser DOM access, direct serial access, or normal module imports.</p>
+          </div>
+        </div>
+        <div class="python-docs__callout python-docs__callout--warn">
+          <strong>Avoid infinite loops.</strong>
+          <span>Python execution stops after 8 seconds, and a program can generate at most 1000 commands.</span>
+        </div>
+      </section>
+
+      <section class="python-docs__section" id="gemini-syntax">
+        <div class="panel-label"><i data-lucide="sparkles"></i> Gemini Page Syntax</div>
+        <h2>Writing Gemini requests on the Gemini page</h2>
+        <p>
+          The Gemini page uses Google's <code>google.genai</code> style, but it runs through a RoboBuddy classroom shim.
+          Your code captures one <code>client.models.generate_content(...)</code> request, the page sends it with the
+          Session API Key field and Model selector, then <code>response.text</code> is replayed into your code.
+        </p>
+        <div class="python-docs__callout">
+          <strong>Keep keys, model choice, and images in the page controls.</strong>
+          <span>Do not put an API key, local file path, or image bytes in Python. The Model selector is the model used for the real request, so keep the model string in code matched to the selector to avoid confusion.</span>
+        </div>
+        <div class="python-docs__api-list">
+          <section class="python-docs__api-card">
+            <h3>Basic text request</h3>
+            <p>Create a client with no API key argument, call <code>generate_content</code> once, then read <code>response.text</code>.</p>
+            <pre class="python-docs__code"><code>from google import genai
+
+client = genai.Client()
+response = client.models.generate_content(
+  model="gemini-3.5-flash",
+  contents="Explain one safe wave motion for RoboBuddy."
+)
+print(response.text)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3>Text parts</h3>
+            <p><code>contents</code> can be a string or a list of user text parts. Use parts when separate instructions make the prompt easier to read.</p>
+            <pre class="python-docs__code"><code>from google import genai
+
+client = genai.Client()
+response = client.models.generate_content(
+  model="gemini-3.5-flash",
+  contents=[
+    {
+      "role": "user",
+      "parts": [
+        {"text": "Plan a safe classroom robot motion."},
+        {"text": "Use short steps and avoid joint limits."}
+      ]
+    }
+  ]
+)
+print(response.text)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3>Supported config</h3>
+            <p>The page accepts common <code>GenerateContentConfig</code> fields and converts them for the browser request.</p>
+            <pre class="python-docs__code"><code>from google import genai
+
+types = genai.types
+client = genai.Client()
+response = client.models.generate_content(
+  model="gemini-3.5-flash",
+  contents="Return a short JSON plan for a safe wave.",
+  config=types.GenerateContentConfig(
+    temperature=0.2,
+    thinking_config=types.ThinkingConfig(thinking_budget=0),
+    response_mime_type="application/json",
+    response_schema={
+      "type": "object",
+      "properties": {
+        "summary": {"type": "string"},
+        "steps": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "required": ["summary", "steps"]
+    }
+  )
+)
+print(response.text)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3>Image input</h3>
+            <p>Choose an image with the Gemini page upload or camera controls. RoboBuddy adds that image to the first request part.</p>
+            <pre class="python-docs__code"><code>from google import genai
+
+client = genai.Client()
+response = client.models.generate_content(
+  model="gemini-3.5-flash",
+  contents="Use the selected page image to name objects the arm should avoid."
+)
+print(response.text)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3>Robot Python generation</h3>
+            <p>Click <strong>Generate robot Python</strong> for robot code. Review the generated <code>arm.*</code> code, validate it, then run it.</p>
+            <pre class="python-docs__code"><code>from google import genai
+
+client = genai.Client()
+response = client.models.generate_content(
+  model="gemini-3.5-flash",
+  contents="Create a safe three-step wave for RoboBuddy."
+)
+print(response.text)
+roboadmin.use_response(response.text)</code></pre>
+          </section>
+
+          <section class="python-docs__api-card">
+            <h3>Page limits</h3>
+            <p>Use only one <code>generate_content</code> call per run. <code>roboadmin.use_response(...)</code> is a page replay helper, not direct hardware control.</p>
+            <p>The sandbox rejects API keys in Python and does not support streaming, chat sessions, local files, package imports, or multi-call scripts.</p>
+          </section>
+        </div>
+        <p>
+          These examples adapt Google's Gemini API patterns for the RoboBuddy page. For full SDK behavior outside this lab, see Google's
+          <a href="https://ai.google.dev/api/generate-content">Generate content API</a>,
+          <a href="https://ai.google.dev/gemini-api/docs/structured-output">structured output guide</a>, and
+          <a href="https://ai.google.dev/gemini-api/docs/vision">image understanding guide</a>.
+        </p>
+      </section>
+
+      <section class="python-docs__section" id="examples">
+        <div class="panel-label"><i data-lucide="graduation-cap"></i> Student Examples</div>
+        <div class="python-docs__examples">
+          <section>
+            <h3>Wave motion</h3>
+            <pre class="python-docs__code"><code>arm.home()
+for _ in range(4):
+  arm.move_joint("base", 60, speed=55)
+  arm.wait(0.4)
+  arm.move_joint("base", 120, speed=55)
+  arm.wait(0.4)</code></pre>
+          </section>
+
+          <section>
+            <h3>Open and close the gripper</h3>
+            <pre class="python-docs__code"><code>arm.gripper_open()
+arm.wait(0.5)
+arm.gripper_close(speed=45)</code></pre>
+          </section>
+
+          <section>
+            <h3>Move to a full pose</h3>
+            <pre class="python-docs__code"><code>arm.move_arm(
+  base=85,
+  shoulder=120,
+  elbow=60,
+  wrist_rot=90,
+  wrist_tilt=115,
+  gripper=70,
+  speed=45
+)</code></pre>
+          </section>
+
+          <section>
+            <h3>Save and return to a pose</h3>
+            <pre class="python-docs__code"><code>arm.move_arm(base=70, shoulder=115, elbow=65, gripper=80)
+arm.save_pose("pickup")
+arm.home()
+arm.wait(0.5)
+arm.go_to_pose("pickup", speed=45)</code></pre>
+          </section>
+
+          <section>
+            <h3>Smooth movement</h3>
+            <pre class="python-docs__code"><code>arm.home()
+arm.smooth_move("shoulder", 80, 130, seconds=1.5)
+arm.smooth_move("shoulder", 130, 80, seconds=1.5)</code></pre>
+          </section>
+
+          <section>
+            <h3>Use planned angles</h3>
+            <pre class="python-docs__code"><code>arm.home()
+angles = arm.get_angles()
+print("Starting pose:", angles)
+arm.move_joint("base", angles[0] + 20)</code></pre>
+          </section>
+
+          <section>
+            <h3>Use math without importing</h3>
+            <pre class="python-docs__code"><code>arm.home()
+for step in range(6):
+  angle = 90 + round(20 * math.sin(step))
+  arm.move_joint("base", angle, speed=50)
+  arm.wait(0.2)</code></pre>
+          </section>
+        </div>
+      </section>
+
+      <section class="python-docs__section" id="common-errors">
+        <div class="panel-label"><i data-lucide="alert-triangle"></i> Common Errors</div>
+        <div class="python-docs__grid python-docs__grid--two">
+          <div class="python-docs__card">
+            <h3>Wrong joint name</h3>
+            <pre class="python-docs__code"><code># Wrong
+arm.move_joint("wrist", 90)
+
+# Use one of the documented names
+arm.move_joint("wrist_tilt", 90)</code></pre>
+          </div>
+
+          <div class="python-docs__card">
+            <h3>Angle outside range</h3>
+            <pre class="python-docs__code"><code># Base is 20..130, so this fails
+arm.move_joint("base", 180)</code></pre>
+          </div>
+
+          <div class="python-docs__card">
+            <h3>Speed outside range</h3>
+            <pre class="python-docs__code"><code># Speed must be 1..100
+arm.move_joint("elbow", 90, speed=200)</code></pre>
+          </div>
+
+          <div class="python-docs__card">
+            <h3>Infinite loop timeout</h3>
+            <pre class="python-docs__code"><code># This does not finish building commands
+while True:
+  arm.wait(0.1)</code></pre>
+            <p>The worker stops Python execution after 8 seconds. Use <code>for</code> loops with a fixed count.</p>
+          </div>
+
+          <div class="python-docs__card">
+            <h3>Importing modules</h3>
+            <pre class="python-docs__code"><code># Do not do this in the lab sandbox
+import math
+
+# math is already available
+print(math.sin(1))</code></pre>
+          </div>
+
+          <div class="python-docs__card">
+            <h3>Expecting a native robot library</h3>
+            <p><code>arm</code> is injected by RoboBuddy for this lab. It is not a standard Python module and does not exist outside this page.</p>
+          </div>
+
+          <div class="python-docs__card">
+            <h3>Direct hardware access</h3>
+            <p>Python cannot write to serial hardware directly. Use <code>arm</code> commands and RoboBuddy will run them safely.</p>
+          </div>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Python docs ready</span>
+    </div>
+  </footer>
+
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/scheduled-logo.js?v=20260608-ui"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+
+      var shell = document.querySelector(".python-docs__toc-shell");
+      var nav = document.querySelector(".python-docs__nav");
+      if (!shell || !nav) return;
+
+      var startY = 0;
+      var ticking = false;
+
+      function topOffset() {
+        return window.matchMedia("(max-width: 1100px)").matches ? 10 : 14;
+      }
+
+      function clearFloating() {
+        shell.classList.remove("is-floating");
+        nav.classList.remove("is-floating");
+        nav.style.removeProperty("--toc-top");
+        nav.style.removeProperty("--toc-left");
+        nav.style.removeProperty("--toc-width");
+        nav.style.removeProperty("--toc-max-height");
+      }
+
+      function syncToc() {
+        var offset = topOffset();
+        var shouldFloat = window.scrollY >= startY;
+
+        if (!shouldFloat) {
+          clearFloating();
+          return;
+        }
+
+        var shellRect = shell.getBoundingClientRect();
+        shell.classList.add("is-floating");
+        nav.classList.add("is-floating");
+        shell.style.setProperty("--toc-height", nav.offsetHeight + "px");
+        nav.style.setProperty("--toc-top", offset + "px");
+        nav.style.setProperty("--toc-left", Math.round(shellRect.left) + "px");
+        nav.style.setProperty("--toc-width", Math.round(shellRect.width) + "px");
+        nav.style.setProperty("--toc-max-height", "calc(100vh - " + (offset * 2) + "px)");
+      }
+
+      function scheduleSync() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(function() {
+          ticking = false;
+          syncToc();
+        });
+      }
+
+      function measureToc() {
+        clearFloating();
+        var offset = topOffset();
+        var shellRect = shell.getBoundingClientRect();
+        var navRect = nav.getBoundingClientRect();
+        startY = shellRect.top + window.scrollY - offset;
+        shell.style.setProperty("--toc-height", navRect.height + "px");
+        syncToc();
+      }
+
+      window.addEventListener("scroll", scheduleSync, { passive: true });
+      window.addEventListener("resize", function() {
+        window.requestAnimationFrame(measureToc);
+      });
+      window.requestAnimationFrame(measureToc);
+    });
+  </script>
+</body>
+</html>
