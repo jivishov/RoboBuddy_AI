@@ -112,9 +112,9 @@ body {
   height: 52px;
   flex: 0 0 52px;
   overflow: hidden;
-  border-radius: 50%;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 0 0 2px rgba(214, 40, 57, 0.18);
+  box-shadow: 0 0 0 1px rgba(11, 122, 117, 0.18), 0 8px 18px rgba(7, 24, 51, 0.12);
 }
 
 .topbar__logo--image img {
