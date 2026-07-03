@@ -136,9 +136,25 @@ function testBlocklyAndPythonContracts() {
   const preview3dText = fs.readFileSync(path.join(root, "simulator/js/arm-preview-3d.js"), "utf8");
   assert(preview3dText.includes("shouldShowArduinoPreview"), "3D Arduino preview is guarded by active robot");
   assert(!preview3dText.includes("ArmPreview2D") && !preview3dText.includes("using 2D fallback"), "3D preview failure path does not revive the removed 2D fallback");
+  assert(!preview3dText.includes("config.primitives") && !preview3dText.includes("createPrimitive("), "robot 3D preview does not render fallback primitives");
+  assert(!preview3dText.includes("primitiveName") && !preview3dText.includes("fallback preview active"), "robot 3D preview has no primitive fallback wheel or status path");
+  assert(preview3dText.includes("3D preview unavailable."), "robot 3D preview reports unavailable instead of fallback geometry");
   assert(preview3dText.includes("groundOffsetMm") && preview3dText.includes("groundY"), "mobile mesh previews preserve baked ground offset while driving");
   const simulationText = fs.readFileSync(path.join(root, "robots/adapters/simulation/simulation.js"), "utf8");
   assert(!simulationText.includes("data-robot-sim-3d-status") && !simulationText.includes("data-robot-sim-3d-readout"), "SO-101 and LeKiwi 3D simulator windows do not render in-canvas labels");
+  assert(!simulationText.includes("robot-sim--arm") && !simulationText.includes("robot-sim--lekiwi"), "SO-101 and LeKiwi simulator failures do not render SVG fallback previews");
+  assert(simulationText.includes("data-robot-sim-3d-unavailable") && simulationText.includes("3D preview unavailable."), "SO-101 and LeKiwi simulator failures render an unavailable panel");
+  const deployText = fs.readFileSync(path.join(root, ".github/workflows/deploy-pages.yml"), "utf8");
+  [
+    "simulator/js/robot-rig-configs.js",
+    "simulator/js/robot-mesh-data-so101.js",
+    "simulator/js/robot-mesh-data-lekiwi.js"
+  ].forEach((file) => {
+    assert(deployText.includes(file), `GitHub Pages artifact includes ${file}`);
+  });
+  const rigConfigText = fs.readFileSync(path.join(root, "simulator/js/robot-rig-configs.js"), "utf8");
+  assert(!/^\s*primitives:\s*\[/m.test(rigConfigText), "robot rig configs do not define primitive fallback geometry");
+  assert(!rigConfigText.includes("primitiveName") && !rigConfigText.includes("primitive chain"), "robot rig configs do not describe primitive fallback paths");
   const appText = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
   assert(appText.includes('icon: "arrow-up"') && appText.includes('icon: "rotate-cw"') && appText.includes('icon: "square"'), "Drive controls map actions to Lucide icons");
   assert(appText.includes("robot-drive-controls__button--${slot}") && appText.includes('aria-label="${label}"') && appText.includes('data-hint="${label}"'), "Drive controls render slotted icon buttons with accessible popover labels");
@@ -350,10 +366,10 @@ function testSharedGripperSliderSemantics() {
 
   const configs = parseRobotRigPreviewConfigs();
   assert(configs.so101_follower && configs.lekiwi_sim, "rig preview configs define LeRobot and LeKiwi");
-  assert(configs.so101_follower.gripper && configs.lekiwi_sim.gripper, "rig preview configs define both grippers");
+  assert(!configs.so101_follower.gripper && !configs.lekiwi_sim.gripper, "rig preview configs do not define fallback grippers");
   const visualFields = ["jointId", "parent", "openValue", "closeValue", "openSpread", "closedSpread", "jawLength", "jawSize", "jawOffset"];
   visualFields.forEach((field) => {
-    assert(field in configs.so101_follower.gripper && field in configs.lekiwi_sim.gripper, `fallback gripper ${field} exists for both robots`);
+    assert(!(field in (configs.so101_follower.gripper || {})) && !(field in (configs.lekiwi_sim.gripper || {})), `fallback gripper ${field} is not defined in robot rig configs`);
   });
 
   const lerobotMesh = parseRobotMeshData("simulator/js/robot-mesh-data-so101.js");

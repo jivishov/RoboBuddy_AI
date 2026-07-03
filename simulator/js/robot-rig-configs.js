@@ -5,7 +5,7 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
     source: {
       format: "urdf-baked-meshes",
       url: "https://raw.githubusercontent.com/TheRobotStudio/SO-ARM100/main/Simulation/SO101/so101_new_calib.urdf",
-      notes: "Official URDF joints and decimated STL meshes baked by tools/build-robot-rig-mesh-data.py. STL vertices and transforms are both in the Three.js Y-up frame. The primitive chain below is only a fallback while mesh data loads or if it fails."
+      notes: "Official URDF joints and decimated STL meshes baked by tools/build-robot-rig-mesh-data.py. STL vertices and transforms are both in the Three.js Y-up frame."
     },
     meshData: {
       module: "./robot-mesh-data-so101.js",
@@ -107,34 +107,7 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
           axis: "0 0 1"
         }
       }
-    ],
-    primitives: [
-      { parent: "root", shape: "cylinder", name: "base-disc", radius: 50, length: 18, position: [0, 9, 0], material: "printed" },
-      { parent: "root", shape: "box", name: "base-servo", size: [44, 38, 48], position: [16, 37, 0], material: "servo" },
-      { parent: "root", shape: "cylinderBetween", name: "base-post", from: [0, 18, 0], to: [0, 62, 0], radius: 11, material: "accent" },
-      { parent: "shoulderPan", shape: "box", name: "shoulder-servo", size: [52, 42, 46], position: [0, 8, 0], material: "servo" },
-      { parent: "shoulderLift", shape: "cylinderBetween", name: "upper-arm", from: [0, 0, 0], to: [-113, 0, 0], radius: 13, material: "link" },
-      { parent: "shoulderLift", shape: "box", name: "upper-arm-web", size: [102, 16, 30], position: [-56, -16, 0], material: "printed" },
-      { parent: "elbowFlex", shape: "sphere", name: "elbow-joint", radius: 18, position: [0, 0, 0], material: "joint" },
-      { parent: "elbowFlex", shape: "cylinderBetween", name: "lower-arm", from: [0, 0, 0], to: [-135, 0, 0], radius: 12, material: "link" },
-      { parent: "elbowFlex", shape: "box", name: "lower-arm-web", size: [122, 14, 26], position: [-66, 16, 0], material: "printed" },
-      { parent: "wristFlex", shape: "sphere", name: "wrist-flex-joint", radius: 15, position: [0, 0, 0], material: "joint" },
-      { parent: "wristFlex", shape: "cylinderBetween", name: "wrist-link", from: [0, 0, 0], to: [-61, 0, 0], radius: 10, material: "wrist" },
-      { parent: "wristRoll", shape: "box", name: "wrist-servo", size: [40, 34, 34], position: [-20, 0, 0], material: "servo" },
-      { parent: "gripperRoot", shape: "box", name: "palm", size: [32, 18, 30], position: [-14, 0, 0], material: "gripper" }
-    ],
-    gripper: {
-      jointId: "gripper",
-      parent: "gripperRoot",
-      openValue: 20,
-      closeValue: 85,
-      openSpread: 38,
-      closedSpread: 14,
-      jawLength: 58,
-      jawSize: [58, 7, 8],
-      jawOffset: [-54, 0, 0],
-      material: "gripper"
-    }
+    ]
   },
 
   lekiwi_sim: {
@@ -143,7 +116,7 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
     source: {
       format: "urdf-baked-meshes",
       url: "https://raw.githubusercontent.com/SIGRobotics-UIUC/LeKiwi/main/URDF/LeKiwi.urdf",
-      notes: "Official URDF joints and decimated STL meshes baked by tools/build-robot-rig-mesh-data.py. STL vertices and transforms are both in the Three.js Y-up frame. The primitive chain below is only a fallback while mesh data loads or if it fails."
+      notes: "Official URDF joints and decimated STL meshes baked by tools/build-robot-rig-mesh-data.py. STL vertices and transforms are both in the Three.js Y-up frame."
     },
     meshData: {
       module: "./robot-mesh-data-lekiwi.js",
@@ -158,21 +131,18 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
         {
           id: "front",
           group: "st3215_servo_motor_v1_2_revolute_60",
-          primitiveName: "wheel-front",
           axis: [0, -1, 0],
           spinSign: 1
         },
         {
           id: "right",
           group: "st3215_servo_motor_v1_1_revolute_62",
-          primitiveName: "wheel-right",
           axis: [0.866025, 0.5, 0],
           spinSign: 1
         },
         {
           id: "left",
           group: "st3215_servo_motor_v1_revolute_64",
-          primitiveName: "wheel-left",
           axis: [-0.866025, 0.5, 0],
           spinSign: 1
         }
@@ -281,36 +251,6 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
           axis: "0 -0.906308 -0.422618"
         }
       }
-    ],
-    primitives: [
-      { parent: "root", shape: "cylinder", name: "base-plate-lower", radius: 108, length: 10, position: [0, 5, 0], material: "plate" },
-      { parent: "root", shape: "cylinder", name: "base-plate-upper", radius: 92, length: 8, position: [0, 46, 0], material: "mount" },
-      { parent: "root", shape: "box", name: "battery", size: [84, 24, 48], position: [-32, 28, -18], material: "wheel" },
-      { parent: "root", shape: "box", name: "controller", size: [72, 12, 42], position: [24, 56, 4], material: "servo" },
-      { parent: "root", shape: "torus", name: "wheel-front", radius: 18, tube: 6, position: [-20, 18, -100], rotation: [90, 0, 0], material: "tire" },
-      { parent: "root", shape: "torus", name: "wheel-right", radius: 18, tube: 6, position: [79, 18, 23], rotation: [90, 0, 60], material: "tire" },
-      { parent: "root", shape: "torus", name: "wheel-left", radius: 18, tube: 6, position: [-59, 18, 57], rotation: [90, 0, -60], material: "tire" },
-      { parent: "root", shape: "cone", name: "heading", radius: 17, length: 38, position: [0, 68, -88], rotation: [90, 0, 0], material: "plate" },
-      { parent: "shoulderPan", shape: "box", name: "arm-base-servo", size: [44, 40, 44], position: [0, 0, 0], material: "servo" },
-      { parent: "shoulderLift", shape: "cylinderBetween", name: "upper-arm", from: [0, 0, 0], to: [-104, 0, 0], radius: 12, material: "link" },
-      { parent: "elbowFlex", shape: "sphere", name: "elbow-joint", radius: 17, position: [0, 0, 0], material: "joint" },
-      { parent: "elbowFlex", shape: "cylinderBetween", name: "lower-arm", from: [0, 0, 0], to: [-102, 0, 0], radius: 11, material: "link" },
-      { parent: "wristFlex", shape: "sphere", name: "wrist-joint", radius: 14, position: [0, 0, 0], material: "joint" },
-      { parent: "wristFlex", shape: "cylinderBetween", name: "wrist-link", from: [0, 0, 0], to: [-67, 0, 0], radius: 9, material: "wrist" },
-      { parent: "wristRoll", shape: "box", name: "wrist-roll-servo", size: [38, 30, 30], position: [-18, 0, 0], material: "servo" },
-      { parent: "gripperRoot", shape: "box", name: "palm", size: [30, 16, 28], position: [-12, 0, 0], material: "gripper" }
-    ],
-    gripper: {
-      jointId: "gripper",
-      parent: "gripperRoot",
-      openValue: 20,
-      closeValue: 85,
-      openSpread: 38,
-      closedSpread: 14,
-      jawLength: 58,
-      jawSize: [58, 7, 8],
-      jawOffset: [-54, 0, 0],
-      material: "gripper"
-    }
+    ]
   }
 });

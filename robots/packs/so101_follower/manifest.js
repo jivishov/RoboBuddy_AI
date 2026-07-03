@@ -46,7 +46,7 @@
       repository: "https://github.com/TheRobotStudio/SO-ARM100",
       path: "Simulation/SO101/so101_new_calib.urdf",
       url: "https://raw.githubusercontent.com/TheRobotStudio/SO-ARM100/main/Simulation/SO101/so101_new_calib.urdf",
-      notes: "The in-browser simulator loads local baked mesh data derived from the official URDF and STL assets. Primitive geometry is fallback-only."
+      notes: "The in-browser simulator loads local baked mesh data derived from the official URDF and STL assets."
     },
     chooser: {
       level: "Beginner/Intermediate",

@@ -40,6 +40,9 @@ jobs:
           cp simulator/js/arm-rig-config.js site/simulator/js/
           cp simulator/js/arm-preview-3d.js site/simulator/js/
           cp simulator/js/arm-preview-mesh-data.js site/simulator/js/
+          cp simulator/js/robot-rig-configs.js site/simulator/js/
+          cp simulator/js/robot-mesh-data-so101.js site/simulator/js/
+          cp simulator/js/robot-mesh-data-lekiwi.js site/simulator/js/
           cp simulator/css/arm-preview-3d.css site/simulator/css/
           find site -maxdepth 4 -type f | sort
 

@@ -766,6 +766,7 @@ class RobotRigPreview3D {
     this.state = options.state || null;
     this.config = options.config || ROBOT_RIG_PREVIEW_CONFIGS[this.manifest ? this.manifest.id : ""];
     this.onStatus = typeof options.onStatus === "function" ? options.onStatus : null;
+    this.onUnavailable = typeof options.onUnavailable === "function" ? options.onUnavailable : null;
     this.groups = {};
     this.jointDefs = [];
     this.meshes = [];
@@ -793,7 +794,6 @@ class RobotRigPreview3D {
     }
 
     this.initScene();
-    this.buildRig();
     this.resetCamera();
     this.resize();
     this.updateState(this.state);
@@ -914,26 +914,17 @@ class RobotRigPreview3D {
       this.jointDefs.push(joint);
     });
 
-    (this.config.primitives || []).forEach((primitive) => {
-      const parent = this.groups[primitive.parent] || this.root;
-      const mesh = this.createPrimitive(primitive);
-      if (mesh) {
-        mesh.name = primitive.name || primitive.shape;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        parent.add(mesh);
-        this.meshes.push(mesh);
-      }
-    });
-
-    this.buildGripper();
     this.bindMobileWheels();
   }
 
   async loadOfficialMeshRig() {
     const meshConfig = this.config.meshData;
     if (!meshConfig || !meshConfig.module) {
-      this.setStatus(`${this.manifestShortName()} 3D ready`, "ready");
+      const error = new Error("Robot 3D preview requires official mesh data.");
+      this.setStatus("3D preview unavailable.", "error");
+      if (this.onUnavailable && !this.disposed) {
+        this.onUnavailable(error);
+      }
       return;
     }
 
@@ -953,9 +944,12 @@ class RobotRigPreview3D {
       this.updateState(this.state);
       this.setStatus(`${this.manifestShortName()} official STL assembly ready`, "ready");
     } catch (error) {
-      console.warn("Official robot mesh assembly failed; keeping primitive fallback.", error);
+      console.warn("Official robot mesh assembly failed.", error);
       this.meshRigActive = false;
-      this.setStatus(`${this.manifestShortName()} fallback preview active`, "warning");
+      this.setStatus("3D preview unavailable.", "error");
+      if (this.onUnavailable && !this.disposed) {
+        this.onUnavailable(error);
+      }
     }
   }
 
@@ -1154,84 +1148,6 @@ class RobotRigPreview3D {
     return (this.manifest && (this.manifest.shortName || this.manifest.name)) || this.config.title || "Robot";
   }
 
-  createPrimitive(definition) {
-    const material = this.materials[definition.material] || this.materials.fallback;
-    let mesh = null;
-
-    if (definition.shape === "box") {
-      mesh = new THREE.Mesh(new THREE.BoxGeometry(...(definition.size || [20, 20, 20])), material);
-    } else if (definition.shape === "sphere") {
-      mesh = new THREE.Mesh(new THREE.SphereGeometry(definition.radius || 10, 32, 16), material);
-    } else if (definition.shape === "cylinder") {
-      mesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(definition.radius || 10, definition.radius || 10, definition.length || 20, 36),
-        material
-      );
-    } else if (definition.shape === "cone") {
-      mesh = new THREE.Mesh(
-        new THREE.ConeGeometry(definition.radius || 10, definition.length || 20, 32),
-        material
-      );
-    } else if (definition.shape === "torus") {
-      mesh = new THREE.Mesh(
-        new THREE.TorusGeometry(definition.radius || 16, definition.tube || 4, 14, 42),
-        material
-      );
-    } else if (definition.shape === "cylinderBetween") {
-      return this.createCylinderBetween(definition, material);
-    }
-
-    if (!mesh) {
-      return null;
-    }
-    mesh.position.fromArray(definition.position || [0, 0, 0]);
-    setEulerDegrees(mesh, definition.rotation || [0, 0, 0]);
-    return mesh;
-  }
-
-  createCylinderBetween(definition, material) {
-    const from = new THREE.Vector3().fromArray(definition.from || [0, 0, 0]);
-    const to = new THREE.Vector3().fromArray(definition.to || [0, 20, 0]);
-    const direction = new THREE.Vector3().subVectors(to, from);
-    const length = direction.length();
-    if (!Number.isFinite(length) || length <= 0.001) {
-      return null;
-    }
-
-    const mesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(definition.radius || 8, definition.radius || 8, length, 28),
-      material
-    );
-    mesh.position.copy(from).addScaledVector(direction, 0.5);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-    return mesh;
-  }
-
-  buildGripper() {
-    const gripper = this.config.gripper;
-    if (!gripper) {
-      return;
-    }
-    const parent = this.groups[gripper.parent] || this.root;
-    const material = this.materials[gripper.material] || this.materials.fallback;
-    const createJaw = (name) => {
-      const group = new THREE.Group();
-      group.name = name;
-      const jaw = new THREE.Mesh(new THREE.BoxGeometry(...(gripper.jawSize || [48, 7, 8])), material);
-      jaw.position.set(-((gripper.jawLength || 48) / 2), 0, 0);
-      jaw.castShadow = true;
-      jaw.receiveShadow = true;
-      group.add(jaw);
-      parent.add(group);
-      return group;
-    };
-
-    this.gripperGroups = {
-      left: createJaw("gripper-jaw-left"),
-      right: createJaw("gripper-jaw-right")
-    };
-  }
-
   updateState(nextState) {
     this.state = nextState || this.state || {};
     if (this.config.mobileBase && !this.activeMobileMotion) {
@@ -1373,7 +1289,7 @@ class RobotRigPreview3D {
     const up = new THREE.Vector3(0, 1, 0);
 
     wheelDefs.forEach((wheel) => {
-      const object = this.groups[wheel.group] || this.meshes.find((mesh) => mesh.name === wheel.primitiveName);
+      const object = this.groups[wheel.group];
       if (!object) {
         return;
       }

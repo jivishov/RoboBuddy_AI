@@ -53,7 +53,7 @@
       repository: "https://github.com/SIGRobotics-UIUC/LeKiwi",
       path: "URDF/LeKiwi.urdf",
       url: "https://raw.githubusercontent.com/SIGRobotics-UIUC/LeKiwi/main/URDF/LeKiwi.urdf",
-      notes: "The in-browser simulator loads an official URDF/STL-derived LeKiwi assembly. Primitive geometry remains only as the fallback if mesh data fails to load."
+      notes: "The in-browser simulator loads an official URDF/STL-derived LeKiwi assembly."
     },
     chooser: {
       level: "Intermediate",

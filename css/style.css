@@ -1388,6 +1388,10 @@ body {
   color: #e8f2ff;
 }
 
+.robot-sim--unavailable {
+  display: block;
+}
+
 .robot-sim-3d__viewport {
   position: absolute;
   inset: 0;
@@ -1452,6 +1456,26 @@ body {
 .robot-sim-3d__status[data-tone="error"] {
   border-color: rgba(239, 68, 68, 0.46);
   color: #ffe1e1;
+}
+
+.robot-sim-3d__fallback-status {
+  position: absolute;
+  z-index: 3;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid rgba(239, 68, 68, 0.46);
+  border-radius: 8px;
+  background: rgba(12, 18, 26, 0.78);
+  color: #ffe1e1;
+  box-shadow: 0 10px 28px rgba(7, 12, 19, 0.28);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .robot-sim-3d__reset {
