@@ -181,6 +181,7 @@ function testBlocklyAndPythonContracts() {
   assert(styleText.includes(".robot-sim--three .robot-sim-3d__status") && styleText.includes("display: none !important"), "robot 3D simulator label overlays stay hidden if legacy markup appears");
   const geminiText = fs.readFileSync(path.join(root, "gemini.html"), "utf8");
   const geminiDraftText = fs.readFileSync(path.join(root, "js/gemini-draft.js"), "utf8");
+  assert(geminiText.includes("css/style.css?v=20260703-gemini-robot-preview"), "Gemini page cache-busts the stylesheet that contains robot preview layout fixes");
   assert(geminiText.includes('id="geminiRobotSimPreview"') && geminiText.includes("robot-sim-preview gemini-draft__robot-sim"), "Gemini page defines a dedicated robot simulation preview container");
   assert(geminiDraftText.includes('ui.robotSimPreview = document.getElementById("geminiRobotSimPreview")'), "Gemini JS caches the robot simulation preview container");
   assert(geminiDraftText.includes("NS.RobotRuntime.init({ container: ui.robotSimPreview })"), "Gemini initializes RobotRuntime with the simulation preview container");
