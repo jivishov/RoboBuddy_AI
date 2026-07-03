@@ -154,8 +154,8 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       radius: 1250
     },
     camera: {
-      position: [430, 340, 580],
-      target: [0, 110, -20]
+      position: [-620, 350, 240],
+      target: [-60, 125, 45]
     },
     materials: {
       plate: { color: 0x1f8a8a, roughness: 0.66, metalness: 0.04 },

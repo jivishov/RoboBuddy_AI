@@ -585,6 +585,7 @@ function testLeKiwiOfficialMeshTransformSpace() {
 function testLeKiwiRollingMotionConfig() {
   const configText = fs.readFileSync(path.join(root, "simulator/js/robot-rig-configs.js"), "utf8");
   const previewText = fs.readFileSync(path.join(root, "simulator/js/arm-preview-3d.js"), "utf8");
+  const configs = parseRobotRigPreviewConfigs();
   const meshData = parseRobotMeshData("simulator/js/robot-mesh-data-lekiwi.js");
   const measurement = measureOfficialMeshBounds(meshData);
   const wheelGroups = [
@@ -598,6 +599,8 @@ function testLeKiwiRollingMotionConfig() {
   });
   assert(configText.includes("wheelRadiusMm: 48"), "LeKiwi wheel radius is configured from official mesh scale");
   assert(/wheelRadiusMm:\s*48/.test(configText), "LeKiwi wheel radius remains in a realistic range");
+  assert(configs.lekiwi_sim.camera.position[0] < -500 && configs.lekiwi_sim.camera.position[2] > 0, "LeKiwi default camera starts on the gripper-facing side");
+  assert(configs.lekiwi_sim.camera.target[0] < 0, "LeKiwi default camera target favors the arm and gripper side");
   assert(previewText.includes("activeMobileMotion"), "3D preview stores active mobile motion state");
   assert(previewText.includes("wheelSpinById"), "3D preview tracks wheel spin by wheel id");
   assert(previewText.includes("groundOffsetMm") && previewText.includes("groundY"), "driving preserves baked ground offset");

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ARM_PREVIEW_MESH_DATA } from "./arm-preview-mesh-data.js?v=20260611-meshdata";
 import { ARM_RIG_CONFIG } from "./arm-rig-config.js?v=20260611-meshdata";
-import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260703-lekiwi-gripper-calibration";
+import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260703-lekiwi-gripper-facing-camera";
 
 const NS = (window.RoboAdmin = window.RoboAdmin || {});
 const DEG_TO_RAD = Math.PI / 180;
