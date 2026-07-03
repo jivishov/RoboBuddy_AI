@@ -179,6 +179,14 @@ function testBlocklyAndPythonContracts() {
   assert(styleText.includes(".robot-sim-3d__reset") && styleText.includes("width: 34px") && styleText.includes("height: 34px"), "robot 3D camera reset button matches Arduino 3D reset size");
   assert(styleText.includes(".robot-sim--three .robot-sim-3d__reset svg") && styleText.includes("width: 18px") && styleText.includes("height: 18px"), "robot 3D camera reset icon matches Arduino 3D reset icon size");
   assert(styleText.includes(".robot-sim--three .robot-sim-3d__status") && styleText.includes("display: none !important"), "robot 3D simulator label overlays stay hidden if legacy markup appears");
+  const geminiText = fs.readFileSync(path.join(root, "gemini.html"), "utf8");
+  const geminiDraftText = fs.readFileSync(path.join(root, "js/gemini-draft.js"), "utf8");
+  assert(geminiText.includes('id="geminiRobotSimPreview"') && geminiText.includes("robot-sim-preview gemini-draft__robot-sim"), "Gemini page defines a dedicated robot simulation preview container");
+  assert(geminiDraftText.includes('ui.robotSimPreview = document.getElementById("geminiRobotSimPreview")'), "Gemini JS caches the robot simulation preview container");
+  assert(geminiDraftText.includes("NS.RobotRuntime.init({ container: ui.robotSimPreview })"), "Gemini initializes RobotRuntime with the simulation preview container");
+  assert(geminiDraftText.includes("NS.RobotRuntime.render(ui.robotSimPreview)"), "Gemini renders robot simulation previews for non-Arduino robots");
+  assert(geminiDraftText.includes('ui.previewBody.classList.toggle("is-robot-sim-active", !showArduino)'), "Gemini expands the preview area while robot simulator previews are active");
+  assert(styleText.includes(".gemini-draft__preview-body.is-robot-sim-active") && styleText.includes(".gemini-draft__robot-sim[hidden]"), "Gemini robot simulator preview has dedicated full-width layout rules");
   const armPreviewStyleText = fs.readFileSync(path.join(root, "simulator/css/arm-preview-3d.css"), "utf8");
   assert(armPreviewStyleText.includes(".arm-preview-3d__status") && armPreviewStyleText.includes("display: none !important"), "Arduino 3D simulator status label stays hidden");
   assert(armPreviewStyleText.includes(".arm-preview-container.is-robot-sim-active .arm-preview-3d"), "robot simulator screens hide the Arduino 3D preview surface");

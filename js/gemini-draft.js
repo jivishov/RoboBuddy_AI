@@ -221,7 +221,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   function init() {
     cacheUi();
     if (NS.RobotRuntime) {
-      NS.RobotRuntime.init();
+      NS.RobotRuntime.init({ container: ui.robotSimPreview });
     }
     setupEditor();
     syncEditorModelFromSelect();
@@ -361,6 +361,8 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     ui.motorsEnabled = document.getElementById("geminiMotorsEnabled");
     ui.arm3dFallbackSvg = document.getElementById("geminiArm3dFallbackSvg");
     ui.previewSketchPanel = document.getElementById("geminiPreviewSketchPanel");
+    ui.previewBody = document.querySelector(".gemini-draft__preview-body");
+    ui.robotSimPreview = document.getElementById("geminiRobotSimPreview");
     ui.runSpinner = document.getElementById("geminiRunSpinner");
     ui.btnRunGemini = document.getElementById("btnRunGemini");
     ui.btnGenerateRobotPython = document.getElementById("btnGenerateRobotPython");
@@ -512,6 +514,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     if (options.resetPose) {
       applyAngles(getActiveHomeAngles());
     }
+    syncPreviewVisibility();
     if (options.clearValidation) {
       clearReviewedRobotValidation(options.message || "Robot changed. Validate reviewed Python again.");
     }
@@ -3599,11 +3602,21 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   function syncPreviewVisibility() {
-    if (ui.previewSketchPanel) {
-      ui.previewSketchPanel.hidden = false;
+    const showArduino = isArduinoActive();
+    if (ui.previewBody) {
+      ui.previewBody.classList.toggle("is-robot-sim-active", !showArduino);
     }
-    if (state.preview3d && typeof state.preview3d.resize === "function") {
+    if (ui.previewSketchPanel) {
+      ui.previewSketchPanel.hidden = !showArduino;
+    }
+    if (showArduino && state.preview3d && typeof state.preview3d.resize === "function") {
       window.requestAnimationFrame(() => state.preview3d.resize());
+    }
+    if (ui.robotSimPreview) {
+      ui.robotSimPreview.hidden = showArduino;
+      if (!showArduino && NS.RobotRuntime) {
+        NS.RobotRuntime.render(ui.robotSimPreview);
+      }
     }
   }
 

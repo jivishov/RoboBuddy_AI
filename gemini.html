@@ -397,6 +397,7 @@ roboadmin.use_response(response.text)</textarea>
               </div>
               <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
             </div>
+            <div id="geminiRobotSimPreview" class="robot-sim-preview gemini-draft__robot-sim" hidden></div>
           </div>
           <div class="python-draft__joints" aria-label="Current joint values">
             <div><span>Base</span><strong id="geminiJointValue0">90 deg</strong></div>
@@ -482,7 +483,7 @@ roboadmin.use_response(response.text)</textarea>
   <script src="js/file-workflows.js"></script>
   <script type="module" src="simulator/js/arm-preview-3d.js?v=20260703-lekiwi-gripper-facing-camera"></script>
   <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
-  <script src="js/gemini-draft.js?v=20260702-robot-mission-ui-2"></script>
+  <script src="js/gemini-draft.js?v=20260703-gemini-robot-preview"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();
