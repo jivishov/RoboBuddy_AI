@@ -56,6 +56,7 @@
         <div class="panel-label"><i data-lucide="list"></i> Contents</div>
         <a href="#quick-start">Quick Start</a>
         <a href="#safety-model">Safety Model</a>
+        <a href="#robot-api">Robot API</a>
         <a href="#arm-api">Arm API</a>
         <a href="#joint-reference">Joint Reference</a>
         <a href="#python-basics">Python Basics</a>
@@ -72,14 +73,15 @@
           <h2>Write real Python that builds safe robot commands.</h2>
           <p>
             This interpreter runs real Python, but the robot API is provided by RoboBuddy.
-            Your Python code uses the <code>arm</code> object to build a command list.
+            Your Python code uses the <code>robot</code> object to build a command list.
+            The older <code>arm</code> object remains available for Arduino arm compatibility.
             RoboBuddy validates that list, then runs it through the same preview and robot runner used by Blockly.
           </p>
         </div>
-        <pre class="python-docs__code"><code>arm.home()
-arm.move_joint("base", 100, speed=50)
-arm.wait(0.5)
-print(arm.get_angles())</code></pre>
+        <pre class="python-docs__code"><code>robot.home()
+robot.move_joint("base", 100, speed=50)
+robot.wait(0.5)
+print(robot.get_joints())</code></pre>
       </section>
 
       <section class="python-docs__section" id="safety-model">
@@ -126,12 +128,40 @@ print(arm.get_angles())</code></pre>
         </div>
       </section>
 
+      <section class="python-docs__section" id="robot-api">
+        <div class="panel-label"><i data-lucide="bot"></i> Robot API</div>
+        <h2>The <code>robot</code> object</h2>
+        <p><code>robot</code> works with the active robot pack. It only creates validated RoboBuddy command JSON; it cannot access serial, files, network, the DOM, imports, packages, hardware SDKs, or system APIs.</p>
+        <div class="python-docs__api-list">
+          <section class="python-docs__api-card">
+            <h3><code>robot.home()</code>, <code>robot.stop()</code>, <code>robot.wait(seconds)</code></h3>
+            <p>Universal commands available to all Tier 1 robots. STOP is also available through the page STOP button.</p>
+          </section>
+          <section class="python-docs__api-card">
+            <h3><code>robot.move_joint(joint, value, speed=50)</code></h3>
+            <p>Move one active robot joint within its manifest limits.</p>
+          </section>
+          <section class="python-docs__api-card">
+            <h3><code>robot.move_joints({...}, speed=50)</code></h3>
+            <p>Move a set of joints in one validated pose command.</p>
+          </section>
+          <section class="python-docs__api-card">
+            <h3><code>robot.open_gripper()</code>, <code>robot.close_gripper()</code>, <code>robot.set_gripper(value)</code></h3>
+            <p>Use the active robot manifest's gripper range and open/close values.</p>
+          </section>
+          <section class="python-docs__api-card">
+            <h3>LeKiwi drive helpers</h3>
+            <p><code>robot.drive_forward</code>, <code>drive_backward</code>, <code>strafe_left</code>, <code>strafe_right</code>, <code>turn_left</code>, and <code>turn_right</code> work for <code>lekiwi_sim</code>. LeKiwi is simulation-only in Tier 1.</p>
+          </section>
+        </div>
+      </section>
+
       <section class="python-docs__section" id="arm-api">
         <div class="panel-label"><i data-lucide="bot"></i> Arm API</div>
         <h2>The <code>arm</code> object</h2>
         <p>
           <code>arm</code> is a RoboBuddy classroom object. It is available automatically in the Python editor.
-          Do not import it.
+          Do not import it. It remains as a backward-compatible alias for Arduino arm programs.
         </p>
 
         <div class="python-docs__api-list">

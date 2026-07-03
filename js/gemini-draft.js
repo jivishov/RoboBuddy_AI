@@ -4,7 +4,6 @@
   const HOME_ANGLES = [90, 90, 90, 90, 90, 90];
   const JOINT_LIMITS = NS.Generator ? NS.Generator.JOINT_LIMITS : [[20, 130], [15, 165], [0, 180], [0, 180], [0, 180], [25, 130]];
   const MOTORS_STORAGE_KEY = "roboadmin.motorsEnabled.v1";
-  const PREVIEW_MODE_STORAGE_KEY = "roboadmin.geminiPreviewMode.v1";
   const GEMINI_SPLIT_LEFT_STORAGE_KEY = "roboadmin.geminiDraftSplitLeftPercent.v1";
   const GEMINI_SPLIT_RIGHT_STORAGE_KEY = "roboadmin.geminiDraftSplitRightPercent.v1";
   const GEMINI_IMAGE_SOURCE_TAB_STORAGE_KEY = "roboadmin.geminiDraftImageSourceTab.v1";
@@ -37,7 +36,7 @@
     properties: {
       robotPython: {
         type: "string",
-        description: "Safe RoboBuddy classroom Python using only the arm object."
+        description: "Safe RoboBuddy classroom Python using only the robot object."
       },
       summary: {
         type: "string",
@@ -138,41 +137,38 @@
 
   const DETECTION_BOX_COLORS = ["#d62839", "#0b7a75", "#5271ff", "#b76b00", "#7c3aed", "#0f766e"];
 
-  const ROBOT_PLANNER_PROMPT = `You are generating classroom RoboBuddy robot-arm Python.
+  const ROBOT_PLANNER_PROMPT = `You are generating classroom RoboBuddy robot Python for the active robot selected in the UI.
 
 Return JSON only with this exact object shape:
 {
-  "robotPython": "Python code using only the provided arm object",
+  "robotPython": "Python code using only the provided robot object",
   "summary": "one short summary",
   "safetyNotes": ["operator checks"],
   "requiresHumanReview": true
 }
 
-The robotPython field must use only these methods:
-arm.home()
-arm.wait(seconds)
-arm.move_joint(joint, angle, speed=50)
-arm.move_arm(base=None, shoulder=None, elbow=None, wrist_rot=None, wrist_tilt=None, gripper=None, speed=50)
-arm.gripper_open(speed=55)
-arm.gripper_close(speed=55)
-arm.smooth_move(joint, start, end, seconds=1.5)
-arm.save_pose(name)
-arm.go_to_pose(name, speed=50)
-arm.emergency_stop()
+The robotPython field must use only these common methods:
+robot.home()
+robot.wait(seconds)
+robot.move_joint(joint, value, speed=50)
+robot.move_joints({"joint_id": value}, speed=50)
+robot.open_gripper(speed=55)
+robot.close_gripper(speed=55)
+robot.smooth_move(joint, start, end, seconds=1.5)
+robot.save_pose(name)
+robot.go_to_pose(name, speed=50)
+robot.stop()
+robot.emergency_stop()
 
-Joint limits:
-base 20..130, shoulder 15..165, elbow 0..180, wrist_rot 0..180, wrist_tilt 0..180, gripper 25..130.
-Speed must be 1..100. Waits must be 0..30 seconds. Smooth moves must be 0.2..10 seconds.
+Use only the active robot context below for joint IDs, limits, capabilities, and drive support. Speed must be 1..100. Waits must be 0..30 seconds. Smooth moves must be 0.2..10 seconds.
 
-Prefer short, conservative programs. Start from arm.home() unless the user explicitly asks to continue from the current pose. Do not use imports, files, network, serial, hardware APIs, browser APIs, or infinite loops. Do not include markdown fences.`;
+Prefer short, conservative programs. Start from robot.home() unless the user explicitly asks to continue from the current pose. Do not use imports, files, network, serial, hardware APIs, browser APIs, or infinite loops. Do not include markdown fences.`;
 
   const state = {
     angles: HOME_ANGLES.slice(),
     poses: {},
     serial: null,
-    preview2d: null,
     preview3d: null,
-    previewMode: "sketch3d",
     runner: null,
     motorsEnabled: false,
     controlOwner: CONTROL_OWNER.IDLE,
@@ -224,6 +220,9 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
 
   function init() {
     cacheUi();
+    if (NS.RobotRuntime) {
+      NS.RobotRuntime.init();
+    }
     setupEditor();
     syncEditorModelFromSelect();
     state.geminiSplitLeftPercent = readStoredGeminiSplitLeft(GEMINI_SPLIT_DEFAULT_LEFT);
@@ -237,20 +236,15 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
 
     state.serial = new NS.SerialManager({ baudRate: 9600 });
     const previewRegistry = window.RoboBuddy3DPreview || {};
-    const ArmPreview2D = previewRegistry.ArmPreview2D || NS.ArmPreview;
-    if (typeof ArmPreview2D === "function" && ui.armSvg) {
-      state.preview2d = new ArmPreview2D(ui.armSvg, {
-        jointLimits: JOINT_LIMITS,
-        initialAngles: state.angles
-      });
-      state.preview2d.setInteractive(false);
-    }
-    if (typeof previewRegistry.ArmPreview3D === "function" && ui.arm3dFallbackSvg) {
-      state.preview3d = new previewRegistry.ArmPreview3D(ui.arm3dFallbackSvg, {
+    const ArmPreview3D = previewRegistry.ArmPreview3D || NS.ArmPreview;
+    if (typeof ArmPreview3D === "function" && ui.arm3dFallbackSvg) {
+      state.preview3d = new ArmPreview3D(ui.arm3dFallbackSvg, {
         jointLimits: JOINT_LIMITS,
         initialAngles: state.angles,
         cameraPreset: "compact"
       });
+    } else {
+      mark3dPreviewUnavailable();
     }
 
     NS.getPoseNames = () => Object.keys(state.poses).sort((a, b) => a.localeCompare(b));
@@ -267,7 +261,7 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     });
 
     state.motorsEnabled = readMotorsEnabled();
-    state.previewMode = readPreviewMode();
+    initRobotUi();
 
     wireSerialEvents();
     wireRunnerEvents();
@@ -276,8 +270,7 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     createGeminiWorker();
     createRobotWorker();
     applyAngles(state.angles, { source: "init" });
-    syncPreviewModeUi();
-    schedulePreviewAvailabilityChecks();
+    syncPreviewVisibility();
     syncMotorsToggleUi();
     updateRunControls();
     syncCameraControls();
@@ -318,6 +311,7 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     ui.btnConnect = document.getElementById("btnConnect");
     ui.btnHome = document.getElementById("btnHome");
     ui.btnEmergencyStop = document.getElementById("btnEmergencyStop");
+    ui.robotChooser = document.getElementById("geminiRobotChooser");
     ui.apiKey = document.getElementById("geminiApiKey");
     ui.modelSelect = document.getElementById("geminiModelSelect");
     ui.imageInput = document.getElementById("geminiImageInput");
@@ -365,12 +359,8 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     ui.commandPreview = document.getElementById("geminiCommandPreview");
     ui.serialLog = document.getElementById("geminiSerialLog");
     ui.motorsEnabled = document.getElementById("geminiMotorsEnabled");
-    ui.armSvg = document.getElementById("geminiArmSvg");
     ui.arm3dFallbackSvg = document.getElementById("geminiArm3dFallbackSvg");
-    ui.btnPreviewSketch = document.getElementById("btnGeminiPreviewSketch");
-    ui.btnPreviewCurrent = document.getElementById("btnGeminiPreviewCurrent");
     ui.previewSketchPanel = document.getElementById("geminiPreviewSketchPanel");
-    ui.previewCurrentPanel = document.getElementById("geminiPreviewCurrentPanel");
     ui.runSpinner = document.getElementById("geminiRunSpinner");
     ui.btnRunGemini = document.getElementById("btnRunGemini");
     ui.btnGenerateRobotPython = document.getElementById("btnGenerateRobotPython");
@@ -462,6 +452,109 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
       return;
     }
     ui.robotPython.value = code || "";
+  }
+
+  function initRobotUi() {
+    renderRobotChooser();
+    wireRobotUi();
+    syncRobotUi({ clearValidation: false, resetPose: true });
+  }
+
+  function renderRobotChooser() {
+    if (!ui.robotChooser || !NS.RobotRegistry) {
+      return;
+    }
+    const active = activeRobotId();
+    ui.robotChooser.innerHTML = "";
+    NS.RobotRegistry.list().forEach((manifest) => {
+      const option = document.createElement("option");
+      option.value = manifest.id;
+      option.textContent = manifest.name;
+      option.selected = manifest.id === active;
+      ui.robotChooser.appendChild(option);
+    });
+  }
+
+  function wireRobotUi() {
+    if (ui.robotChooser) {
+      ui.robotChooser.addEventListener("change", () => {
+        if (isBusy()) {
+          ui.robotChooser.value = activeRobotId();
+          setStatus("Wait for the active run to finish before switching robots.");
+          return;
+        }
+        if (NS.RobotRuntime) {
+          NS.RobotRuntime.setActive(ui.robotChooser.value);
+        } else if (NS.RobotRegistry) {
+          NS.RobotRegistry.setActive(ui.robotChooser.value);
+        }
+      });
+    }
+    window.addEventListener("robobuddy:active-robot-change", () => {
+      syncRobotUi({
+        clearValidation: true,
+        resetPose: true,
+        message: `Robot switched to ${activeManifest().name}. Validate reviewed Python again.`
+      });
+    });
+  }
+
+  function syncRobotUi(options = {}) {
+    const manifest = activeManifest();
+    if (ui.robotChooser && manifest) {
+      ui.robotChooser.value = manifest.id;
+    }
+    if (!isArduinoActive()) {
+      state.motorsEnabled = false;
+    }
+    syncConnectButton();
+    syncMotorsToggleUi();
+    if (options.resetPose) {
+      applyAngles(getActiveHomeAngles());
+    }
+    if (options.clearValidation) {
+      clearReviewedRobotValidation(options.message || "Robot changed. Validate reviewed Python again.");
+    }
+  }
+
+  function clearReviewedRobotValidation(message) {
+    state.validatedCommands = null;
+    state.validatedCode = "";
+    updateCommandSummary("-");
+    if (ui.commandPreview) {
+      ui.commandPreview.textContent = "";
+    }
+    if (message) {
+      updateEffectStatus(message, "warning");
+      setStatus(message);
+    }
+    updateRunControls();
+  }
+
+  function activeManifest() {
+    return NS.RobotRegistry && NS.RobotRegistry.getActive ? NS.RobotRegistry.getActive() : null;
+  }
+
+  function activeRobotId() {
+    const manifest = activeManifest();
+    return manifest ? manifest.id : "arduino_arm";
+  }
+
+  function isArduinoActive() {
+    return activeRobotId() === "arduino_arm";
+  }
+
+  function getActiveHomeAngles() {
+    return NS.RobotSafety && activeManifest() ? NS.RobotSafety.getHomeAngles(activeManifest()) : HOME_ANGLES.slice();
+  }
+
+  function getActiveJointState() {
+    const manifest = activeManifest();
+    const joints = {};
+    (manifest && Array.isArray(manifest.joints) ? manifest.joints : []).forEach((joint, index) => {
+      joints[joint.id] = state.angles[index] ?? joint.home ?? 0;
+    });
+    return joints;
   }
 
   function handleRobotPythonChanged() {
@@ -727,14 +820,6 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     ui.motorsEnabled.addEventListener("change", (event) => {
       void setMotorsEnabled(Boolean(event.target && event.target.checked), { sendCommand: true });
     });
-
-    if (ui.btnPreviewSketch) {
-      ui.btnPreviewSketch.addEventListener("click", () => setPreviewMode("sketch3d"));
-    }
-
-    if (ui.btnPreviewCurrent) {
-      ui.btnPreviewCurrent.addEventListener("click", () => setPreviewMode("current"));
-    }
 
     if (!state.robotEditor) {
       ui.robotPython.addEventListener("input", handleRobotPythonChanged);
@@ -1016,8 +1101,9 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
         type: "run",
         id,
         python: code,
-        initialAngles: state.angles,
-        jointLimits: JOINT_LIMITS,
+        manifest: activeManifest(),
+        activeRobotId: activeRobotId(),
+        initialJoints: getActiveJointState(),
         poses: state.poses,
         maxCommands: MAX_PYTHON_COMMANDS
       });
@@ -1626,9 +1712,41 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     };
   }
 
+  function buildActiveRobotPromptContext() {
+    const manifest = activeManifest();
+    if (!manifest) {
+      return "Active robot: Arduino Arm\nUse conservative Arduino Arm joint commands only.";
+    }
+    const capabilities = Array.isArray(manifest.capabilities) ? manifest.capabilities.join(", ") : "none listed";
+    const joints = Array.isArray(manifest.joints) && manifest.joints.length > 0
+      ? manifest.joints.map((joint) => {
+        const unit = joint.unit || "deg";
+        const home = Number.isFinite(Number(joint.home)) ? `, home ${joint.home}${unit === "percent" ? "%" : ""}` : "";
+        return `- ${joint.id} (${joint.label || joint.id}): ${joint.min}..${joint.max} ${unit}${home}`;
+      }).join("\n")
+      : "- no joints listed";
+    const driveContext = manifest.mobileBase
+      ? [
+        "Drive support: available for this mobile robot.",
+        `Drive methods: robot.drive(vx_percent, vy_percent=0, omega=0, seconds=1.0), robot.drive_forward(speed_percent, seconds=1.0), robot.drive_backward(speed_percent, seconds=1.0), robot.strafe_left(speed_percent, seconds=1.0), robot.strafe_right(speed_percent, seconds=1.0), robot.turn_left(omega=45, seconds=1.0), robot.turn_right(omega=45, seconds=1.0).`,
+        `Maximum angular speed is ${manifest.mobileBase.maxAngularSpeed || 90} deg/s; drive speed arguments are percentages.`
+      ].join("\n")
+      : "Drive support: not available. Do not emit drive, strafe, or turn commands.";
+    return [
+      "Active robot context:",
+      `Name: ${manifest.name}`,
+      `ID: ${manifest.id}`,
+      `Capabilities: ${capabilities}`,
+      "Available joints and limits:",
+      joints,
+      driveContext,
+      "Use only the exact joint IDs listed above."
+    ].join("\n");
+  }
+
   function buildRobotRequestBody(request) {
-    const studentPrompt = extractTextFromContents(request.contents).trim() || "Create a short, safe robot arm motion.";
-    const text = `${ROBOT_PLANNER_PROMPT}\n\nStudent request:\n${studentPrompt}`;
+    const studentPrompt = extractTextFromContents(request.contents).trim() || "Create a short, safe robot motion.";
+    const text = `${ROBOT_PLANNER_PROMPT}\n\n${buildActiveRobotPromptContext()}\n\nStudent request:\n${studentPrompt}`;
     return {
       contents: appendSelectedImage([
         {
@@ -2004,7 +2122,7 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
       setStatus("Program already running.");
       return false;
     }
-    if (state.serial.isConnected() && !ensureMotionAllowed()) {
+    if (isArduinoActive() && state.serial.isConnected() && !ensureMotionAllowed()) {
       return false;
     }
 
@@ -2019,13 +2137,12 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
   }
 
   function validatePythonCommands(rawCommands) {
+    if (NS.RobotCommandSchema) {
+      return NS.RobotCommandSchema.validateCommandList(rawCommands, { activeRobotId: activeRobotId() });
+    }
     if (!Array.isArray(rawCommands)) {
       throw new Error("Python did not return a command list.");
     }
-    if (rawCommands.length > MAX_PYTHON_COMMANDS) {
-      throw new Error(`Python returned too many commands (${rawCommands.length}/${MAX_PYTHON_COMMANDS}).`);
-    }
-
     return rawCommands.map((command, index) => validatePythonCommand(command, index));
   }
 
@@ -2087,6 +2204,24 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
       }
       if (command.type === "goPose") {
         return `${index + 1}. go pose "${command.name}" @ ${command.speed}`;
+      }
+      if (command.type === "move_joint") {
+        return `${index + 1}. ${command.robotId} ${command.joint} -> ${command.value} @ ${command.speed}`;
+      }
+      if (command.type === "move_joints") {
+        return `${index + 1}. ${command.robotId} move joints ${Object.keys(command.joints || {}).join(", ")} @ ${command.speed}`;
+      }
+      if (command.type === "set_gripper") {
+        return `${index + 1}. ${command.robotId} gripper -> ${command.value} @ ${command.speed}`;
+      }
+      if (command.type === "wait") {
+        return `${index + 1}. wait ${command.seconds}s`;
+      }
+      if (command.type === "drive") {
+        return `${index + 1}. ${command.robotId} drive vx=${command.vx} vy=${command.vy} omega=${command.omega} for ${command.seconds}s`;
+      }
+      if (command.type === "stop") {
+        return `${index + 1}. stop ${command.robotId || "robot"}`;
       }
       return `${index + 1}. ${command.type}`;
     }).join("\n");
@@ -2545,7 +2680,7 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     const collapsed = Boolean(nextCollapsed);
     state.armConsoleCollapsed = collapsed;
     if (ui.armConsoleToggle) {
-      const label = `${collapsed ? "Show" : "Hide"} Arm Console`;
+      const label = `${collapsed ? "Show" : "Hide"} Robot Console`;
       ui.armConsoleToggle.setAttribute("aria-expanded", String(!collapsed));
       ui.armConsoleToggle.setAttribute("aria-label", label);
       ui.armConsoleToggle.title = label;
@@ -3101,6 +3236,11 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
   }
 
   async function handleConnectToggle() {
+    if (!isArduinoActive()) {
+      setStatus(activeRobotId() === "so101_follower" ? "SO-101 hardware uses the local bridge workflow." : "LeKiwi is simulation-only in Tier 1.");
+      syncConnectButton();
+      return;
+    }
     if (state.serial.isConnected()) {
       try {
         await parkBeforeDisconnect();
@@ -3167,6 +3307,16 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
   }
 
   async function handleHome() {
+    if (!isArduinoActive()) {
+      if (NS.RobotRuntime) {
+        NS.RobotRuntime.home();
+        applyAngles(NS.RobotRuntime.getJointArray());
+      } else {
+        applyAngles(getActiveHomeAngles());
+      }
+      setStatus(`${activeManifest().shortName || activeManifest().name} moved to home pose`);
+      return;
+    }
     if (state.serial.isConnected() && !ensureMotionAllowed()) {
       return;
     }
@@ -3252,6 +3402,12 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
 
   async function setMotorsEnabled(enabled, options = {}) {
     const requested = Boolean(enabled);
+    if (requested && !isArduinoActive()) {
+      state.motorsEnabled = false;
+      syncMotorsToggleUi();
+      setStatus(activeRobotId() === "so101_follower" ? "SO-101 hardware uses the local bridge workflow." : "LeKiwi is simulation-only in Tier 1.");
+      return;
+    }
     if (requested && state.firmwareMismatch) {
       setStatus(state.firmwareMismatch.message || "Firmware mismatch detected. Motors remain disabled.");
       state.motorsEnabled = false;
@@ -3434,9 +3590,6 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     if (state.preview3d) {
       state.preview3d.setAngles(state.angles);
     }
-    if (state.preview2d) {
-      state.preview2d.setAngles(state.angles);
-    }
     for (let servo = 0; servo < 6; servo += 1) {
       const valueEl = ui.jointValues[servo];
       if (valueEl) {
@@ -3445,81 +3598,30 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
     }
   }
 
-  function setPreviewMode(mode) {
-    state.previewMode = normalizePreviewMode(mode);
-    try {
-      localStorage.setItem(previewModeStorageKey(), state.previewMode);
-    } catch (error) {
-      // Persistence is optional; the preview switch remains usable.
-    }
-    syncPreviewModeUi();
-  }
-
-  function syncPreviewModeUi() {
-    state.previewMode = normalizePreviewMode(state.previewMode);
-    const available = is3dPreviewSupported();
-    const use3d = state.previewMode === "sketch3d" && available;
+  function syncPreviewVisibility() {
     if (ui.previewSketchPanel) {
-      ui.previewSketchPanel.toggleAttribute("hidden", !use3d);
+      ui.previewSketchPanel.hidden = false;
     }
-    if (ui.previewCurrentPanel) {
-      ui.previewCurrentPanel.toggleAttribute("hidden", Boolean(use3d));
-    }
-    syncPreviewModeButton(ui.btnPreviewSketch, Boolean(use3d));
-    syncPreviewModeButton(ui.btnPreviewCurrent, !use3d);
-    if (ui.btnPreviewSketch) {
-      ui.btnPreviewSketch.disabled = !available;
-      ui.btnPreviewSketch.classList.toggle("is-unavailable", !available);
-      if (!available) {
-        ui.btnPreviewSketch.title = "3D unavailable";
-        ui.btnPreviewSketch.dataset.hint = "3D unavailable";
-      } else {
-        ui.btnPreviewSketch.title = "Show 3D Simulation";
-        ui.btnPreviewSketch.dataset.hint = "Show 3D Simulation";
-      }
-    }
-    if (use3d && state.preview3d && typeof state.preview3d.resize === "function") {
+    if (state.preview3d && typeof state.preview3d.resize === "function") {
       window.requestAnimationFrame(() => state.preview3d.resize());
     }
   }
 
-  function is3dPreviewAvailable() {
-    return Boolean(state.preview3d && state.preview3d.ready && !state.preview3d.fallback);
-  }
-
-  function is3dPreviewSupported() {
-    return Boolean(state.preview3d && !state.preview3d.fallback);
-  }
-
-  function schedulePreviewAvailabilityChecks() {
-    [0, 1200, 3600].forEach((delay) => {
-      window.setTimeout(() => {
-        if (state.previewMode === "sketch3d" && !is3dPreviewSupported()) {
-          state.previewMode = "current";
-          try {
-            localStorage.setItem(previewModeStorageKey(), state.previewMode);
-          } catch (error) {
-            // Persistence is optional; the fallback still applies.
-          }
-        }
-        syncPreviewModeUi();
-      }, delay);
-    });
-  }
-
-  function syncPreviewModeButton(button, active) {
-    if (!button) {
+  function mark3dPreviewUnavailable() {
+    const container = ui.previewSketchPanel || null;
+    if (!container) {
       return;
     }
-    button.classList.toggle("is-active", Boolean(active));
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-  }
-
-  function normalizePreviewMode(mode) {
-    if (mode === "current") {
-      return "current";
+    container.classList.add("is-3d-unavailable");
+    const preview = container.querySelector("[data-arm-preview-3d]");
+    if (preview) {
+      preview.hidden = true;
     }
-    return is3dPreviewSupported() ? "sketch3d" : "current";
+    const fallbackStatus = container.querySelector("[data-arm-preview-3d-fallback-status]");
+    if (fallbackStatus) {
+      fallbackStatus.hidden = false;
+      fallbackStatus.textContent = "3D preview unavailable.";
+    }
   }
 
   function updateRunControls() {
@@ -3576,10 +3678,19 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
   }
 
   function syncConnectButton() {
+    if (!ui.btnConnect || !state.serial) {
+      return;
+    }
     const connected = state.serial.isConnected();
     const span = ui.btnConnect.querySelector("span");
     if (span) {
-      span.textContent = connected ? "Disconnect" : "Connect";
+      span.textContent = !isArduinoActive()
+        ? (activeRobotId() === "so101_follower" ? "Use Bridge" : "Sim Only")
+        : (connected ? "Disconnect" : "Connect");
+    }
+    ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
+    if (state.serial.supportsWebSerial && !state.serial.supportsWebSerial()) {
+      ui.btnConnect.disabled = true;
     }
     const icon = ui.btnConnect.querySelector("[data-lucide]");
     if (icon && window.lucide) {
@@ -3589,34 +3700,17 @@ Prefer short, conservative programs. Start from arm.home() unless the user expli
   }
 
   function syncMotorsToggleUi() {
-    ui.motorsEnabled.checked = state.motorsEnabled;
+    if (!ui.motorsEnabled) {
+      return;
+    }
+    ui.motorsEnabled.checked = isArduinoActive() && state.motorsEnabled;
+    ui.motorsEnabled.disabled = !isArduinoActive();
     updateRunControls();
   }
 
   function readMotorsEnabled() {
     const raw = localStorage.getItem(MOTORS_STORAGE_KEY);
     return raw === "1" || raw === "true";
-  }
-
-  function readPreviewMode() {
-    const fallback = defaultPreviewMode();
-    try {
-      const raw = localStorage.getItem(previewModeStorageKey());
-      return raw ? normalizePreviewMode(raw) : fallback;
-    } catch (error) {
-      return fallback;
-    }
-  }
-
-  function previewModeStorageKey() {
-    return document.body && document.body.dataset.previewStorageKey
-      ? document.body.dataset.previewStorageKey
-      : PREVIEW_MODE_STORAGE_KEY;
-  }
-
-  function defaultPreviewMode() {
-    const defaultMode = document.body ? document.body.dataset.defaultPreviewMode : "";
-    return defaultMode === "sketch" ? normalizePreviewMode("sketch3d") : "current";
   }
 
   function setConnectionStatus(connected, text) {

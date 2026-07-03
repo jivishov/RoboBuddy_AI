@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="css/style.css?v=20260612-3d-pages1">
-  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260611-footerstatus1">
+  <link rel="stylesheet" href="css/style.css?v=20260703-bottom-area">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260703-preview-console">
   <script type="importmap">
     {
       "imports": {
@@ -30,7 +30,7 @@
     }
   </script>
 </head>
-<body class="python-draft-page gemini-draft-page" data-preview-storage-key="roboadmin.gemini3dPreviewMode.v1" data-default-preview-mode="sketch">
+<body class="python-draft-page gemini-draft-page">
   <header class="topbar">
     <div class="topbar__brand">
       <div class="topbar__logo topbar__logo--image" aria-hidden="true">
@@ -65,6 +65,10 @@
         <span class="status-dot" id="statusDot"></span>
         <span class="status-text" id="statusText">Disconnected</span>
       </div>
+      <label class="topbar__robot-select" for="geminiRobotChooser">
+        <span class="visually-hidden">Robot</span>
+        <select id="geminiRobotChooser" aria-label="Robot"></select>
+      </label>
       <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth)" data-hint="Connect Serial (USB/Bluetooth)">
         <i data-lucide="plug"></i>
         <span>Connect</span>
@@ -260,7 +264,7 @@ roboadmin.use_response(response.text)</textarea>
 
       <div class="gemini-draft__review-panels">
         <section class="gemini-draft__review-panel gemini-draft__review-panel--robot" id="geminiReviewRobotPanel" role="tabpanel" aria-labelledby="btnGeminiReviewRobotTab">
-          <textarea id="geminiRobotPython" class="python-draft__editor gemini-draft__robot-editor" spellcheck="false" aria-label="Generated RoboBuddy Python editor" placeholder="Generated arm.* Python appears here for review before validation."></textarea>
+          <textarea id="geminiRobotPython" class="python-draft__editor gemini-draft__robot-editor" spellcheck="false" aria-label="Generated RoboBuddy Python editor" placeholder="Generated robot.* Python appears here for review before validation."></textarea>
 
           <div class="gemini-draft__robot-actionbar">
             <label class="motors-toggle motors-toggle--block" for="geminiMotorsEnabled">
@@ -375,24 +379,14 @@ roboadmin.use_response(response.text)</textarea>
     <aside class="python-draft__panel python-draft__panel--side gemini-draft__panel gemini-draft__panel--side" aria-label="Preview and logs">
       <section class="python-draft__preview gemini-draft__preview">
         <div class="python-draft__panel-header gemini-draft__preview-header">
-          <div class="panel-label"><i data-lucide="eye"></i> Arm Preview</div>
-          <div class="preview-mode-toggle" role="group" aria-label="Arm preview mode">
-            <button class="preview-mode-toggle__button is-active" id="btnGeminiPreviewSketch" type="button" aria-pressed="true" title="Show 3D Simulation" data-hint="Show 3D Simulation">
-              <i data-lucide="box"></i>
-              <span>3D Simulation</span>
-            </button>
-            <button class="preview-mode-toggle__button" id="btnGeminiPreviewCurrent" type="button" aria-pressed="false" title="Show 2D Sketch" data-hint="Show 2D Sketch">
-              <i data-lucide="pen-line"></i>
-              <span>2D Sketch</span>
-            </button>
-          </div>
+          <div class="panel-label"><i data-lucide="eye"></i> Robot Preview</div>
         </div>
         <div class="gemini-draft__preview-body">
           <div class="gemini-draft__preview-stack">
             <div class="arm-preview-container arm-preview-container--3d gemini-draft__arm-stage" id="geminiPreviewSketchPanel">
-              <svg id="geminiArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="3D robot arm preview fallback"></svg>
+              <svg id="geminiArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="3D robot preview fallback"></svg>
               <div class="arm-preview-3d" data-arm-preview-3d hidden>
-                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot arm preview"></div>
+                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot preview"></div>
                 <div class="arm-preview-3d__toolbar">
                   <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
                   <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
@@ -402,9 +396,6 @@ roboadmin.use_response(response.text)</textarea>
                 </div>
               </div>
               <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
-            </div>
-            <div class="arm-preview-container gemini-draft__arm-stage" id="geminiPreviewCurrentPanel" hidden>
-              <svg id="geminiArmSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="2D robot arm sketch"></svg>
             </div>
           </div>
           <div class="python-draft__joints" aria-label="Current joint values">
@@ -418,9 +409,9 @@ roboadmin.use_response(response.text)</textarea>
         </div>
       </section>
 
-      <section class="gemini-draft__arm-console" aria-label="Arm Console">
-        <button class="gemini-draft__console-toggle" id="btnGeminiArmConsoleToggle" type="button" aria-expanded="false" aria-controls="geminiArmConsolePanel" aria-label="Show Arm Console" title="Show Arm Console" data-hint="Show Arm Console">
-          <span class="panel-label"><i data-lucide="terminal"></i> Arm Console</span>
+      <section class="gemini-draft__arm-console" aria-label="Robot Console">
+        <button class="gemini-draft__console-toggle" id="btnGeminiArmConsoleToggle" type="button" aria-expanded="false" aria-controls="geminiArmConsolePanel" aria-label="Show Robot Console" title="Show Robot Console" data-hint="Show Robot Console">
+          <span class="panel-label"><i data-lucide="terminal"></i> Robot Console</span>
           <span class="gemini-draft__console-toggle-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
         </button>
         <div class="gemini-draft__arm-console-content" id="geminiArmConsolePanel" hidden>
@@ -476,27 +467,22 @@ roboadmin.use_response(response.text)</textarea>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js" integrity="sha384-ZYmwuq4n2gOcNxMSiJ6jyTj+BbIrilr7p6dlq6q5nmSWKmsH9UU4K1qqjycMkfmR" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js" integrity="sha384-Xy+2exU6lBoT4OpUOtnQb+cUpn+nlJQEHvRobWVtwz6wIsw4oNoO7xyd/l8rYgMy" crossorigin="anonymous"></script>
+  <script src="robots/registry.js"></script>
+  <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/safety.js"></script>
+  <script src="robots/commandSchema.js"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260702-lekiwi-rolling-motion"></script>
+  <script src="robots/adapters/hardware/hardware.js"></script>
+  <script src="robots/runtime.js"></script>
   <script src="js/serial.js"></script>
   <script src="js/generators.js"></script>
-  <script src="js/runner.js?v=20260610-firmware-sim"></script>
-  <script src="js/arm-preview.js?v=20260611-3d-preview"></script>
+  <script src="js/runner.js?v=20260702-lekiwi-rolling-motion"></script>
   <script src="js/file-workflows.js"></script>
-  <script>
-    window.RoboBuddy3DPreview = window.RoboBuddy3DPreview || {};
-    window.addEventListener("DOMContentLoaded", function() {
-      window.setTimeout(function() {
-        var registry = window.RoboBuddy3DPreview || {};
-        var fallbackStatus = document.querySelector("[data-arm-preview-3d-fallback-status]");
-        if (!registry.registered && fallbackStatus) {
-          fallbackStatus.hidden = false;
-          fallbackStatus.textContent = "3D unavailable; using 2D fallback.";
-        }
-      }, 1200);
-    });
-  </script>
-  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260611-layout-pan1"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260703-lekiwi-gripper-calibration"></script>
   <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
-  <script src="js/gemini-draft.js?v=20260612-3d-pages1"></script>
+  <script src="js/gemini-draft.js?v=20260702-robot-mission-ui-2"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();

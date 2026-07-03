@@ -1,21 +1,24 @@
 (() => {
   const NS = (window.RoboAdmin = window.RoboAdmin || {});
 
-  const JOINT_NAMES = ["base", "shoulder", "elbow", "wrist_rot", "wrist_tilt", "gripper"];
   const GRIPPER_DEFAULT_SPEED = 55;
+
+  function activeManifest() {
+    return NS.RobotRegistry && NS.RobotRegistry.getActive
+      ? NS.RobotRegistry.getActive()
+      : null;
+  }
 
   function emit(workspace) {
     if (!workspace) {
-      return {
-        code: "",
-        warnings: []
-      };
+      return { code: "", warnings: [] };
     }
 
+    const manifest = activeManifest();
     const warnings = [];
     const lines = [
       "# RoboBuddy Python",
-      "# Build motion commands with the safe arm API.",
+      "# Build safe robot commands with the robot API.",
       ""
     ];
 
@@ -31,10 +34,11 @@
       lines.pop();
     }
 
-    return {
-      code: lines.join("\n"),
-      warnings
-    };
+    if (manifest && manifest.id === "arduino_arm") {
+      warnings.push("The legacy arm.* API remains available for Arduino arm programs.");
+    }
+
+    return { code: lines.join("\n"), warnings };
   }
 
   function emitChain(startBlock, lines, indentLevel, warnings) {
@@ -50,37 +54,38 @@
 
     switch (block.type) {
       case "move_joint": {
-        const servo = clamp(toInt(block.getFieldValue("JOINT"), 0), 0, 5);
-        const angle = toInt(block.getFieldValue("ANGLE"), 90);
-        const speed = toInt(block.getFieldValue("SPEED"), 50);
-        lines.push(`${pad}arm.move_joint(${pythonString(JOINT_NAMES[servo])}, ${angle}, speed=${speed})`);
+        lines.push(`${pad}robot.move_joint(${pythonString(fieldJoint(block, "JOINT"))}, ${toFloat(block.getFieldValue("ANGLE"), 90)}, speed=${toInt(block.getFieldValue("SPEED"), 50)})`);
         return;
       }
 
       case "move_arm": {
+        const manifest = activeManifest();
+        const joints = manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
         const fields = [];
-        for (let servo = 0; servo < 6; servo += 1) {
-          fields.push(`${JOINT_NAMES[servo]}=${toInt(block.getFieldValue(`A${servo}`), 90)}`);
+        const count = Math.min(6, joints.length || 6);
+        for (let index = 0; index < count; index += 1) {
+          const jointId = joints[index] ? joints[index].id : String(index);
+          const fallback = joints[index] ? joints[index].home : 90;
+          fields.push(`${pythonString(jointId)}: ${toFloat(block.getFieldValue(`A${index}`), fallback)}`);
         }
-        fields.push(`speed=${toInt(block.getFieldValue("SPEED"), 50)}`);
-        lines.push(`${pad}arm.move_arm(${fields.join(", ")})`);
+        lines.push(`${pad}robot.move_joints({${fields.join(", ")}}, speed=${toInt(block.getFieldValue("SPEED"), 50)})`);
         return;
       }
 
       case "home_position":
-        lines.push(`${pad}arm.home()`);
+        lines.push(`${pad}robot.home()`);
         return;
 
       case "gripper_open":
-        lines.push(`${pad}arm.gripper_open(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)})`);
+        lines.push(`${pad}robot.open_gripper(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)})`);
         return;
 
       case "gripper_close":
-        lines.push(`${pad}arm.gripper_close(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)})`);
+        lines.push(`${pad}robot.close_gripper(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)})`);
         return;
 
       case "wait_seconds":
-        lines.push(`${pad}arm.wait(${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        lines.push(`${pad}robot.wait(${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
         return;
 
       case "repeat_times": {
@@ -105,7 +110,7 @@
       case "save_pose": {
         const rawName = String(block.getFieldValue("NAME") || "Pose").trim();
         const name = rawName.length > 0 ? rawName.slice(0, 40) : "Pose";
-        lines.push(`${pad}arm.save_pose(${pythonString(name)})`);
+        lines.push(`${pad}robot.save_pose(${pythonString(name)})`);
         return;
       }
 
@@ -113,7 +118,7 @@
         const name = String(block.getFieldValue("NAME") || "").trim();
         const speed = toInt(block.getFieldValue("SPEED"), 50);
         if (name && name !== "__none__") {
-          lines.push(`${pad}arm.go_to_pose(${pythonString(name)}, speed=${speed})`);
+          lines.push(`${pad}robot.go_to_pose(${pythonString(name)}, speed=${speed})`);
         } else {
           warnings.push("Go To Pose block has no saved pose selected and was skipped.");
         }
@@ -121,16 +126,36 @@
       }
 
       case "smooth_move": {
-        const servo = clamp(toInt(block.getFieldValue("JOINT"), 0), 0, 5);
-        const from = toInt(block.getFieldValue("FROM"), 90);
-        const to = toInt(block.getFieldValue("TO"), 120);
         const seconds = formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1.5));
-        lines.push(`${pad}arm.smooth_move(${pythonString(JOINT_NAMES[servo])}, ${from}, ${to}, seconds=${seconds})`);
+        lines.push(`${pad}robot.smooth_move(${pythonString(fieldJoint(block, "JOINT"))}, ${toFloat(block.getFieldValue("FROM"), 0)}, ${toFloat(block.getFieldValue("TO"), 30)}, seconds=${seconds})`);
         return;
       }
 
       case "emergency_stop":
-        lines.push(`${pad}arm.emergency_stop()`);
+      case "robot_stop":
+        lines.push(`${pad}robot.stop()`);
+        return;
+
+      case "drive_forward":
+        lines.push(`${pad}robot.drive_forward(${toFloat(block.getFieldValue("SPEED"), 40)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        return;
+      case "drive_backward":
+        lines.push(`${pad}robot.drive_backward(${toFloat(block.getFieldValue("SPEED"), 40)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        return;
+      case "strafe_left":
+        lines.push(`${pad}robot.strafe_left(${toFloat(block.getFieldValue("SPEED"), 40)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        return;
+      case "strafe_right":
+        lines.push(`${pad}robot.strafe_right(${toFloat(block.getFieldValue("SPEED"), 40)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        return;
+      case "turn_left":
+        lines.push(`${pad}robot.turn_left(${toFloat(block.getFieldValue("SPEED"), 45)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        return;
+      case "turn_right":
+        lines.push(`${pad}robot.turn_right(${toFloat(block.getFieldValue("SPEED"), 45)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
+        return;
+      case "drive_for_seconds":
+        lines.push(`${pad}robot.drive(${toFloat(block.getFieldValue("SPEED"), 20)}, ${toFloat(block.getFieldValue("VY"), 0)}, ${toFloat(block.getFieldValue("OMEGA"), 0)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1))})`);
         return;
 
       default:
@@ -146,6 +171,18 @@
     emitChain(body, lines, indentLevel, warnings);
   }
 
+  function fieldJoint(block, fieldName) {
+    const value = block.getFieldValue(fieldName);
+    const manifest = activeManifest();
+    if (manifest && NS.RobotCommandSchema) {
+      const joint = NS.RobotCommandSchema.resolveJoint(manifest, value);
+      if (joint) {
+        return joint.id;
+      }
+    }
+    return value;
+  }
+
   function indent(level) {
     return "  ".repeat(Math.max(0, level));
   }
@@ -156,8 +193,7 @@
 
   function formatSeconds(value) {
     const n = Number.isFinite(value) ? value : 1;
-    const rounded = Math.round(n * 100) / 100;
-    return String(rounded).replace(/\.0$/, "");
+    return String(Math.round(n * 100) / 100).replace(/\.0$/, "");
   }
 
   function toInt(value, fallback) {
@@ -174,7 +210,5 @@
     return Math.min(max, Math.max(min, value));
   }
 
-  NS.PythonEmitter = {
-    emit
-  };
+  NS.PythonEmitter = { emit };
 })();

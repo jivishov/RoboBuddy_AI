@@ -35,7 +35,7 @@ jobs:
           rm -rf site
           mkdir -p site
           cp index.html python.html gemini.html python-docs.html site/
-          cp -a css js assets site/
+          cp -a css js assets robots missions docs site/
           mkdir -p site/simulator/js site/simulator/css
           cp simulator/js/arm-rig-config.js site/simulator/js/
           cp simulator/js/arm-preview-3d.js site/simulator/js/

@@ -23,56 +23,94 @@ import json
 import math
 import traceback
 
-JOINT_NAMES = ["base", "shoulder", "elbow", "wrist_rot", "wrist_tilt", "gripper"]
-JOINT_ALIASES = {
-    "base": 0,
-    "shoulder": 1,
-    "elbow": 2,
-    "wrist_rot": 3,
-    "wrist_rotation": 3,
-    "wrist tilt": 4,
-    "wrist_tilt": 4,
-    "gripper": 5,
-}
-GRIPPER_OPEN_ANGLE = 50
-GRIPPER_CLOSE_ANGLE = 120
-GRIPPER_DEFAULT_SPEED = 55
-
-initial_angles = json.loads(__INITIAL_ANGLES_JSON__)
-joint_limits = json.loads(__JOINT_LIMITS_JSON__)
+manifest = json.loads(__MANIFEST_JSON__)
+robot_id = str(manifest.get("id") or __ACTIVE_ROBOT_ID__ or "arduino_arm")
+initial_joints = json.loads(__INITIAL_JOINTS_JSON__)
 initial_poses = json.loads(__POSES_JSON__)
 max_commands = int(__MAX_COMMANDS__)
 
-def _safe_int(value, name):
+SAFETY = {
+    "speed_min": 1,
+    "speed_max": 100,
+    "wait_min": 0,
+    "wait_max": 30,
+    "smooth_min": 0.2,
+    "smooth_max": 10,
+}
+
+def _safe_float(value, name):
     if isinstance(value, bool):
         raise ValueError(f"{name} must be a number")
     try:
-        return int(round(float(value)))
+        return float(value)
     except Exception:
         raise ValueError(f"{name} must be a number")
 
-def _joint_index(joint):
-    if isinstance(joint, str):
-        key = joint.strip().lower().replace("-", "_").replace(" ", "_")
-        if key in JOINT_ALIASES:
-            return JOINT_ALIASES[key]
-    idx = _safe_int(joint, "joint")
-    if idx < 0 or idx >= 6:
-        raise ValueError("joint must be one of base, shoulder, elbow, wrist_rot, wrist_tilt, gripper, or 0..5")
-    return idx
+def _safe_int(value, name):
+    return int(round(_safe_float(value, name)))
 
-def _speed(value):
+def _norm_key(value):
+    return str(value).strip().lower().replace("-", "_").replace(" ", "_")
+
+def _joints():
+    return list(manifest.get("joints") or [])
+
+def _joint_aliases():
+    aliases = {}
+    for index, joint in enumerate(_joints()):
+        aliases[_norm_key(joint.get("id"))] = joint
+        aliases[_norm_key(joint.get("label"))] = joint
+        aliases[str(index)] = joint
+        if robot_id == "arduino_arm" and "servoIndex" in joint:
+            aliases[str(joint.get("servoIndex"))] = joint
+    if robot_id == "arduino_arm":
+        aliases.update({
+            "wrist_rotation": aliases.get("wrist_rot"),
+            "wristrotate": aliases.get("wrist_rot"),
+            "wrist_tilt": aliases.get("wrist_tilt"),
+        })
+    return aliases
+
+def _joint(joint):
+    aliases = _joint_aliases()
+    key = _norm_key(joint)
+    if key in aliases and aliases[key]:
+        return aliases[key]
+    raise ValueError("joint must be one of " + ", ".join(j.get("id") for j in _joints()))
+
+def _joint_value(joint, value):
+    numeric = _safe_float(value, f"{joint.get('label', joint.get('id'))} value")
+    low = float(joint.get("min", 0))
+    high = float(joint.get("max", 180))
+    if numeric < low or numeric > high:
+        raise ValueError(f"{joint.get('label', joint.get('id'))} value must be {low:g}..{high:g}")
+    return int(round(numeric)) if joint.get("unit") != "percent" else numeric
+
+def _speed(value=50, joint=None):
     speed = _safe_int(value, "speed")
-    if speed < 1 or speed > 100:
-        raise ValueError("speed must be 1..100")
+    low = int(joint.get("speedMin", SAFETY["speed_min"])) if isinstance(joint, dict) else SAFETY["speed_min"]
+    high = int(joint.get("speedMax", SAFETY["speed_max"])) if isinstance(joint, dict) else SAFETY["speed_max"]
+    if speed < low or speed > high:
+        raise ValueError(f"speed must be {low}..{high}")
     return speed
 
-def _angle(servo, value):
-    angle = _safe_int(value, "angle")
-    low, high = joint_limits[servo]
-    if angle < low or angle > high:
-        raise ValueError(f"{JOINT_NAMES[servo]} angle must be {low}..{high}")
-    return angle
+def _seconds(value, name="seconds", low=None, high=None):
+    seconds = _safe_float(value, name)
+    low = SAFETY["wait_min"] if low is None else low
+    high = SAFETY["wait_max"] if high is None else high
+    if seconds < low or seconds > high:
+        raise ValueError(f"{name} must be {low:g}..{high:g}")
+    return seconds
+
+def _has_capability(name):
+    return name in set(manifest.get("capabilities") or [])
+
+def _home_joints():
+    return {str(j.get("id")): float(j.get("home", j.get("min", 0))) for j in _joints()}
+
+def _require_mobile():
+    if not manifest.get("mobileBase") or not (_has_capability("drive_2d") or _has_capability("holonomic_drive")):
+        raise ValueError("drive commands require a robot with mobile-base capability")
 
 def _name(value):
     text = str(value).strip()
@@ -80,96 +118,180 @@ def _name(value):
         raise ValueError("pose name cannot be empty")
     return text[:40]
 
-class Arm:
+class Robot:
     def __init__(self):
         self.commands = []
-        self.angles = []
-        for index in range(6):
-            fallback = 90
-            raw = initial_angles[index] if index < len(initial_angles) else fallback
-            self.angles.append(_angle(index, raw))
+        self.joints = _home_joints()
+        if isinstance(initial_joints, dict):
+            for joint in _joints():
+                key = joint.get("id")
+                if key in initial_joints:
+                    self.joints[key] = _joint_value(joint, initial_joints[key])
         self.poses = {}
         if isinstance(initial_poses, dict):
-            for pose_name, pose_angles in initial_poses.items():
-                if isinstance(pose_angles, list) and len(pose_angles) >= 6:
-                    self.poses[str(pose_name)] = [_angle(i, pose_angles[i]) for i in range(6)]
+            for pose_name, pose_joints in initial_poses.items():
+                if isinstance(pose_joints, dict):
+                    safe = {}
+                    for key, value in pose_joints.items():
+                        joint = _joint(key)
+                        safe[joint.get("id")] = _joint_value(joint, value)
+                    self.poses[str(pose_name)] = safe
 
     def _append(self, command):
         if len(self.commands) >= max_commands:
             raise ValueError(f"Python program exceeded the {max_commands} command limit")
         self.commands.append(command)
 
-    def move_joint(self, joint, angle, speed=50):
-        servo = _joint_index(joint)
-        safe_angle = _angle(servo, angle)
-        safe_speed = _speed(speed)
-        self.angles[servo] = safe_angle
-        self._append({"type": "servo", "servo": servo, "angle": safe_angle, "speed": safe_speed})
-
-    def move_arm(self, base=None, shoulder=None, elbow=None, wrist_rot=None, wrist_tilt=None, gripper=None, speed=50):
-        values = [base, shoulder, elbow, wrist_rot, wrist_tilt, gripper]
-        safe_speed = _speed(speed)
-        for servo, value in enumerate(values):
-            target = self.angles[servo] if value is None else value
-            safe_angle = _angle(servo, target)
-            self.angles[servo] = safe_angle
-            self._append({"type": "servo", "servo": servo, "angle": safe_angle, "speed": safe_speed})
-
     def home(self):
-        self.angles = [90, 90, 90, 90, 90, 90]
-        self._append({"type": "home"})
+        self.joints = _home_joints()
+        self._append({"type": "home", "robotId": robot_id})
+
+    def stop(self):
+        self._append({"type": "stop", "robotId": robot_id, "reason": "user"})
+
+    def emergency_stop(self):
+        self.stop()
 
     def wait(self, seconds):
-        try:
-            value = float(seconds)
-        except Exception:
-            raise ValueError("wait seconds must be a number")
-        if value < 0 or value > 30:
-            raise ValueError("wait seconds must be 0..30")
-        self._append({"type": "delay", "ms": int(round(value * 1000))})
+        self._append({"type": "wait", "robotId": robot_id, "seconds": _seconds(seconds)})
 
-    def gripper_open(self, speed=GRIPPER_DEFAULT_SPEED):
-        self.move_joint("gripper", GRIPPER_OPEN_ANGLE, speed=speed)
+    def move_joint(self, joint, value, speed=50):
+        joint_def = _joint(joint)
+        safe_value = _joint_value(joint_def, value)
+        self.joints[joint_def.get("id")] = safe_value
+        self._append({
+            "type": "move_joint",
+            "robotId": robot_id,
+            "joint": joint_def.get("id"),
+            "value": safe_value,
+            "unit": joint_def.get("unit", "deg"),
+            "speed": _speed(speed, joint_def),
+        })
 
-    def gripper_close(self, speed=GRIPPER_DEFAULT_SPEED):
-        self.move_joint("gripper", GRIPPER_CLOSE_ANGLE, speed=speed)
+    def move_joints(self, joints, speed=50):
+        if not isinstance(joints, dict):
+            raise ValueError("move_joints expects a dict of joint names to values")
+        safe = {}
+        for key, value in joints.items():
+            joint_def = _joint(key)
+            safe_value = _joint_value(joint_def, value)
+            safe[joint_def.get("id")] = safe_value
+            self.joints[joint_def.get("id")] = safe_value
+        if not safe:
+            raise ValueError("move_joints requires at least one joint")
+        self._append({"type": "move_joints", "robotId": robot_id, "joints": safe, "unit": "deg", "speed": _speed(speed)})
+
+    def move_arm(self, base=None, shoulder=None, elbow=None, wrist_rot=None, wrist_tilt=None, gripper=None, speed=50):
+        values = {
+            "base": base,
+            "shoulder": shoulder,
+            "elbow": elbow,
+            "wrist_rot": wrist_rot,
+            "wrist_tilt": wrist_tilt,
+            "gripper": gripper,
+        }
+        requested = {key: value for key, value in values.items() if value is not None}
+        if not requested:
+            requested = {joint.get("id"): self.joints.get(joint.get("id"), joint.get("home", 0)) for joint in _joints()}
+        self.move_joints(requested, speed=speed)
+
+    def set_gripper(self, value, speed=55):
+        joint_def = _joint("gripper")
+        if value == "open":
+            value = joint_def.get("open")
+        elif value in ("close", "closed"):
+            value = joint_def.get("close")
+        safe_value = _joint_value(joint_def, value)
+        self.joints[joint_def.get("id")] = safe_value
+        self._append({"type": "set_gripper", "robotId": robot_id, "value": safe_value, "speed": _speed(speed, joint_def)})
+
+    def open_gripper(self, speed=55):
+        self.set_gripper("open", speed=speed)
+
+    def close_gripper(self, speed=55):
+        self.set_gripper("close", speed=speed)
+
+    def gripper_open(self, speed=55):
+        self.open_gripper(speed=speed)
+
+    def gripper_close(self, speed=55):
+        self.close_gripper(speed=speed)
 
     def smooth_move(self, joint, start, end, seconds=1.5):
-        servo = _joint_index(joint)
-        safe_start = _angle(servo, start)
-        safe_end = _angle(servo, end)
-        try:
-            value = float(seconds)
-        except Exception:
-            raise ValueError("smooth_move seconds must be a number")
-        if value < 0.2 or value > 10:
-            raise ValueError("smooth_move seconds must be 0.2..10")
-        self.angles[servo] = safe_end
+        joint_def = _joint(joint)
+        safe_start = _joint_value(joint_def, start)
+        safe_end = _joint_value(joint_def, end)
+        duration = _seconds(seconds, "smooth_move seconds", SAFETY["smooth_min"], SAFETY["smooth_max"])
+        self.joints[joint_def.get("id")] = safe_end
         self._append({
-            "type": "smoothMove",
-            "servo": servo,
+            "type": "smooth_move",
+            "robotId": robot_id,
+            "joint": joint_def.get("id"),
             "from": safe_start,
             "to": safe_end,
-            "durationMs": int(round(value * 1000)),
+            "seconds": duration,
         })
 
     def save_pose(self, name):
         safe_name = _name(name)
-        self.poses[safe_name] = list(self.angles)
+        self.poses[safe_name] = dict(self.joints)
         self._append({"type": "savePose", "name": safe_name})
 
     def go_to_pose(self, name, speed=50):
         safe_name = _name(name)
-        safe_speed = _speed(speed)
         if safe_name in self.poses:
-            self.angles = list(self.poses[safe_name])
-        self._append({"type": "goPose", "name": safe_name, "speed": safe_speed})
+            self.joints = dict(self.poses[safe_name])
+        self._append({"type": "goPose", "name": safe_name, "speed": _speed(speed)})
 
-    def emergency_stop(self):
-        self._append({"type": "emergencyStop"})
+    def drive(self, vx_percent, vy_percent=0, omega=0, seconds=1.0, frame="robot"):
+        _require_mobile()
+        mobile = manifest.get("mobileBase") or {}
+        max_linear = float(mobile.get("maxLinearSpeed", 1.0))
+        max_angular = float(mobile.get("maxAngularSpeed", 90))
+        vx = _safe_float(vx_percent, "vx percent") / 100.0 * max_linear
+        vy = _safe_float(vy_percent, "vy percent") / 100.0 * max_linear
+        om = _safe_float(omega, "omega")
+        if om < -max_angular or om > max_angular:
+            raise ValueError(f"omega must be {-max_angular:g}..{max_angular:g}")
+        self._append({
+            "type": "drive",
+            "robotId": robot_id,
+            "vx": vx,
+            "vy": vy,
+            "omega": om,
+            "seconds": _seconds(seconds),
+            "frame": "world" if frame == "world" else "robot",
+        })
+
+    def drive_forward(self, speed_percent, seconds=1.0):
+        self.drive(abs(_safe_float(speed_percent, "speed percent")), 0, 0, seconds=seconds)
+
+    def drive_backward(self, speed_percent, seconds=1.0):
+        self.drive(-abs(_safe_float(speed_percent, "speed percent")), 0, 0, seconds=seconds)
+
+    def strafe_left(self, speed_percent, seconds=1.0):
+        self.drive(0, abs(_safe_float(speed_percent, "speed percent")), 0, seconds=seconds)
+
+    def strafe_right(self, speed_percent, seconds=1.0):
+        self.drive(0, -abs(_safe_float(speed_percent, "speed percent")), 0, seconds=seconds)
+
+    def turn_left(self, omega=45, seconds=1.0):
+        self.drive(0, 0, abs(_safe_float(omega, "omega")), seconds=seconds)
+
+    def turn_right(self, omega=45, seconds=1.0):
+        self.drive(0, 0, -abs(_safe_float(omega, "omega")), seconds=seconds)
+
+    def get_state(self):
+        return {"robotId": robot_id, "joints": dict(self.joints)}
+
+    def get_joints(self):
+        return dict(self.joints)
 
     def get_angles(self):
-        return list(self.angles)
+        return [self.joints.get(joint.get("id"), joint.get("home", 0)) for joint in _joints()]
+
+robot = Robot()
+arm = robot
 
 safe_builtins = {
     "abs": abs,
@@ -190,12 +312,12 @@ safe_builtins = {
     "tuple": tuple,
 }
 
-arm = Arm()
 stdout_buffer = io.StringIO()
 stderr_buffer = io.StringIO()
 exec_globals = {
     "__builtins__": safe_builtins,
     "arm": arm,
+    "robot": robot,
     "math": math,
 }
 
@@ -204,8 +326,9 @@ try:
         exec(__USER_CODE__, exec_globals, exec_globals)
     __result = {
         "ok": True,
-        "commands": arm.commands,
-        "angles": arm.get_angles(),
+        "commands": robot.commands,
+        "angles": robot.get_angles(),
+        "joints": robot.get_joints(),
         "stdout": stdout_buffer.getvalue(),
         "stderr": stderr_buffer.getvalue(),
         "error": "",
@@ -214,8 +337,9 @@ try:
 except Exception as exc:
     __result = {
         "ok": False,
-        "commands": arm.commands,
-        "angles": arm.get_angles(),
+        "commands": robot.commands,
+        "angles": robot.get_angles(),
+        "joints": robot.get_joints(),
         "stdout": stdout_buffer.getvalue(),
         "stderr": stderr_buffer.getvalue(),
         "error": f"{type(exc).__name__}: {exc}",
@@ -234,9 +358,11 @@ self.addEventListener("message", async (event) => {
   const id = data.id;
   try {
     const pyodide = await loadRuntime();
+    const manifest = data.manifest && typeof data.manifest === "object" ? data.manifest : {};
     pyodide.globals.set("__USER_CODE__", String(data.python || ""));
-    pyodide.globals.set("__INITIAL_ANGLES_JSON__", JSON.stringify(Array.isArray(data.initialAngles) ? data.initialAngles : []));
-    pyodide.globals.set("__JOINT_LIMITS_JSON__", JSON.stringify(Array.isArray(data.jointLimits) ? data.jointLimits : []));
+    pyodide.globals.set("__MANIFEST_JSON__", JSON.stringify(manifest));
+    pyodide.globals.set("__ACTIVE_ROBOT_ID__", String(data.activeRobotId || manifest.id || "arduino_arm"));
+    pyodide.globals.set("__INITIAL_JOINTS_JSON__", JSON.stringify(data.initialJoints && typeof data.initialJoints === "object" ? data.initialJoints : {}));
     pyodide.globals.set("__POSES_JSON__", JSON.stringify(data.poses && typeof data.poses === "object" ? data.poses : {}));
     pyodide.globals.set("__MAX_COMMANDS__", Number.isFinite(data.maxCommands) ? Math.max(1, Math.round(data.maxCommands)) : 1000);
 
@@ -250,6 +376,7 @@ self.addEventListener("message", async (event) => {
       ok: false,
       commands: [],
       angles: [],
+      joints: {},
       stdout: "",
       stderr: "",
       error: error && error.message ? error.message : String(error),

@@ -18,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="css/style.css?v=20260608-ui">
-  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260611-footerstatus1">
+  <link rel="stylesheet" href="css/style.css?v=20260703-teach-button-spacing">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260703-teach-button-spacing">
   <script type="importmap">
     {
       "imports": {
@@ -64,6 +64,10 @@
         <span class="status-dot" id="statusDot"></span>
         <span class="status-text" id="statusText">Disconnected</span>
       </div>
+      <label class="topbar__robot-select" for="robotChooser">
+        <span class="visually-hidden">Robot</span>
+        <select id="robotChooser" aria-label="Robot"></select>
+      </label>
       <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth) (Ctrl+B)" aria-keyshortcuts="Control+B" data-hint="Connect Serial (USB/Bluetooth) (Ctrl+B)">
         <i data-lucide="plug"></i>
         <span>Connect</span>
@@ -79,151 +83,78 @@
     </div>
   </header>
 
-  <main class="workspace">
-    <div id="workspaceTabs" class="workspace-tabs" aria-label="Workspace controls" data-default-tab="block" data-shortcut-tab-1="block" data-shortcut-tab-2="manual">
-      <div class="workspace-tabs__tablist" role="tablist" aria-label="Workspace Mode" aria-orientation="horizontal">
-        <button class="workspace-tab is-active" id="tabBlock" role="tab" aria-selected="true" aria-controls="panelBlock" tabindex="0" title="Workbench (Ctrl+1)" aria-keyshortcuts="Control+1" data-hint="Workbench (Ctrl+1)">
-          <i data-lucide="layout-grid"></i>
-          <span>Workbench</span>
-        </button>
-        <button class="workspace-tab" id="tabManual" role="tab" aria-selected="false" aria-controls="panelManual" tabindex="-1" title="Consoles (Ctrl+2)" aria-keyshortcuts="Control+2" data-hint="Consoles (Ctrl+2)">
-          <i data-lucide="terminal"></i>
-          <span>Consoles</span>
-        </button>
-      </div>
-      <div class="workspace-tabs__actions" aria-label="Shared robot controls">
-        <div class="index-3d-layout-toggle" role="group" aria-label="Manual controls and block editor layout">
-          <span class="index-3d-layout-toggle__label">Cards</span>
-          <button class="btn index-3d-layout-toggle__button is-active" type="button" data-3d-layout-option="horizontal" aria-pressed="true" title="Place Manual Control and Block Editor side by side" data-hint="Place Manual Control and Block Editor side by side">
-            <i data-lucide="columns-2" aria-hidden="true"></i>
-            <span>Side by side</span>
-          </button>
-          <button class="btn index-3d-layout-toggle__button" type="button" data-3d-layout-option="stacked" aria-pressed="false" title="Stack Manual Control above Block Editor" data-hint="Stack Manual Control above Block Editor">
-            <i data-lucide="rows-3" aria-hidden="true"></i>
-            <span>Stack</span>
-          </button>
-        </div>
-        <label class="motors-toggle motors-toggle--workspace" for="motorsEnabled">
-          <i data-lucide="power"></i>
-          <span>Motors Enabled</span>
-          <input type="checkbox" id="motorsEnabled">
-        </label>
-        <button class="btn btn--home btn--reset-default" id="btnResetDefault" title="Reset all joints to 90 deg default" aria-label="Reset to default 90 degrees" data-hint="Reset all joints to 90 deg default">
-          <i data-lucide="rotate-ccw"></i>
-          <span>Reset to Default</span>
-        </button>
-      </div>
-    </div>
-
-    <section class="workspace-panel workspace-panel--manual is-hidden" id="panelManual" role="tabpanel" aria-labelledby="tabManual" hidden aria-hidden="true">
-      <section class="index-3d-console-panel" aria-label="Consoles">
-        <section class="sidebar-card sidebar__console index-3d-console-card">
-          <div class="panel-label"><i data-lucide="terminal"></i> Consoles</div>
-          <div class="console-split">
-            <section class="console-pane">
-              <div class="console-pane__title">Serial</div>
-              <div class="serial-console" id="serialConsoleLog" aria-live="polite"></div>
-              <div class="serial-console__actions">
-                <button class="btn btn--load btn--icon-only" id="btnConsoleCopy" title="Copy serial log" data-hint="Copy serial log">
-                  <i data-lucide="copy"></i>
-                  <span>Copy</span>
-                </button>
-                <button class="btn btn--clear btn--icon-only" id="btnConsoleClear" title="Clear serial log" data-hint="Clear serial log">
-                  <i data-lucide="eraser"></i>
-                  <span>Clear</span>
-                </button>
-              </div>
-            </section>
-            <section class="console-pane console-pane--debug">
-              <div class="console-pane__title">Debug</div>
-              <button class="console-debug__toggle" id="debugTelemetryToggle" type="button" aria-expanded="false" aria-controls="debugTelemetryDetails" title="Show telemetry" data-hint="Show telemetry">
-                <span class="console-debug__toggle-label">Show telemetry</span>
-                <i data-lucide="chevron-down"></i>
-              </button>
-              <div class="console-debug__details" id="debugTelemetryDetails" hidden>
-                <div class="console-debug__chips">
-                  <div class="debug-chip">
-                    <span class="debug-chip__label">Mode</span>
-                    <span class="debug-chip__value" id="debugChipMode">Idle</span>
-                  </div>
-                  <div class="debug-chip">
-                    <span class="debug-chip__label">Trajectory</span>
-                    <span class="debug-chip__value" id="debugChipTrajectory">N/A</span>
-                  </div>
-                  <div class="debug-chip">
-                    <span class="debug-chip__label">Queue</span>
-                    <span class="debug-chip__value" id="debugChipQueue">0</span>
-                  </div>
-                  <div class="debug-chip">
-                    <span class="debug-chip__label">Waiters</span>
-                    <span class="debug-chip__value" id="debugChipWaiters">0</span>
-                  </div>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">Protocol</span>
-                  <span class="debug-detail__value" id="debugDetailProtocol">N/A (disconnected)</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">In-flight</span>
-                  <span class="debug-detail__value" id="debugDetailInFlight">none</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">Motion</span>
-                  <span class="debug-detail__value" id="debugDetailMotion">None</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">State</span>
-                  <span class="debug-detail__value" id="debugDetailState">Disconnected</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">Active</span>
-                  <span class="debug-detail__value" id="debugDetailActive">None</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">Limit</span>
-                  <span class="debug-detail__value" id="debugDetailLimit">No joint at hard limit</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">Last TX</span>
-                  <span class="debug-detail__value" id="debugDetailTx">-</span>
-                </div>
-                <div class="debug-detail-row">
-                  <span class="debug-detail__label">Last RX</span>
-                  <span class="debug-detail__value" id="debugDetailRx">-</span>
-                </div>
-              </div>
-              <div class="serial-console serial-console--debug" id="debugConsoleLog" aria-live="polite"></div>
-              <div class="serial-console__actions">
-                <button class="btn btn--clear btn--icon-only" id="btnDebugClear" title="Clear debug log" data-hint="Clear debug log">
-                  <i data-lucide="eraser"></i>
-                  <span>Clear</span>
-                </button>
-              </div>
-            </section>
-          </div>
-        </section>
-      </section>
-    </section>
-
-    <section class="workspace-panel workspace-panel--block" id="panelBlock" role="tabpanel" aria-labelledby="tabBlock" aria-hidden="false">
+  <main class="workspace workspace--index">
+    <section class="workspace-panel workspace-panel--block" id="panelBlock">
       <section class="index-3d-workbench" aria-label="RoboBuddy 3D workbench">
         <div class="index-3d-main-split" data-3d-split-scope="outer">
-          <section class="sidebar-card sidebar__preview index-3d-preview-card">
-            <div class="panel-label"><i data-lucide="eye"></i> 3D Arm Preview</div>
-            <div id="armPreview" class="arm-preview-container arm-preview-container--3d">
-              <svg id="armSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Robot arm preview"></svg>
-              <div class="arm-preview-3d" data-arm-preview-3d hidden>
-                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot arm preview"></div>
-                <div class="arm-preview-3d__toolbar">
-                  <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
-                  <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
-                    <i data-lucide="rotate-ccw" aria-hidden="true"></i>
-                    <span>Camera</span>
+          <section class="workspace__editor workspace__editor--block index-3d-block-card">
+            <div class="panel-label workspace__editor-title"><i data-lucide="puzzle"></i> Blockly</div>
+            <div id="blocklyDiv"></div>
+            <div class="python-draft__runbar python-draft__actionbar index-3d-block-actionbar">
+              <label class="motors-toggle motors-toggle--block" for="motorsEnabled">
+                <i data-lucide="power"></i>
+                <span>Motors Enabled</span>
+                <input type="checkbox" id="motorsEnabled">
+              </label>
+              <span class="python-draft__action-divider" aria-hidden="true"></span>
+              <div class="python-draft__actions python-draft__actions--run index-3d-block-actions" aria-label="Block Editor Controls">
+                <span class="python-draft__tool" data-button-hint-host data-hint="Run Program (Space)">
+                  <button class="btn btn--run btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnRun" title="Run Program (Space)" aria-label="Run Program (Space)" aria-keyshortcuts="Space" data-hint="Run Program (Space)">
+                    <i data-lucide="play"></i>
+                    <span>Run</span>
                   </button>
-                </div>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Pause Program (P)">
+                  <button class="btn btn--home btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnPause" title="Pause Program (P)" aria-label="Pause Program (P)" aria-keyshortcuts="P" data-hint="Pause Program (P)">
+                    <i data-lucide="pause"></i>
+                    <span>Pause</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Stop Program (Space)">
+                  <button class="btn btn--stop btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnStop" title="Stop Program (Space)" aria-label="Stop Program (Space)" aria-keyshortcuts="Space" data-hint="Stop Program (Space)">
+                    <i data-lucide="square"></i>
+                    <span>Stop</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Reset all joints to 90 deg default">
+                  <button class="btn btn--home btn--icon-only btn--reset-default python-draft__icon-btn python-draft__action-btn" id="btnResetDefault" title="Reset all joints to 90 deg default" aria-label="Reset to default 90 degrees" data-hint="Reset all joints to 90 deg default">
+                    <i data-lucide="rotate-ccw"></i>
+                    <span>Reset</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Load from templates">
+                  <button class="btn btn--load btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnLoad" title="Load from templates" aria-label="Load from templates" data-hint="Load from templates">
+                    <i data-lucide="folder-open"></i>
+                    <span>Load from templates</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Save user blocks (Ctrl+S)">
+                  <button class="btn btn--save btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnSave" title="Save user blocks (Ctrl+S)" aria-label="Save user blocks (Ctrl+S)" aria-keyshortcuts="Control+S" data-hint="Save user blocks (Ctrl+S)">
+                    <i data-lucide="save"></i>
+                    <span>Save</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Load user blocks">
+                  <button class="btn btn--load btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnLoadUserBlocks" title="Load user blocks" aria-label="Load user blocks" data-hint="Load user blocks">
+                    <i data-lucide="upload"></i>
+                    <span>Load user blocks</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Legacy browser saves" hidden>
+                  <button class="btn btn--load btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnLegacyBrowserSaves" title="Legacy browser saves" aria-label="Legacy browser saves" data-hint="Legacy browser saves" hidden>
+                    <i data-lucide="archive"></i>
+                    <span>Legacy browser saves</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Clear Workspace">
+                  <button class="btn btn--clear btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnClear" title="Clear Workspace" aria-label="Clear Workspace" data-hint="Clear Workspace">
+                    <i data-lucide="trash-2"></i>
+                    <span>Clear</span>
+                  </button>
+                </span>
               </div>
-              <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
             </div>
+            <xml id="toolbox" style="display: none"></xml>
           </section>
 
           <div
@@ -231,20 +162,33 @@
             data-3d-splitter="outer"
             role="separator"
             tabindex="0"
-            aria-label="Resize 3D preview and control cards"
+            aria-label="Resize Blockly and control cards"
             aria-orientation="vertical"
-            aria-valuemin="22"
-            aria-valuemax="55"
-            aria-valuenow="33"
-            aria-valuetext="3D preview 33 percent"
-            title="Resize 3D preview and control cards"
-            data-hint="Resize 3D preview and control cards"
+            aria-valuemin="36"
+            aria-valuemax="62"
+            aria-valuenow="44"
+            aria-valuetext="Blockly 44 percent"
+            title="Resize Blockly and control cards"
+            data-hint="Resize Blockly and control cards"
           ></div>
 
           <div class="index-3d-control-group" data-3d-split-scope="inner">
 
             <section class="sidebar-card sidebar__controls index-3d-manual-card">
-              <div class="panel-label"><i data-lucide="sliders-horizontal"></i> Manual Control</div>
+              <div class="index-3d-card-header">
+                <div class="panel-label"><i data-lucide="sliders-horizontal"></i> Manual Control</div>
+                <div class="index-3d-layout-toggle" role="group" aria-label="Manual control and preview layout">
+                  <span class="index-3d-layout-toggle__label">Cards</span>
+                  <button class="btn index-3d-layout-toggle__button is-active" type="button" data-3d-layout-option="horizontal" aria-pressed="true" title="Place Manual Control and robot preview side by side" data-hint="Place Manual Control and robot preview side by side">
+                    <i data-lucide="columns-2" aria-hidden="true"></i>
+                    <span>Side by side</span>
+                  </button>
+                  <button class="btn index-3d-layout-toggle__button" type="button" data-3d-layout-option="stacked" aria-pressed="false" title="Stack Manual Control above robot preview" data-hint="Stack Manual Control above robot preview">
+                    <i data-lucide="rows-3" aria-hidden="true"></i>
+                    <span>Stack</span>
+                  </button>
+                </div>
+              </div>
               <section class="teach-controls" aria-label="Teach mode controls">
                 <div class="teach-controls__row">
                   <label class="motors-toggle teach-controls__toggle" for="teachModeEnabled">
@@ -304,6 +248,7 @@
                 </div>
                 <p class="teach-controls__status" id="teachStatusText" aria-live="polite" data-tone="ready">Teach mode off. Enable Teach Mode to begin.</p>
               </section>
+              <div class="robot-drive-controls" id="robotDriveControls" hidden></div>
               <div class="servo-sliders">
                 <div class="servo-channel servo-channel--base">
                   <label class="servo-channel__label" for="slider0"><span class="servo-channel__dot"></span>Base</label>
@@ -341,6 +286,36 @@
                   <span class="servo-channel__value" id="val5">90 deg</span>
                 </div>
               </div>
+              <section class="robot-bridge-panel" id="robotBridgePanel" hidden aria-label="SO-101 local bridge">
+                <div class="panel-label"><i data-lucide="radio-tower"></i> Local Bridge</div>
+                <label class="robot-bridge-panel__field" for="bridgeUrl">
+                  <span>Bridge URL</span>
+                  <input id="bridgeUrl" type="url" value="http://127.0.0.1:8765" spellcheck="false">
+                </label>
+                <label class="robot-bridge-panel__field" for="bridgePort">
+                  <span>Port</span>
+                  <input id="bridgePort" type="text" placeholder="/dev/tty.usbmodem12345">
+                </label>
+                <label class="robot-bridge-panel__field" for="bridgeRobotInstance">
+                  <span>Robot instance id</span>
+                  <input id="bridgeRobotInstance" type="text" value="classroom_so101_01" spellcheck="false">
+                </label>
+                <label class="robot-bridge-panel__check" for="bridgeSafetyConfirm">
+                  <input id="bridgeSafetyConfirm" type="checkbox">
+                  <span>I understand this can move a physical robot and I have a safe workspace.</span>
+                </label>
+                <div class="robot-bridge-panel__actions">
+                  <button class="btn btn--load" id="btnBridgeHealth" type="button" title="Test bridge" data-hint="Test bridge">
+                    <i data-lucide="activity"></i>
+                    <span>Test Bridge</span>
+                  </button>
+                  <button class="btn btn--connect" id="btnBridgeConnect" type="button" title="Connect SO-101" data-hint="Connect SO-101">
+                    <i data-lucide="plug-zap"></i>
+                    <span>Connect SO-101</span>
+                  </button>
+                </div>
+                <p class="robot-bridge-panel__status" id="bridgeStatus" data-tone="warning" aria-live="polite">Bridge not tested. Real hardware can move.</p>
+              </section>
             </section>
 
             <div
@@ -348,81 +323,144 @@
               data-3d-splitter="inner"
               role="separator"
               tabindex="0"
-              aria-label="Resize Manual Control and Block Editor"
+              aria-label="Resize Manual Control and robot preview"
               aria-orientation="vertical"
               aria-valuemin="30"
               aria-valuemax="70"
               aria-valuenow="52"
               aria-valuetext="Manual Control 52 percent"
-              title="Resize Manual Control and Block Editor"
-              data-hint="Resize Manual Control and Block Editor"
+              title="Resize Manual Control and robot preview"
+              data-hint="Resize Manual Control and robot preview"
             ></div>
 
-            <section class="workspace__editor workspace__editor--block index-3d-block-card">
-              <div class="panel-label workspace__editor-title"><i data-lucide="puzzle"></i> Block Editor</div>
-              <div id="blocklyDiv"></div>
-              <xml id="toolbox" style="display: none"></xml>
-            </section>
+            <aside class="index-3d-side-column" aria-label="Robot preview and consoles">
+              <section class="sidebar-card sidebar__preview index-3d-preview-card">
+                <div class="panel-label"><i data-lucide="eye"></i> 3D Arm Preview</div>
+                <div id="armPreview" class="arm-preview-container arm-preview-container--3d">
+                  <div id="robotSimPreview" class="robot-sim-preview" hidden></div>
+                  <div class="arm-preview-3d" data-arm-preview-3d hidden>
+                    <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot arm preview"></div>
+                    <div class="arm-preview-3d__toolbar">
+                      <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
+                      <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
+                        <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+                        <span>Camera</span>
+                      </button>
+                    </div>
+                  </div>
+                  <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
+                </div>
+
+                <section class="gemini-draft__arm-console index-3d-console-panel" aria-label="Consoles">
+                  <button class="gemini-draft__console-toggle" id="btnIndexConsoleToggle" type="button" aria-expanded="false" aria-controls="indexConsolePanelBody" aria-label="Show Consoles" title="Show Consoles" data-hint="Show Consoles">
+                    <span class="panel-label"><i data-lucide="terminal"></i> Consoles</span>
+                    <span class="gemini-draft__console-toggle-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                  </button>
+                  <div class="gemini-draft__arm-console-content index-3d-console-body" id="indexConsolePanelBody" hidden>
+                    <section class="index-3d-console-card">
+                      <div class="console-split">
+                        <section class="console-pane">
+                          <div class="console-pane__title">Serial</div>
+                          <div class="serial-console" id="serialConsoleLog" aria-live="polite"></div>
+                          <div class="serial-console__actions">
+                            <button class="btn btn--load btn--icon-only" id="btnConsoleCopy" title="Copy serial log" data-hint="Copy serial log">
+                              <i data-lucide="copy"></i>
+                              <span>Copy</span>
+                            </button>
+                            <button class="btn btn--clear btn--icon-only" id="btnConsoleClear" title="Clear serial log" data-hint="Clear serial log">
+                              <i data-lucide="eraser"></i>
+                              <span>Clear</span>
+                            </button>
+                          </div>
+                        </section>
+                        <section class="console-pane console-pane--debug">
+                          <div class="console-pane__title">Debug</div>
+                          <button class="console-debug__toggle" id="debugTelemetryToggle" type="button" aria-expanded="false" aria-controls="debugTelemetryDetails" title="Show telemetry" data-hint="Show telemetry">
+                            <span class="console-debug__toggle-label">Show telemetry</span>
+                            <i data-lucide="chevron-down"></i>
+                          </button>
+                          <div class="console-debug__details" id="debugTelemetryDetails" hidden>
+                            <div class="console-debug__chips">
+                              <div class="debug-chip">
+                                <span class="debug-chip__label">Mode</span>
+                                <span class="debug-chip__value" id="debugChipMode">Idle</span>
+                              </div>
+                              <div class="debug-chip">
+                                <span class="debug-chip__label">Trajectory</span>
+                                <span class="debug-chip__value" id="debugChipTrajectory">N/A</span>
+                              </div>
+                              <div class="debug-chip">
+                                <span class="debug-chip__label">Queue</span>
+                                <span class="debug-chip__value" id="debugChipQueue">0</span>
+                              </div>
+                              <div class="debug-chip">
+                                <span class="debug-chip__label">Waiters</span>
+                                <span class="debug-chip__value" id="debugChipWaiters">0</span>
+                              </div>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">Protocol</span>
+                              <span class="debug-detail__value" id="debugDetailProtocol">N/A (disconnected)</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">In-flight</span>
+                              <span class="debug-detail__value" id="debugDetailInFlight">none</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">Motion</span>
+                              <span class="debug-detail__value" id="debugDetailMotion">None</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">State</span>
+                              <span class="debug-detail__value" id="debugDetailState">Disconnected</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">Active</span>
+                              <span class="debug-detail__value" id="debugDetailActive">None</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">Limit</span>
+                              <span class="debug-detail__value" id="debugDetailLimit">No joint at hard limit</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">Last TX</span>
+                              <span class="debug-detail__value" id="debugDetailTx">-</span>
+                            </div>
+                            <div class="debug-detail-row">
+                              <span class="debug-detail__label">Last RX</span>
+                              <span class="debug-detail__value" id="debugDetailRx">-</span>
+                            </div>
+                          </div>
+                          <div class="serial-console serial-console--debug" id="debugConsoleLog" aria-live="polite"></div>
+                          <div class="serial-console__actions">
+                            <button class="btn btn--clear btn--icon-only" id="btnDebugClear" title="Clear debug log" data-hint="Clear debug log">
+                              <i data-lucide="eraser"></i>
+                              <span>Clear</span>
+                            </button>
+                          </div>
+                        </section>
+                      </div>
+                    </section>
+                  </div>
+                </section>
+              </section>
+            </aside>
           </div>
         </div>
-
-        <section class="blockly-controls blockly-controls--sidebar index-3d-program-card" aria-label="Block Editor Controls">
-          <div class="blockly-controls__header">
-            <div class="panel-label"><i data-lucide="square-play"></i> Block Editor Controls</div>
-          </div>
-
-          <div class="blockly-controls__actions blockly-controls__actions--primary">
-            <button class="btn btn--run" id="btnRun" title="Run Program (Space)" aria-label="Run Program (Space)" aria-keyshortcuts="Space" data-hint="Run Program (Space)">
-              <i data-lucide="play"></i>
-              <span class="index-3d-sr-label">Run</span>
-            </button>
-            <button class="btn btn--home" id="btnPause" title="Pause Program (P)" aria-label="Pause Program (P)" aria-keyshortcuts="P" data-hint="Pause Program (P)">
-              <i data-lucide="pause"></i>
-              <span class="index-3d-sr-label">Pause</span>
-            </button>
-            <button class="btn btn--stop" id="btnStop" title="Stop Program (Space)" aria-label="Stop Program (Space)" aria-keyshortcuts="Space" data-hint="Stop Program (Space)">
-              <i data-lucide="square"></i>
-              <span class="index-3d-sr-label">Stop</span>
-            </button>
-          </div>
-          <div class="blockly-controls__actions blockly-controls__actions--secondary">
-            <button class="btn btn--save" id="btnSave" title="Save user blocks (Ctrl+S)" aria-label="Save user blocks (Ctrl+S)" aria-keyshortcuts="Control+S" data-hint="Save user blocks (Ctrl+S)">
-              <i data-lucide="save"></i>
-              <span class="index-3d-sr-label">Save</span>
-            </button>
-            <button class="btn btn--load" id="btnLoad" title="Load from templates" aria-label="Load from templates" data-hint="Load from templates">
-              <i data-lucide="folder-open"></i>
-              <span class="index-3d-sr-label">Load from templates</span>
-            </button>
-            <button class="btn btn--load" id="btnLoadUserBlocks" title="Load user blocks" aria-label="Load user blocks" data-hint="Load user blocks">
-              <i data-lucide="upload"></i>
-              <span class="index-3d-sr-label">Load user blocks</span>
-            </button>
-            <button class="btn btn--load" id="btnLegacyBrowserSaves" title="Legacy browser saves" aria-label="Legacy browser saves" data-hint="Legacy browser saves" hidden>
-              <i data-lucide="archive"></i>
-              <span class="index-3d-sr-label">Legacy browser saves</span>
-            </button>
-            <button class="btn btn--clear" id="btnClear" title="Clear Workspace" aria-label="Clear Workspace" data-hint="Clear Workspace">
-              <i data-lucide="trash-2"></i>
-              <span class="index-3d-sr-label">Clear</span>
-            </button>
-          </div>
-        </section>
       </section>
     </section>
   </main>
 
-  <footer class="bottombar index-3d-bottombar">
-    <div class="index-3d-bottombar__block-status" aria-label="Block Editor status">
-      <span class="index-3d-bottombar__label"><i data-lucide="puzzle"></i> Block Editor</span>
-      <p class="blockly-controls__status index-3d-bottombar__status" id="programControlHint" aria-live="polite" data-tone="ready">
+  <footer class="bottombar bottombar--messages">
+    <div class="bottombar__messages" aria-label="Block Editor status">
+      <p class="blockly-controls__status" id="programControlHint" aria-live="polite" data-tone="ready">
         Ready to run.
       </p>
-      <p class="blockly-controls__status index-3d-bottombar__status" id="legacyBrowserSavesNotice" aria-live="polite" data-tone="warning" hidden>
+      <p class="blockly-controls__status" id="legacyBrowserSavesNotice" aria-live="polite" data-tone="warning" hidden>
         Older browser-saved programs were found. Export them to files.
       </p>
     </div>
-    <div class="bottombar__status index-3d-bottombar__app-status">
+    <div class="bottombar__status">
       <i data-lucide="circle-check" id="programStatusIcon" class="bottombar__status-icon"></i>
       <span id="programStatus">Ready</span>
     </div>
@@ -477,29 +515,24 @@
   </dialog>
 
   <script src="https://unpkg.com/blockly@12.5.1/blockly.min.js" integrity="sha384-SxxR8fpocVLJMl6kYyBm33uuy9U1yy0gMrMavfyCd3lQRer3qaBMlcVb0VSAfzop" crossorigin="anonymous"></script>
+  <script src="robots/registry.js"></script>
+  <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/safety.js"></script>
+  <script src="robots/commandSchema.js"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260702-lekiwi-rolling-motion"></script>
+  <script src="robots/adapters/hardware/hardware.js"></script>
+  <script src="robots/runtime.js"></script>
   <script src="js/serial.js"></script>
   <script src="js/blocks.js"></script>
-  <script src="js/generators.js"></script>
-  <script src="js/runner.js?v=20260610-firmware-sim"></script>
-  <script src="js/arm-preview.js?v=20260611-3d-preview"></script>
-  <script>
-    window.RoboBuddy3DPreview = window.RoboBuddy3DPreview || {};
-    window.addEventListener("DOMContentLoaded", function() {
-      window.setTimeout(function() {
-        var registry = window.RoboBuddy3DPreview || {};
-        var fallbackStatus = document.querySelector("[data-arm-preview-3d-fallback-status]");
-        if (!registry.registered && fallbackStatus) {
-          fallbackStatus.hidden = false;
-          fallbackStatus.textContent = "3D unavailable; using 2D fallback.";
-        }
-      }, 1200);
-    });
-  </script>
-  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260611-layout-pan1"></script>
-  <script src="js/storage.js"></script>
+  <script src="js/generators.js?v=20260702-so101-assembly"></script>
+  <script src="js/runner.js?v=20260702-lekiwi-rolling-motion"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260703-lekiwi-gripper-calibration"></script>
+  <script src="js/storage.js?v=20260701-robot-preview"></script>
   <script src="js/file-workflows.js"></script>
   <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
-  <script src="js/app.js?v=20260612-3d-pages1"></script>
+  <script src="js/app.js?v=20260703-gripper-slider-readout"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();
@@ -511,11 +544,11 @@
       var VALID_LAYOUTS = { horizontal: true, stacked: true };
       var SPLITS = {
         outer: {
-          defaultValue: 33,
-          min: 22,
-          max: 55,
+          defaultValue: 44,
+          min: 36,
+          max: 62,
           cssVar: "--index-3d-outer-split",
-          storageKey: "robobuddy.index3d.outerSplitPercent"
+          storageKey: "robobuddy.index3d.outerSplitPercent.v2"
         },
         innerHorizontal: {
           defaultValue: 52,
@@ -617,14 +650,14 @@
         var maxSize = parseFloat(style.getPropertyValue("--index-3d-teach-controls-size-max"));
         var isNarrow = window.matchMedia("(max-width: 680px)").matches;
 
-        var fallbackGap = Number.isFinite(defaultGap) ? defaultGap : 4;
-        var fallbackSize = Number.isFinite(defaultSize) ? defaultSize : 24;
-        var tokenMin = Number.isFinite(minSize) && minSize > 0 ? minSize : 22;
+        var fallbackGap = Number.isFinite(defaultGap) ? defaultGap : 8;
+        var fallbackSize = Number.isFinite(defaultSize) ? defaultSize : 28;
+        var tokenMin = Number.isFinite(minSize) && minSize > 0 ? minSize : 26;
         var tokenMax = Number.isFinite(maxSize) && maxSize >= tokenMin ? maxSize : 36;
-        var sizeMin = isNarrow ? Math.max(18, Math.min(tokenMin, 20)) : tokenMin;
+        var sizeMin = isNarrow ? Math.max(20, Math.min(tokenMin, 24)) : tokenMin;
         var sizeMax = Math.max(tokenMin, tokenMax);
-        var gapMin = isNarrow ? 2 : 4;
-        var gapMax = 12;
+        var gapMin = isNarrow ? 4 : 8;
+        var gapMax = 18;
 
         if (!actions) {
           workbench.style.setProperty("--index-3d-teach-controls-size", Math.round(fallbackSize) + "px");
@@ -662,13 +695,16 @@
           return;
         }
 
-        var sizeByWidth = Math.floor((actionsWidth - (buttonCount - 1) * gapMax) / buttonCount);
+        var buttonColumnCount = Math.max(1, Math.min(4, buttonCount));
+        var sizeByWidth = Math.floor((actionsWidth - (buttonColumnCount - 1) * gapMax) / buttonColumnCount);
         var nextSize = clamp(sizeByWidth, sizeMin, sizeMax);
         if (!Number.isFinite(nextSize) || nextSize <= 0) {
           nextSize = sizeMin;
         }
 
-        var rawGap = (actionsWidth - nextSize * buttonCount) / (buttonCount - 1);
+        var rawGap = buttonColumnCount > 1
+          ? (actionsWidth - nextSize * buttonColumnCount) / (buttonColumnCount - 1)
+          : fallbackGap;
         var nextGap = Math.round(rawGap);
         if (!Number.isFinite(nextGap)) {
           nextGap = gapMin;
@@ -678,7 +714,7 @@
           nextGap = gapMin;
         }
 
-        if (actionsWidth <= Math.floor(nextSize * buttonCount + nextGap * (buttonCount - 1))) {
+        if (buttonColumnCount > 1 && actionsWidth <= Math.floor(nextSize * buttonColumnCount + nextGap * (buttonColumnCount - 1))) {
           nextGap = gapMin;
         }
 
@@ -693,7 +729,7 @@
           var config = SPLITS[key];
           var value = Math.round(state[key]);
           var orientation = getSplitterOrientation(type);
-          var label = type === "outer" ? "3D preview" : "Manual Control";
+          var label = type === "outer" ? "Blockly" : "Manual Control";
           splitter.dataset.splitterOrientation = orientation;
           splitter.setAttribute("aria-orientation", orientation);
           splitter.setAttribute("aria-valuemin", String(config.min));

@@ -19,8 +19,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="css/style.css?v=20260612-3d-pages1">
-  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260611-footerstatus1">
+  <link rel="stylesheet" href="css/style.css?v=20260703-bottom-area">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260703-preview-console">
   <script type="importmap">
     {
       "imports": {
@@ -30,7 +30,7 @@
     }
   </script>
 </head>
-<body class="python-draft-page" data-preview-storage-key="roboadmin.python3dPreviewMode.v1" data-default-preview-mode="sketch">
+<body class="python-draft-page">
   <header class="topbar">
     <div class="topbar__brand">
       <div class="topbar__logo topbar__logo--image" aria-hidden="true">
@@ -65,6 +65,10 @@
         <span class="status-dot" id="statusDot"></span>
         <span class="status-text" id="statusText">Disconnected</span>
       </div>
+      <label class="topbar__robot-select" for="pythonRobotChooser">
+        <span class="visually-hidden">Robot</span>
+        <select id="pythonRobotChooser" aria-label="Robot"></select>
+      </label>
       <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth)" data-hint="Connect Serial (USB/Bluetooth)">
         <i data-lucide="plug"></i>
         <span>Connect</span>
@@ -183,6 +187,11 @@ print("Python command list ready")</textarea>
               <i data-lucide="square"></i>
             </button>
           </span>
+          <span class="python-draft__tool" data-hint="Load example code">
+            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadCodeExample" aria-label="Load example code" aria-haspopup="menu" aria-expanded="false" aria-controls="pythonCodeExampleMenu" type="button" title="Load example code" data-hint="Load example code">
+              <i data-lucide="file-code-2"></i>
+            </button>
+          </span>
           <span class="python-draft__tool" data-hint="Save Python">
             <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnSavePython" aria-label="Save Python" type="button" title="Save Python" data-hint="Save Python">
               <i data-lucide="save"></i>
@@ -199,6 +208,7 @@ print("Python command list ready")</textarea>
             </button>
           </span>
         </div>
+        <div class="python-draft__example-menu" id="pythonCodeExampleMenu" role="menu" aria-label="Example Python code" hidden></div>
       </div>
       <div class="python-draft__effect">
         <p class="blockly-controls__status" id="pythonEffectStatus" data-tone="ready" aria-live="polite">Build blocks, then convert to Python.</p>
@@ -212,32 +222,28 @@ print("Python command list ready")</textarea>
       role="separator"
       tabindex="0"
       aria-orientation="vertical"
-      aria-label="Resize Python and Arm Preview panels"
+      aria-label="Resize Python and Robot Preview panels"
       aria-valuemin="58.7"
       aria-valuemax="82"
       aria-valuenow="77.5"
       aria-valuetext="Python 36.8 percent"
-      title="Resize Python and Arm Preview panels"
-      data-hint="Resize Python and Arm Preview panels"
+      title="Resize Python and Robot Preview panels"
+      data-hint="Resize Python and Robot Preview panels"
     ></div>
 
     <aside class="python-draft__panel python-draft__panel--side" aria-label="Preview and output">
       <section class="python-draft__preview">
         <div class="python-draft__preview-header">
-          <div class="panel-label"><i data-lucide="eye"></i> Arm Preview</div>
-          <div class="preview-mode-toggle" role="group" aria-label="Arm preview mode">
-            <button class="preview-mode-toggle__button is-active" type="button" id="btnPreviewSketch" data-preview-mode="sketch3d" aria-pressed="true" title="3D Sketch" data-hint="3D Sketch">3D Sketch</button>
-            <button class="preview-mode-toggle__button" type="button" id="btnPreviewCurrent" data-preview-mode="current" aria-pressed="false" title="2D Sketch" data-hint="2D Sketch">2D Sketch</button>
-          </div>
+          <div class="panel-label"><i data-lucide="eye"></i> Robot Preview</div>
         </div>
         <div class="gemini-draft__preview-body">
-          <div class="python-draft__preview-panel" id="pythonPreviewSketchPanel" data-preview-panel="sketch3d">
+          <div class="python-draft__preview-panel" id="pythonPreviewSketchPanel">
             <div class="arm-preview-container arm-preview-container--3d python-draft__arm-stage">
-              <svg id="pythonArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Robot arm preview fallback"></svg>
+              <svg id="pythonArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="3D robot preview fallback"></svg>
               <div class="arm-preview-3d" data-arm-preview-3d hidden>
-                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot arm preview"></div>
+                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot preview"></div>
                 <div class="arm-preview-3d__toolbar">
-                  <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
+                  <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D robot...</span>
                   <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
                     <i data-lucide="rotate-ccw" aria-hidden="true"></i>
                     <span>Camera</span>
@@ -247,11 +253,7 @@ print("Python command list ready")</textarea>
               <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
             </div>
           </div>
-          <div class="python-draft__preview-panel" id="pythonPreviewCurrentPanel" data-preview-panel="current" hidden>
-            <div class="arm-preview-container python-draft__arm-stage">
-              <svg id="pythonArmSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Robot arm preview"></svg>
-            </div>
-          </div>
+          <div id="pythonRobotSimPreview" class="robot-sim-preview python-draft__robot-sim" hidden></div>
           <div class="python-draft__joints" aria-label="Current joint values">
             <div><span>Base</span><strong id="pythonJointValue0">90 deg</strong></div>
             <div><span>Shoulder</span><strong id="pythonJointValue1">90 deg</strong></div>
@@ -298,19 +300,27 @@ print("Python command list ready")</textarea>
   </footer>
 
   <script src="https://unpkg.com/blockly@12.5.1/blockly.min.js" integrity="sha384-SxxR8fpocVLJMl6kYyBm33uuy9U1yy0gMrMavfyCd3lQRer3qaBMlcVb0VSAfzop" crossorigin="anonymous"></script>
+  <script src="robots/registry.js"></script>
+  <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/safety.js"></script>
+  <script src="robots/commandSchema.js"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260702-lekiwi-rolling-motion"></script>
+  <script src="robots/adapters/hardware/hardware.js"></script>
+  <script src="robots/runtime.js"></script>
   <script src="js/serial.js"></script>
   <script src="js/blocks.js"></script>
   <script src="js/generators.js"></script>
-  <script src="js/runner.js?v=20260610-firmware-sim"></script>
-  <script src="js/arm-preview.js?v=20260611-3d-preview"></script>
-  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260611-layout-pan1"></script>
-  <script src="js/storage.js"></script>
+  <script src="js/runner.js?v=20260702-lekiwi-rolling-motion"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260703-lekiwi-gripper-calibration"></script>
+  <script src="js/storage.js?v=20260701-robot-preview"></script>
   <script src="js/file-workflows.js"></script>
   <script src="js/python-emitter.js?v=20260529-no-uh"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js" integrity="sha384-ZYmwuq4n2gOcNxMSiJ6jyTj+BbIrilr7p6dlq6q5nmSWKmsH9UU4K1qqjycMkfmR" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js" integrity="sha384-Xy+2exU6lBoT4OpUOtnQb+cUpn+nlJQEHvRobWVtwz6wIsw4oNoO7xyd/l8rYgMy" crossorigin="anonymous"></script>
   <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
-  <script src="js/python-draft.js?v=20260612-3d-pages1"></script>
+  <script src="js/python-draft.js?v=20260702-code-examples-menu"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();

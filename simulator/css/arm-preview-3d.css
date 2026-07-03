@@ -15,6 +15,11 @@
   display: none !important;
 }
 
+.arm-preview-container.is-robot-sim-active .arm-preview-3d,
+.arm-preview-container.is-robot-sim-active [data-arm-preview-3d-fallback-status] {
+  display: none !important;
+}
+
 .arm-preview-3d__viewport {
   position: absolute;
   inset: 0;
@@ -41,7 +46,7 @@
   right: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   pointer-events: none;
 }
@@ -61,9 +66,7 @@
 }
 
 .arm-preview-3d__status {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: none !important;
 }
 
 .arm-preview-3d__status[data-tone="ready"] {
@@ -85,13 +88,18 @@
 .arm-preview-3d__reset {
   pointer-events: auto;
   flex: 0 0 auto;
-  min-height: 30px;
-  padding: 5px 8px;
+  width: 34px;
+  height: 34px;
+  min-height: 0;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid rgba(212, 224, 238, 0.2);
   background: rgba(12, 18, 26, 0.78);
   color: #e8f2ff;
   box-shadow: 0 10px 28px rgba(7, 12, 19, 0.28);
+  line-height: 1;
 }
 
 .arm-preview-3d__reset:hover,
@@ -100,8 +108,20 @@
 }
 
 .arm-preview-3d__reset svg {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
+}
+
+.arm-preview-3d__reset span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .arm-preview-3d__fallback-status {
@@ -139,7 +159,9 @@
 }
 
 .index-3d-page .workspace {
-  gap: 6px;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
 }
 
 .index-3d-layout-toggle {
@@ -182,31 +204,31 @@
 }
 
 .index-3d-workbench {
-  --index-3d-outer-split: 33%;
+  --index-3d-outer-split: 44%;
   --index-3d-inner-horizontal-split: 52%;
   --index-3d-inner-stacked-split: 50%;
-  --index-3d-program-col: clamp(96px, 8.4vw, 136px);
   --index-3d-splitter-size: 12px;
-  --index-3d-teach-controls-gap: 4px;
-  --index-3d-teach-controls-size: 24px;
-  --index-3d-teach-controls-size-min: 22px;
+  --index-3d-teach-controls-gap: 8px;
+  --index-3d-teach-controls-size: 28px;
+  --index-3d-teach-controls-size-min: 26px;
   --index-3d-teach-controls-size-max: 36px;
-  --index-3d-teach-controls-height: 28px;
+  --index-3d-teach-controls-height: 30px;
   --index-3d-teach-controls-padding: 4px;
   --index-3d-teach-controls-icon-size: 13px;
   height: 100%;
   min-height: 0;
-  padding: 0 10px 6px;
+  padding: 0 10px 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--index-3d-program-col);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas:
-    "main program";
-  gap: 12px;
+    "main";
+  gap: 0;
 }
 
 .index-3d-main-split,
-.index-3d-control-group {
+.index-3d-control-group,
+.index-3d-side-column {
   min-width: 0;
   min-height: 0;
   display: grid;
@@ -214,34 +236,34 @@
 
 .index-3d-main-split {
   grid-area: main;
-  grid-template-columns: minmax(256px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
+  grid-template-columns: minmax(360px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas:
-    "preview outer-split controls";
+    "block outer-split controls";
 }
 
 .index-3d-control-group {
   grid-area: controls;
-  grid-template-columns: minmax(280px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(280px, 1fr);
+  grid-template-columns: minmax(280px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(320px, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas:
-    "manual inner-split block";
+    "manual inner-split side";
 }
 
 .index-3d-page[data-manual-block-layout="stacked"] .index-3d-control-group {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(160px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(180px, 1fr);
+  grid-template-rows: minmax(160px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(240px, 1fr);
   grid-template-areas:
     "manual"
     "inner-split"
-    "block";
+    "side";
 }
 
 .index-3d-workbench .sidebar-card,
 .index-3d-workbench .workspace__editor,
 .index-3d-main-split,
 .index-3d-control-group,
-.index-3d-console-panel .sidebar-card {
+.index-3d-side-column {
   min-width: 0;
   min-height: 0;
 }
@@ -323,13 +345,24 @@
 }
 
 .index-3d-preview-card {
-  grid-area: preview;
+  grid-area: auto;
+  height: 100%;
+  align-self: stretch;
   overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
 }
 
 .index-3d-preview-card .arm-preview-container--3d {
   min-height: 0;
   height: 100%;
+}
+
+.index-3d-side-column {
+  grid-area: side;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
 }
 
 .index-3d-manual-card {
@@ -338,6 +371,21 @@
   min-height: 0;
   grid-template-rows: auto auto minmax(0, 1fr);
   overflow: auto;
+}
+
+.index-3d-card-header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.index-3d-card-header .panel-label {
+  min-width: 0;
+}
+
+.index-3d-card-header .index-3d-layout-toggle {
+  justify-self: start;
 }
 
 .index-3d-manual-card .teach-controls {
@@ -418,65 +466,53 @@
   padding: 10px;
   overflow: hidden;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "heading"
-    "canvas";
+    "canvas"
+    "actions";
 }
 
 .index-3d-block-card #blocklyDiv {
+  grid-area: canvas;
   min-height: 0;
 }
 
-.index-3d-program-card {
-  grid-area: program;
-  min-height: 0;
-  max-height: none;
-  overflow: auto;
+.index-3d-block-actionbar {
+  grid-area: actions;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px 0 0;
+  border-top: 1px solid rgba(216, 223, 235, 0.72);
+}
+
+.index-3d-block-actionbar .python-draft__action-divider {
+  display: none;
+}
+
+.index-3d-block-actions {
+  min-width: 0;
+  display: flex;
+  flex: 1 1 260px;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
   scrollbar-width: thin;
-  align-content: start;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto;
 }
 
-.index-3d-program-card > * {
-  min-width: 0;
-}
-
-.index-3d-program-card .blockly-controls__header {
-  gap: 3px;
-}
-
-.index-3d-program-card .panel-label {
-  gap: 4px;
-  font-size: 0.72rem;
-  line-height: 1.15;
-  white-space: normal;
-}
-
-.index-3d-program-card .blockly-controls__actions,
-.index-3d-program-card.blockly-controls--sidebar .blockly-controls__actions,
-.index-3d-program-card.blockly-controls--sidebar .blockly-controls__actions--primary,
-.index-3d-program-card.blockly-controls--sidebar .blockly-controls__actions--secondary {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 7px;
-}
-
-.index-3d-program-card .btn {
-  width: 100%;
-  min-width: 0;
-  min-height: 42px;
+.index-3d-block-actions .btn {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
   padding: 0;
-  justify-content: center;
+  border-radius: 8px;
 }
 
-.index-3d-program-card .btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.index-3d-sr-label {
+.index-3d-block-actions .btn span {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -488,67 +524,44 @@
   border: 0;
 }
 
-.index-3d-bottombar {
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px 14px;
+.index-3d-block-actions .btn svg {
+  width: 18px;
+  height: 18px;
 }
 
-.index-3d-bottombar__block-status {
-  min-width: 0;
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.index-3d-bottombar__label {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #20334f;
-  font-size: 0.76rem;
-  font-weight: 800;
-}
-
-.index-3d-bottombar__label svg {
-  width: 14px;
-  height: 14px;
-}
-
-.index-3d-bottombar__status {
-  min-width: 0;
-  max-width: min(560px, 100%);
-  padding: 5px 8px;
-  font-size: 0.74rem;
-  line-height: 1.2;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.index-3d-bottombar__status[hidden] {
+.index-3d-block-actions .python-draft__tool[hidden] {
   display: none !important;
-}
-
-.index-3d-bottombar__app-status {
-  flex: 0 0 auto;
-  margin-left: auto;
-  justify-content: flex-end;
 }
 
 .index-3d-console-panel {
   min-height: 0;
-  height: 100%;
-  padding: 0 10px 6px;
+  height: auto;
+  padding: 0;
   display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.index-3d-console-body {
+  min-height: 0;
+}
+
+.index-3d-console-panel .gemini-draft__console-toggle-icon {
+  transition: transform var(--transition-fast);
+}
+
+.index-3d-console-panel .gemini-draft__console-toggle[aria-expanded="true"] .gemini-draft__console-toggle-icon {
+  transform: rotate(180deg);
 }
 
 .index-3d-console-card {
   grid-area: auto;
-  height: 100%;
-  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  height: auto;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 8px;
+  overflow: hidden;
 }
 
 .index-3d-console-card .console-split {
@@ -558,49 +571,43 @@
 
 @media (max-width: 1180px) {
   .index-3d-workbench {
-    --index-3d-program-col: clamp(86px, 10vw, 118px);
-    grid-template-columns: minmax(0, 1fr) var(--index-3d-program-col);
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
-    gap: 10px;
-    padding: 0 8px 6px;
+    padding: 0 8px 0;
   }
 
   .index-3d-main-split {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(140px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
+    grid-template-rows: minmax(300px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
     grid-template-areas:
-      "preview"
+      "block"
       "outer-split"
       "controls";
   }
 
   .index-3d-control-group {
-    grid-template-columns: minmax(220px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(260px, 1fr);
+    grid-template-columns: minmax(220px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(280px, 1fr);
   }
 
   .index-3d-page[data-manual-block-layout="stacked"] .index-3d-control-group {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(180px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(200px, 1fr);
+    grid-template-rows: minmax(180px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(240px, 1fr);
   }
 
 }
 
 @media (max-width: 980px) {
-  .index-3d-workbench {
-    --index-3d-program-col: clamp(78px, 10vw, 104px);
-  }
-
   .index-3d-main-split {
-    grid-template-rows: minmax(130px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
+    grid-template-rows: minmax(280px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
   }
 
   .index-3d-control-group {
-    grid-template-columns: minmax(200px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(220px, 1fr);
+    grid-template-columns: minmax(210px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(240px, 1fr);
   }
 
   .index-3d-page[data-manual-block-layout="stacked"] .index-3d-control-group {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(165px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(190px, 1fr);
+    grid-template-rows: minmax(165px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(220px, 1fr);
   }
 
   .index-3d-layout-toggle__label {
@@ -619,30 +626,14 @@
     padding: 5px 7px;
   }
 
-  .index-3d-program-card {
-    overflow: auto;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
-    align-items: start;
+  .index-3d-block-actionbar {
+    flex-wrap: wrap;
   }
 
-  .index-3d-program-card .blockly-controls__actions,
-  .index-3d-program-card.blockly-controls--sidebar .blockly-controls__actions,
-  .index-3d-program-card.blockly-controls--sidebar .blockly-controls__actions--primary,
-  .index-3d-program-card.blockly-controls--sidebar .blockly-controls__actions--secondary {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-
-  .index-3d-bottombar {
-    align-items: flex-start;
-  }
-
-  .index-3d-bottombar__block-status {
+  .index-3d-block-actions {
     flex: 1 1 100%;
+    margin-left: 0;
+    justify-content: flex-start;
   }
 
-  .index-3d-bottombar__app-status {
-    margin-left: 0;
-  }
 }

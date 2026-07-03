@@ -6,7 +6,8 @@
     flow: "#d4ac0d",
     logic: "#2471a3",
     pose: "#1f9d55",
-    advanced: "#d97706"
+    advanced: "#d97706",
+    mobile: "#0b7a75"
   };
 
   const DEFAULT_JOINT_LIMITS = [
@@ -18,44 +19,38 @@
     [25, 130]
   ];
 
+  const LEGACY_JOINT_OPTIONS = [
+    ["Base", "0"],
+    ["Shoulder", "1"],
+    ["Elbow", "2"],
+    ["Wrist Rot", "3"],
+    ["Wrist Tilt", "4"],
+    ["Gripper", "5"]
+  ];
+
+  const DEFAULT_GRIPPER_SPEED = 55;
+  let registered = false;
+
   function createTheme() {
-    var blockStyles = {
-      movement_style: {
-        colourPrimary: COLORS.movement,
-        colourSecondary: "#7d3c9b",
-        colourTertiary: "#6c3489"
-      },
-      flow_style: {
-        colourPrimary: COLORS.flow,
-        colourSecondary: "#c09b0c",
-        colourTertiary: "#a8880a"
-      },
-      logic_style: {
-        colourPrimary: COLORS.logic,
-        colourSecondary: "#1f6391",
-        colourTertiary: "#1a557d"
-      },
-      pose_style: {
-        colourPrimary: COLORS.pose,
-        colourSecondary: "#1b8b4b",
-        colourTertiary: "#177941"
-      },
-      advanced_style: {
-        colourPrimary: COLORS.advanced,
-        colourSecondary: "#c36a05",
-        colourTertiary: "#ab5d05"
-      }
+    const blockStyles = {
+      movement_style: { colourPrimary: COLORS.movement, colourSecondary: "#7d3c9b", colourTertiary: "#6c3489" },
+      flow_style: { colourPrimary: COLORS.flow, colourSecondary: "#c09b0c", colourTertiary: "#a8880a" },
+      logic_style: { colourPrimary: COLORS.logic, colourSecondary: "#1f6391", colourTertiary: "#1a557d" },
+      pose_style: { colourPrimary: COLORS.pose, colourSecondary: "#1b8b4b", colourTertiary: "#177941" },
+      advanced_style: { colourPrimary: COLORS.advanced, colourSecondary: "#c36a05", colourTertiary: "#ab5d05" },
+      mobile_style: { colourPrimary: COLORS.mobile, colourSecondary: "#09635f", colourTertiary: "#064f4c" }
     };
 
-    var categoryStyles = {
+    const categoryStyles = {
       movement_category: { colour: COLORS.movement },
       flow_category: { colour: COLORS.flow },
       logic_category: { colour: COLORS.logic },
       pose_category: { colour: COLORS.pose },
-      advanced_category: { colour: COLORS.advanced }
+      advanced_category: { colour: COLORS.advanced },
+      mobile_category: { colour: COLORS.mobile }
     };
 
-    var componentStyles = {
+    const componentStyles = {
       workspaceBackgroundColour: "#f0f4fa",
       toolboxBackgroundColour: "#ffffff",
       toolboxForegroundColour: "#1e2430",
@@ -69,51 +64,47 @@
       cursorColour: "#0b7a75"
     };
 
-    var fontStyle = {
-      family: '"DM Sans", sans-serif',
-      weight: "500",
-      size: 11
-    };
-
     return Blockly.Theme.defineTheme("roboadmin", {
       name: "roboadmin",
-      blockStyles: blockStyles,
-      categoryStyles: categoryStyles,
-      componentStyles: componentStyles,
-      fontStyle: fontStyle,
+      blockStyles,
+      categoryStyles,
+      componentStyles,
+      fontStyle: {
+        family: '"DM Sans", sans-serif',
+        weight: "500",
+        size: 11
+      },
       startHats: false
     });
   }
 
-  const JOINT_OPTIONS = [
-    ["Base", "0"],
-    ["Shoulder", "1"],
-    ["Elbow", "2"],
-    ["Wrist Rot", "3"],
-    ["Wrist Tilt", "4"],
-    ["Gripper", "5"]
-  ];
-  const DEFAULT_GRIPPER_SPEED = 55;
+  function activeManifest() {
+    return NS.RobotRegistry && NS.RobotRegistry.getActive
+      ? NS.RobotRegistry.getActive()
+      : null;
+  }
 
-  let registered = false;
+  function activeJoints() {
+    const manifest = activeManifest();
+    return manifest && Array.isArray(manifest.joints) && manifest.joints.length > 0
+      ? manifest.joints
+      : null;
+  }
+
+  function getJointOptions() {
+    const joints = activeJoints();
+    if (!joints) {
+      return LEGACY_JOINT_OPTIONS;
+    }
+    return joints.map((joint, index) => [joint.label || joint.id, joint.id || String(index)]);
+  }
 
   function getJointLimits() {
-    if (!NS.Generator || !Array.isArray(NS.Generator.JOINT_LIMITS) || NS.Generator.JOINT_LIMITS.length < 6) {
+    const joints = activeJoints();
+    if (!joints) {
       return DEFAULT_JOINT_LIMITS;
     }
-
-    const resolved = [];
-    for (let servo = 0; servo < 6; servo += 1) {
-      const fallback = DEFAULT_JOINT_LIMITS[servo] || [0, 180];
-      const pair = NS.Generator.JOINT_LIMITS[servo];
-      const min = Array.isArray(pair) ? Number(pair[0]) : NaN;
-      const max = Array.isArray(pair) ? Number(pair[1]) : NaN;
-      resolved.push([
-        Number.isFinite(min) ? min : fallback[0],
-        Number.isFinite(max) ? max : fallback[1]
-      ]);
-    }
-    return resolved;
+    return joints.map((joint) => [Number(joint.min), Number(joint.max)]);
   }
 
   function registerBlocks() {
@@ -125,46 +116,48 @@
       init() {
         this.appendDummyInput()
           .appendField("Move")
-          .appendField(new Blockly.FieldDropdown(JOINT_OPTIONS), "JOINT")
+          .appendField(new Blockly.FieldDropdown(getJointOptions), "JOINT")
           .appendField("to")
-          .appendField(new Blockly.FieldNumber(90, 0, 180, 1), "ANGLE")
+          .appendField(new Blockly.FieldNumber(90, -180, 180, 1), "ANGLE")
           .appendField("speed")
           .appendField(new Blockly.FieldNumber(50, 1, 100, 1), "SPEED");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setStyle("movement_style");
-        this.setTooltip("Move one servo to an angle at a speed.");
+        this.setTooltip("Move one active robot joint within its manifest limits.");
       }
     };
 
     Blockly.Blocks.move_arm = {
       init() {
+        const joints = activeJoints() || [];
         const limits = getJointLimits();
+        const labels = (joints.length ? joints : LEGACY_JOINT_OPTIONS.map(([label]) => ({ label }))).slice(0, 6);
         this.appendDummyInput()
-          .appendField("Move arm")
-          .appendField("Base")
-          .appendField(new Blockly.FieldNumber(90, limits[0][0], limits[0][1], 1), "A0")
-          .appendField("Shoulder")
-          .appendField(new Blockly.FieldNumber(90, limits[1][0], limits[1][1], 1), "A1");
+          .appendField("Move all joints")
+          .appendField(labels[0] ? labels[0].label : "Joint 1")
+          .appendField(new Blockly.FieldNumber(homeFor(0), limitMin(limits, 0), limitMax(limits, 0), 1), "A0")
+          .appendField(labels[1] ? labels[1].label : "Joint 2")
+          .appendField(new Blockly.FieldNumber(homeFor(1), limitMin(limits, 1), limitMax(limits, 1), 1), "A1");
 
         this.appendDummyInput()
-          .appendField("Elbow")
-          .appendField(new Blockly.FieldNumber(90, limits[2][0], limits[2][1], 1), "A2")
-          .appendField("Wrist Rot")
-          .appendField(new Blockly.FieldNumber(90, limits[3][0], limits[3][1], 1), "A3")
-          .appendField("Wrist Tilt")
-          .appendField(new Blockly.FieldNumber(90, limits[4][0], limits[4][1], 1), "A4");
+          .appendField(labels[2] ? labels[2].label : "Joint 3")
+          .appendField(new Blockly.FieldNumber(homeFor(2), limitMin(limits, 2), limitMax(limits, 2), 1), "A2")
+          .appendField(labels[3] ? labels[3].label : "Joint 4")
+          .appendField(new Blockly.FieldNumber(homeFor(3), limitMin(limits, 3), limitMax(limits, 3), 1), "A3")
+          .appendField(labels[4] ? labels[4].label : "Joint 5")
+          .appendField(new Blockly.FieldNumber(homeFor(4), limitMin(limits, 4), limitMax(limits, 4), 1), "A4");
 
         this.appendDummyInput()
-          .appendField("Gripper")
-          .appendField(new Blockly.FieldNumber(90, limits[5][0], limits[5][1], 1), "A5")
+          .appendField(labels[5] ? labels[5].label : "Joint 6")
+          .appendField(new Blockly.FieldNumber(homeFor(5), limitMin(limits, 5), limitMax(limits, 5), 1), "A5")
           .appendField("speed")
           .appendField(new Blockly.FieldNumber(50, 1, 100, 1), "SPEED");
 
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setStyle("movement_style");
-        this.setTooltip("Move all six joints to a full pose.");
+        this.setTooltip("Move the active robot joints to a pose.");
       }
     };
 
@@ -186,7 +179,6 @@
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setStyle("movement_style");
-        this.setTooltip("Open gripper at selected speed.");
       }
     };
 
@@ -199,7 +191,6 @@
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setStyle("movement_style");
-        this.setTooltip("Close gripper at selected speed.");
       }
     };
 
@@ -207,7 +198,7 @@
       init() {
         this.appendDummyInput()
           .appendField("Wait")
-          .appendField(new Blockly.FieldNumber(1, 0.1, 10, 0.1), "SECONDS")
+          .appendField(new Blockly.FieldNumber(1, 0, 30, 0.1), "SECONDS")
           .appendField("seconds");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -242,13 +233,7 @@
       init() {
         this.appendDummyInput()
           .appendField("If")
-          .appendField(
-            new Blockly.FieldDropdown([
-              ["true", "TRUE"],
-              ["false", "FALSE"]
-            ]),
-            "COND"
-          );
+          .appendField(new Blockly.FieldDropdown([["true", "TRUE"], ["false", "FALSE"]]), "COND");
         this.appendStatementInput("DO").appendField("do");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -284,11 +269,11 @@
       init() {
         this.appendDummyInput()
           .appendField("Smooth Move")
-          .appendField(new Blockly.FieldDropdown(JOINT_OPTIONS), "JOINT")
+          .appendField(new Blockly.FieldDropdown(getJointOptions), "JOINT")
           .appendField("from")
-          .appendField(new Blockly.FieldNumber(90, 0, 180, 1), "FROM")
+          .appendField(new Blockly.FieldNumber(0, -180, 180, 1), "FROM")
           .appendField("to")
-          .appendField(new Blockly.FieldNumber(120, 0, 180, 1), "TO")
+          .appendField(new Blockly.FieldNumber(30, -180, 180, 1), "TO")
           .appendField("duration")
           .appendField(new Blockly.FieldNumber(1.5, 0.2, 10, 0.1), "SECONDS")
           .appendField("s");
@@ -307,26 +292,76 @@
       }
     };
 
+    registerDriveBlock("drive_forward", "Drive forward", "FORWARD");
+    registerDriveBlock("drive_backward", "Drive backward", "BACKWARD");
+    registerDriveBlock("strafe_left", "Strafe left", "STRAFE_LEFT");
+    registerDriveBlock("strafe_right", "Strafe right", "STRAFE_RIGHT");
+    registerDriveBlock("turn_left", "Turn left", "TURN_LEFT");
+    registerDriveBlock("turn_right", "Turn right", "TURN_RIGHT");
+    registerDriveBlock("drive_for_seconds", "Drive vector", "VECTOR");
+    registerDriveBlock("robot_stop", "Robot Stop", "STOP");
+
     registered = true;
+  }
+
+  function registerDriveBlock(type, label, mode) {
+    Blockly.Blocks[type] = {
+      init() {
+        this.appendDummyInput()
+          .appendField(label)
+          .appendField(new Blockly.FieldNumber(mode === "VECTOR" ? 20 : 40, -100, 100, 1), "SPEED")
+          .appendField(mode === "VECTOR" ? "vx %" : "speed %")
+          .appendField(new Blockly.FieldNumber(1, 0, 30, 0.1), "SECONDS")
+          .appendField("s");
+        if (mode === "VECTOR") {
+          this.appendDummyInput()
+            .appendField("vy %")
+            .appendField(new Blockly.FieldNumber(0, -100, 100, 1), "VY")
+            .appendField("omega deg/s")
+            .appendField(new Blockly.FieldNumber(0, -90, 90, 1), "OMEGA");
+        }
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("mobile_style");
+      }
+    };
   }
 
   function getPoseOptions() {
     const names = typeof NS.getPoseNames === "function" ? NS.getPoseNames() : [];
-    if (!Array.isArray(names) || names.length === 0) {
-      return [["No poses", "__none__"]];
-    }
-    return names.map((name) => [name, name]);
+    return Array.isArray(names) && names.length > 0 ? names.map((name) => [name, name]) : [["No poses", "__none__"]];
   }
 
-  function toolboxXml() {
+  function toolboxXml(robotId) {
+    const manifest = robotId && NS.RobotRegistry ? NS.RobotRegistry.get(robotId) : activeManifest();
+    const capabilities = new Set(manifest && Array.isArray(manifest.capabilities) ? manifest.capabilities : []);
+    const showArm = capabilities.has("joint_control");
+    const showGripper = capabilities.has("gripper");
+    const showMobile = capabilities.has("drive_2d") || capabilities.has("holonomic_drive");
+    const movementBlocks = [
+      showArm ? "<block type=\"move_joint\"></block>" : "",
+      showArm && capabilities.has("multi_joint_pose") ? "<block type=\"move_arm\"></block>" : "",
+      capabilities.has("home") ? "<block type=\"home_position\"></block>" : "",
+      showGripper ? "<block type=\"gripper_open\"></block><block type=\"gripper_close\"></block>" : ""
+    ].join("");
+    const mobileCategory = showMobile ? `
+      <category name="Mobile Base" categorystyle="mobile_category">
+        <block type="drive_forward"></block>
+        <block type="drive_backward"></block>
+        <block type="strafe_left"></block>
+        <block type="strafe_right"></block>
+        <block type="turn_left"></block>
+        <block type="turn_right"></block>
+        <block type="drive_for_seconds"></block>
+        <block type="robot_stop"></block>
+      </category>
+    ` : "";
+
     return `
       <category name="Movement" categorystyle="movement_category">
-        <block type="move_joint"></block>
-        <block type="move_arm"></block>
-        <block type="home_position"></block>
-        <block type="gripper_open"></block>
-        <block type="gripper_close"></block>
+        ${movementBlocks}
       </category>
+      ${mobileCategory}
       <category name="Flow" categorystyle="flow_category">
         <block type="wait_seconds"></block>
         <block type="repeat_times"></block>
@@ -346,11 +381,41 @@
     `;
   }
 
+  function refreshToolbox(workspace, toolboxEl) {
+    const xml = toolboxXml();
+    let toolboxSource = toolboxEl || null;
+    if (toolboxSource) {
+      toolboxEl.innerHTML = xml;
+    } else if (typeof document !== "undefined" && typeof document.createElement === "function") {
+      toolboxSource = document.createElement("xml");
+      toolboxSource.innerHTML = xml;
+    }
+    if (workspace && typeof workspace.updateToolbox === "function") {
+      workspace.updateToolbox(toolboxSource || `<xml>${xml}</xml>`);
+    }
+  }
+
+  function limitMin(limits, index) {
+    return limits[index] ? Number(limits[index][0]) : -180;
+  }
+
+  function limitMax(limits, index) {
+    return limits[index] ? Number(limits[index][1]) : 180;
+  }
+
+  function homeFor(index) {
+    const joints = activeJoints();
+    return joints && joints[index] ? Number(joints[index].home) || 0 : 90;
+  }
+
   NS.Blocks = {
     registerBlocks,
     toolboxXml,
+    refreshToolbox,
     createTheme,
-    JOINT_OPTIONS,
-    JOINT_LIMITS: DEFAULT_JOINT_LIMITS
+    JOINT_OPTIONS: LEGACY_JOINT_OPTIONS,
+    JOINT_LIMITS: DEFAULT_JOINT_LIMITS,
+    getJointOptions,
+    getJointLimits
   };
 })();

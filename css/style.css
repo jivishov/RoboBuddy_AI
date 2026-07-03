@@ -52,6 +52,19 @@ body {
   padding: 14px;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---- Icon defaults ---- */
 .btn svg,
 .panel-label svg,
@@ -95,7 +108,9 @@ body {
 .topbar__brand {
   display: flex;
   align-items: center;
+  flex: 0 1 auto;
   gap: 10px;
+  min-width: 0;
 }
 
 .topbar__logo {
@@ -157,8 +172,10 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .topbar__page-nav {
@@ -193,6 +210,56 @@ body {
   border-radius: 999px;
   background: var(--surface-alt);
   font-size: 0.9rem;
+}
+
+.topbar__robot-select,
+.robot-portal__field,
+.robot-bridge-panel__field {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.topbar__robot-select select,
+.robot-portal__field select,
+.robot-bridge-panel__field input {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 7px 10px;
+}
+
+.topbar__robot-select select:focus,
+.robot-portal__field select:focus,
+.robot-bridge-panel__field input:focus {
+  outline: none;
+  border-color: rgba(11, 122, 117, 0.55);
+  box-shadow: var(--glow-brand);
+}
+
+.topbar__robot-select {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: none;
+}
+
+.topbar__robot-select select {
+  width: fit-content;
+  min-width: 16ch;
+  max-width: 22ch;
+  field-sizing: content;
+  padding-right: 30px;
 }
 
 /* ---- Connection status dot ---- */
@@ -340,7 +407,7 @@ body {
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 14px;
 }
 
@@ -375,6 +442,29 @@ body {
   width: 34px;
   min-width: 34px;
   height: 34px;
+}
+
+.robot-portal {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(260px, auto);
+  align-items: end;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.robot-portal__chooser,
+.robot-portal__missions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.robot-portal__field {
+  min-width: 210px;
 }
 
 .workspace-tab {
@@ -728,6 +818,35 @@ body {
   height: 100%;
 }
 
+.sidebar__controls.has-drive-controls {
+  grid-template-columns: minmax(124px, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.sidebar__controls.has-drive-controls .index-3d-card-header,
+.sidebar__controls.has-drive-controls .servo-sliders {
+  grid-column: 1 / -1;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.sidebar__controls.has-drive-controls .robot-drive-controls {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: stretch;
+}
+
+.sidebar__controls.has-drive-controls .servo-sliders {
+  grid-row: 3;
+}
+
 .manual-controls__hint {
   margin: 0;
   color: var(--muted);
@@ -871,6 +990,66 @@ body {
   background: rgba(214, 40, 57, 0.1);
 }
 
+.sidebar__controls.has-drive-controls .teach-controls {
+  padding: 7px;
+  gap: 7px;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__toggle {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  gap: 6px;
+  padding-inline: 8px;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(var(--index-3d-teach-controls-size, 28px), 1fr));
+  grid-auto-rows: var(--index-3d-teach-controls-height, 30px);
+  gap: var(--index-3d-teach-controls-gap, 8px);
+  justify-content: stretch;
+  align-content: start;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+  padding: 0;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__tool {
+  display: inline-flex;
+  min-width: 0;
+  justify-self: center;
+  align-self: center;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__actions .btn--icon-only {
+  width: var(--index-3d-teach-controls-size, 28px);
+  min-width: var(--index-3d-teach-controls-size, 28px);
+  height: var(--index-3d-teach-controls-height, 30px);
+  min-height: var(--index-3d-teach-controls-height, 30px);
+  padding: var(--index-3d-teach-controls-padding, 4px);
+  border-radius: 7px;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__actions .btn--icon-only svg {
+  width: 12px;
+  height: 12px;
+}
+
+.sidebar__controls.has-drive-controls .teach-controls__status {
+  padding: 5px 7px;
+  line-height: 1.18;
+}
+
 .sidebar__controls.is-locked {
   opacity: 0.78;
 }
@@ -915,9 +1094,8 @@ body {
   overflow: hidden;
 }
 
-#armSvg,
-#pythonArmSvg,
-#pythonArm3dFallbackSvg {
+#pythonArm3dFallbackSvg,
+#geminiArm3dFallbackSvg {
   width: 100%;
   height: 100%;
   max-height: 100%;
@@ -931,58 +1109,10 @@ body {
   position: relative;
 }
 
-#pythonArmSvg[hidden],
 #pythonArm3dFallbackSvg[hidden],
+#geminiArm3dFallbackSvg[hidden],
 .python-draft__arm-stage svg[hidden] {
   display: none !important;
-}
-
-#armSvg.is-interactive-disabled .arm-handle,
-#armSvg.is-interactive-disabled .arm-track,
-#pythonArmSvg.is-interactive-disabled .arm-handle,
-#pythonArmSvg.is-interactive-disabled .arm-track {
-  pointer-events: none;
-  cursor: default;
-}
-
-#armSvg .arm-handle,
-#pythonArmSvg .arm-handle {
-  cursor: grab;
-  transition: opacity 150ms ease, stroke-opacity 150ms ease;
-}
-
-#armSvg .arm-joint-handle:hover,
-#pythonArmSvg .arm-joint-handle:hover {
-  stroke-opacity: 1 !important;
-  fill: rgba(255, 255, 255, 0.3);
-}
-
-#armSvg .arm-handle.is-active,
-#pythonArmSvg .arm-handle.is-active {
-  cursor: grabbing;
-  stroke-opacity: 1 !important;
-  fill: rgba(255, 255, 255, 0.35);
-  filter: url(#handleGlow);
-}
-
-#armSvg .arm-track,
-#pythonArmSvg .arm-track {
-  cursor: ew-resize;
-}
-
-#armSvg .arm-track-handle:hover,
-#pythonArmSvg .arm-track-handle:hover {
-  filter: url(#handleGlow);
-}
-
-#armSvg.is-dragging .arm-handle,
-#pythonArmSvg.is-dragging .arm-handle {
-  filter: none;
-}
-
-#armSvg.is-dragging .arm-handle.is-active,
-#pythonArmSvg.is-dragging .arm-handle.is-active {
-  filter: url(#handleGlow);
 }
 
 .arm-preview-container.is-dragging {
@@ -1001,7 +1131,11 @@ body {
 
 @media (min-width: 768px) {
   .sidebar__controls {
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+
+  .sidebar__controls.has-drive-controls {
+    grid-template-rows: auto auto minmax(182px, auto) minmax(0, 1fr);
   }
 
   .servo-sliders {
@@ -1104,6 +1238,483 @@ body {
   font-weight: 700;
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
+}
+
+.servo-channel__range {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  justify-self: end;
+}
+
+.robot-drive-controls {
+  display: grid;
+  align-self: start;
+  justify-items: start;
+  gap: 5px;
+  min-height: 0;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-alt);
+}
+
+.robot-drive-controls__grid {
+  display: grid;
+  grid-template-areas:
+    "turn-left forward turn-right"
+    "left stop right"
+    ". backward .";
+  grid-template-columns: repeat(3, 30px);
+  grid-auto-rows: 26px;
+  gap: 3px;
+  justify-content: start;
+}
+
+.robot-drive-controls .btn {
+  min-height: 0;
+  padding: 0;
+  justify-content: center;
+  font-size: 0.76rem;
+}
+
+.robot-drive-controls .robot-drive-controls__button {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.robot-drive-controls .robot-drive-controls__button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
+}
+
+.robot-drive-controls__button--turn-left {
+  grid-area: turn-left;
+}
+
+.robot-drive-controls__button--forward {
+  grid-area: forward;
+}
+
+.robot-drive-controls__button--turn-right {
+  grid-area: turn-right;
+}
+
+.robot-drive-controls__button--left {
+  grid-area: left;
+}
+
+.robot-drive-controls__button--stop {
+  grid-area: stop;
+}
+
+.robot-drive-controls__button--right {
+  grid-area: right;
+}
+
+.robot-drive-controls__button--backward {
+  grid-area: backward;
+}
+
+.robot-bridge-panel {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.36);
+  border-radius: 10px;
+  background: rgba(255, 248, 226, 0.78);
+}
+
+.robot-bridge-panel[hidden],
+.robot-drive-controls[hidden],
+.robot-sim-preview[hidden] {
+  display: none !important;
+}
+
+.robot-bridge-panel__check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  color: #5d4308;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.robot-bridge-panel__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.robot-bridge-panel__status {
+  margin: 0;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.36);
+  background: rgba(245, 158, 11, 0.12);
+  color: #7c4b00;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.robot-bridge-panel__status[data-tone="ready"] {
+  border-color: rgba(46, 175, 88, 0.35);
+  background: rgba(46, 175, 88, 0.12);
+  color: #136d2f;
+}
+
+.robot-bridge-panel__status[data-tone="error"] {
+  border-color: rgba(214, 40, 57, 0.35);
+  background: rgba(214, 40, 57, 0.1);
+  color: #8f1220;
+}
+
+.robot-sim-preview {
+  height: 100%;
+  min-height: 220px;
+}
+
+.robot-sim--three {
+  position: relative;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #10161d;
+  color: #e8f2ff;
+}
+
+.robot-sim-3d__viewport {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.robot-sim-3d__viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.robot-sim-3d__toolbar {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.robot-sim-3d__status,
+.robot-sim-3d__reset {
+  border: 1px solid rgba(212, 224, 238, 0.2);
+  border-radius: 999px;
+  background: rgba(12, 18, 26, 0.78);
+  color: #e8f2ff;
+  box-shadow: 0 10px 28px rgba(7, 12, 19, 0.28);
+}
+
+.robot-sim-3d__status {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 6px 9px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.robot-sim-3d__status[data-tone="ready"] {
+  border-color: rgba(113, 211, 154, 0.42);
+  color: #d9ffe8;
+}
+
+.robot-sim-3d__status[data-tone="loading"] {
+  border-color: rgba(105, 210, 255, 0.42);
+  color: #d8f4ff;
+}
+
+.robot-sim-3d__status[data-tone="warning"] {
+  border-color: rgba(245, 158, 11, 0.48);
+  color: #fff2d6;
+}
+
+.robot-sim-3d__status[data-tone="error"] {
+  border-color: rgba(239, 68, 68, 0.46);
+  color: #ffe1e1;
+}
+
+.robot-sim-3d__reset {
+  pointer-events: auto;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  min-height: 0;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.robot-sim--three .robot-sim-3d__status,
+.robot-sim--three .robot-sim-3d__readout {
+  display: none !important;
+}
+
+.robot-sim-3d__reset:hover,
+.robot-sim-3d__reset:focus-visible {
+  border-color: rgba(105, 210, 255, 0.7);
+}
+
+.robot-sim-3d__reset svg {
+  width: 18px;
+  height: 18px;
+}
+
+.robot-sim-3d__reset span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.robot-sim-3d__readout {
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  max-height: min(112px, 30%);
+  overflow: auto;
+  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+  gap: 5px;
+  scrollbar-width: thin;
+  pointer-events: none;
+}
+
+.robot-sim-3d__readout[data-label-mode="values"] {
+  left: 0;
+  right: auto;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  max-height: none;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.robot-sim-3d__readout div {
+  border-color: rgba(212, 224, 238, 0.12);
+  background: rgba(12, 18, 26, 0.58);
+  box-shadow: 0 8px 20px rgba(7, 12, 19, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+.robot-sim-3d__readout[data-label-mode="values"] div {
+  min-width: 64px;
+  justify-items: center;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: rgba(12, 18, 26, 0.5);
+}
+
+.robot-sim-3d__readout span {
+  color: #9fb2c8;
+}
+
+.robot-sim-3d__readout strong {
+  color: #f4f9ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.robot-sim-3d__readout[data-label-mode="values"] strong {
+  font-size: 0.78rem;
+  line-height: 1.1;
+}
+
+.robot-sim {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  align-content: start;
+}
+
+.robot-sim svg {
+  width: 100%;
+  height: min(280px, 100%);
+  display: block;
+}
+
+.robot-sim--three .robot-sim-3d__reset svg {
+  width: 18px;
+  height: 18px;
+}
+
+.robot-sim--arm,
+.robot-sim--lekiwi {
+  color: var(--ink);
+}
+
+.robot-sim--lekiwi svg {
+  min-height: 210px;
+}
+
+.robot-sim__empty,
+.robot-sim--arduino {
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.robot-sim__readout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.robot-sim__readout div {
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.robot-sim__readout span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.robot-sim__readout strong {
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.robot-sim--three .robot-sim-3d__readout {
+  display: grid;
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  max-height: min(96px, 24%);
+  overflow: auto;
+  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
+  gap: 5px;
+  scrollbar-width: thin;
+  pointer-events: none;
+}
+
+.robot-sim--three .robot-sim-3d__readout div {
+  display: grid;
+  gap: 1px;
+  padding: 5px 7px;
+  border: 1px solid rgba(212, 224, 238, 0.12);
+  border-radius: 7px;
+  background: rgba(12, 18, 26, 0.62);
+  box-shadow: 0 8px 20px rgba(7, 12, 19, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+.robot-sim--three .robot-sim-3d__readout span {
+  color: #9fb2c8;
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.robot-sim--three .robot-sim-3d__readout strong {
+  color: #f4f9ff;
+  font-size: 0.78rem;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.robot-sim--three .robot-sim-3d__readout[data-label-mode="values"] {
+  left: 0;
+  right: auto;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  max-height: none;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.robot-sim--three .robot-sim-3d__readout[data-label-mode="values"] div {
+  min-width: 64px;
+  justify-items: center;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: rgba(12, 18, 26, 0.5);
+}
+
+.robot-sim--three .robot-sim-3d__readout[data-label-mode="mobile"] {
+  display: flex;
+  align-items: stretch;
+  max-height: 48px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  grid-template-columns: none;
+  padding: 0 2px 2px 0;
+  scrollbar-width: thin;
+  pointer-events: auto;
+}
+
+.robot-sim--three .robot-sim-3d__readout[data-label-mode="mobile"] div {
+  flex: 0 0 auto;
+  min-width: 78px;
+  max-width: 118px;
+  min-height: 39px;
+  padding: 4px 7px;
+  background: rgba(12, 18, 26, 0.76);
+}
+
+.robot-sim--three .robot-sim-3d__readout[data-label-mode="mobile"]::-webkit-scrollbar {
+  height: 4px;
+}
+
+.robot-sim--three .robot-sim-3d__readout[data-label-mode="mobile"]::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(159, 178, 200, 0.45);
+}
+
+.robot-sim__note {
+  margin: 0;
+  color: #6b4b00;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 /* ---- Dot colors per joint ---- */
@@ -1257,6 +1868,7 @@ body {
   font-size: 0.82rem;
 }
 
+.bottombar--messages,
 .bottombar--gemini {
   justify-content: space-between;
   align-items: center;
@@ -1304,6 +1916,7 @@ body {
   min-height: 32px;
 }
 
+.bottombar--messages .bottombar__status,
 .bottombar--gemini .bottombar__status {
   flex: 0 0 auto;
   margin-left: auto;
@@ -1845,7 +2458,67 @@ body.is-resizing-python {
 }
 
 .python-draft__actionbar--python {
+  position: relative;
   justify-content: flex-end;
+}
+
+.python-draft__example-menu {
+  position: absolute;
+  z-index: 40;
+  bottom: calc(100% + 6px);
+  right: 0;
+  width: min(320px, 70vw);
+  max-height: min(280px, 44vh);
+  overflow: auto;
+  display: grid;
+  gap: 5px;
+  padding: 6px;
+  border: 1px solid rgba(168, 180, 204, 0.55);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);
+}
+
+.python-draft__example-menu[hidden] {
+  display: none !important;
+}
+
+.python-draft__example-item {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #172033;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  padding: 8px 9px;
+  text-align: left;
+}
+
+.python-draft__example-item:hover,
+.python-draft__example-item:focus-visible {
+  outline: none;
+  border-color: rgba(11, 122, 117, 0.25);
+  background: rgba(11, 122, 117, 0.08);
+}
+
+.python-draft__example-item span {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.python-draft__example-item small,
+.python-draft__example-empty {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.python-draft__example-empty {
+  margin: 0;
+  padding: 8px 9px;
 }
 
 @container python-blocks-panel (max-width: 560px) {
@@ -2009,57 +2682,6 @@ body.is-resizing-python {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-}
-
-.preview-mode-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--surface-alt);
-}
-
-.preview-mode-toggle__button {
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-  padding: 7px 8px;
-  white-space: nowrap;
-}
-
-.preview-mode-toggle__button:hover,
-.preview-mode-toggle__button:focus-visible {
-  color: var(--brand-strong);
-  outline: none;
-}
-
-.preview-mode-toggle__button.is-active {
-  background: #ffffff;
-  color: var(--brand-strong);
-  box-shadow: 0 1px 4px rgba(7, 24, 51, 0.12);
-}
-
-.preview-mode-toggle__button.is-unavailable,
-.preview-mode-toggle__button:disabled {
-  color: #8a94a8;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.preview-mode-toggle__button svg {
-  width: 14px;
-  height: 14px;
 }
 
 .python-draft__joints {
@@ -2312,9 +2934,7 @@ body.is-resizing-gemini--vertical {
   padding: 0;
 }
 
-.python-draft__preview #pythonArmSvg,
 .python-draft__preview #pythonArm3dFallbackSvg,
-.gemini-draft__preview #geminiArmSvg,
 .gemini-draft__preview #geminiArm3dFallbackSvg {
   width: 100%;
   height: calc(100% + 36px);
@@ -3662,6 +4282,36 @@ body.is-resizing-gemini--vertical {
   }
 }
 
+@media (min-width: 1101px) and (max-width: 1500px) {
+  .topbar {
+    gap: 8px;
+  }
+
+  .topbar__controls {
+    gap: 6px;
+  }
+
+  .topbar__page-nav {
+    gap: 4px;
+  }
+
+  .topbar__page-nav .btn,
+  .topbar__controls > .btn,
+  .topbar__status {
+    padding-inline: 9px;
+  }
+
+  .topbar__robot-select select {
+    max-width: 20.5ch;
+  }
+
+  .btn--stop-big {
+    min-width: 86px;
+    margin-left: 0;
+    padding-inline: 13px;
+  }
+}
+
 @media (max-width: 680px) {
   body {
     padding: 10px;
@@ -3876,6 +4526,7 @@ body.is-resizing-gemini--vertical {
     grid-template-columns: 1fr;
   }
 
+  .python-draft__preview .gemini-draft__preview-body .python-draft__joints,
   .gemini-draft__preview .python-draft__joints {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

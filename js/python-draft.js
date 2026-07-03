@@ -5,7 +5,6 @@
   const JOINT_LIMITS = NS.Generator ? NS.Generator.JOINT_LIMITS : [[20, 130], [15, 165], [0, 180], [0, 180], [0, 180], [25, 130]];
   const JOINT_NAMES = ["Base", "Shoulder", "Elbow", "Wrist Rot", "Wrist Tilt", "Gripper"];
   const MOTORS_STORAGE_KEY = "roboadmin.motorsEnabled.v1";
-  const PREVIEW_MODE_STORAGE_KEY = "roboadmin.pythonPreviewMode.v1";
   const OUTPUT_PANEL_COLLAPSED_STORAGE_KEY = "roboadmin.pythonOutputPanelCollapsed.v1";
   const PYTHON_SPLIT_LEFT_STORAGE_KEY = "roboadmin.pythonSplitLeftPercent.v1";
   const PYTHON_SPLIT_RIGHT_STORAGE_KEY = "roboadmin.pythonSplitRightPercent.v1";
@@ -26,16 +25,21 @@
     IDLE: "idle",
     PROGRAM: "program"
   };
+  const TIER1_MISSION_FILES = [
+    "safety-basics.json",
+    "first-joint-move.json",
+    "robot-wave.json",
+    "gripper-open-close.json",
+    "lekiwi-drive-square.json",
+    "lekiwi-mobile-pick-preview.json"
+  ];
 
   const state = {
     angles: HOME_ANGLES.slice(),
     poses: {},
     workspace: null,
     serial: null,
-    preview2d: null,
     preview3d: null,
-    previewSketch2d: null,
-    previewMode: "current",
     storage: null,
     runner: null,
     motorsEnabled: false,
@@ -55,7 +59,9 @@
     pythonSplitRightPercent: PYTHON_SPLIT_DEFAULT_RIGHT,
     activeSplitter: null,
     resizeQueued: false,
-    outputPanelCollapsed: true
+    outputPanelCollapsed: true,
+    tier1Missions: [],
+    lastSyncedRobotId: null
   };
 
   const ui = {};
@@ -64,6 +70,7 @@
 
   function init() {
     cacheUi();
+    initRobotUi();
     setupEditor();
     state.pythonSplitLeftPercent = readStoredPythonSplitLeft(PYTHON_SPLIT_DEFAULT_LEFT);
     state.pythonSplitRightPercent = readStoredPythonSplitRight(PYTHON_SPLIT_DEFAULT_RIGHT);
@@ -97,27 +104,15 @@
 
     state.serial = new NS.SerialManager({ baudRate: 9600 });
     const previewRegistry = window.RoboBuddy3DPreview || {};
-    const ArmPreview2D = previewRegistry.ArmPreview2D || NS.ArmPreview;
-    if (typeof ArmPreview2D === "function" && ui.armSvg) {
-      state.preview2d = new ArmPreview2D(ui.armSvg, {
-        jointLimits: JOINT_LIMITS,
-        initialAngles: state.angles
-      });
-      state.preview2d.setInteractive(false);
-    }
-    if (typeof previewRegistry.ArmPreview3D === "function" && ui.arm3dFallbackSvg) {
-      state.preview3d = new previewRegistry.ArmPreview3D(ui.arm3dFallbackSvg, {
+    const ArmPreview3D = previewRegistry.ArmPreview3D || NS.ArmPreview;
+    if (typeof ArmPreview3D === "function" && ui.arm3dFallbackSvg) {
+      state.preview3d = new ArmPreview3D(ui.arm3dFallbackSvg, {
         jointLimits: JOINT_LIMITS,
         initialAngles: state.angles,
         cameraPreset: "compact"
       });
-    }
-    if (!state.preview3d && typeof NS.ArmPreviewSketch3D === "function" && ui.armSketchSvg) {
-      state.previewSketch2d = new NS.ArmPreviewSketch3D(ui.armSketchSvg, {
-        jointLimits: JOINT_LIMITS,
-        initialAngles: state.angles
-      });
-      state.previewSketch2d.setInteractive(false);
+    } else {
+      mark3dPreviewUnavailable();
     }
     state.storage = new NS.ProgramStorage();
 
@@ -135,17 +130,16 @@
     });
 
     state.motorsEnabled = readMotorsEnabled();
-    state.previewMode = readPreviewMode();
 
     wireSerialEvents();
     wireRunnerEvents();
     wireButtons();
+    wireRobotUi();
     wireSplitters();
     createPythonWorker();
     loadInitialWorkspace();
-    applyAngles(state.angles, { source: "init" });
-    syncPreviewModeUi();
-    schedulePreviewAvailabilityChecks();
+    applyAngles(getActiveHomeAngles(), { source: "init" });
+    syncRobotPreviewVisibility();
     syncMotorsToggleUi();
     updateRunControls();
     appendOutput("Python runtime loading...");
@@ -168,6 +162,9 @@
     ui.btnHome = document.getElementById("btnHome");
     ui.btnEmergencyStop = document.getElementById("btnEmergencyStop");
     ui.btnMainPage = document.getElementById("btnMainPage");
+    ui.robotChooser = document.getElementById("pythonRobotChooser");
+    ui.btnLoadCodeExample = document.getElementById("btnLoadCodeExample");
+    ui.codeExampleMenu = document.getElementById("pythonCodeExampleMenu");
 
     ui.toolbox = document.getElementById("pythonToolbox");
     ui.blocklyDiv = document.getElementById("pythonBlocklyDiv");
@@ -177,13 +174,9 @@
     ui.commandSummary = document.getElementById("pythonCommandSummary");
     ui.outputLog = document.getElementById("pythonOutputLog");
     ui.serialLog = document.getElementById("pythonSerialLog");
-    ui.armSvg = document.getElementById("pythonArmSvg");
-    ui.armSketchSvg = document.getElementById("pythonArmSketchSvg");
     ui.arm3dFallbackSvg = document.getElementById("pythonArm3dFallbackSvg");
-    ui.previewCurrentPanel = document.getElementById("pythonPreviewCurrentPanel");
     ui.previewSketchPanel = document.getElementById("pythonPreviewSketchPanel");
-    ui.btnPreviewCurrent = document.getElementById("btnPreviewCurrent");
-    ui.btnPreviewSketch = document.getElementById("btnPreviewSketch");
+    ui.robotSimPreview = document.getElementById("pythonRobotSimPreview");
     ui.outputPanelToggle = document.getElementById("btnOutputPanelToggle");
     ui.outputPanelBody = document.getElementById("pythonOutputPanelBody");
     ui.leftSplitter = document.querySelector('[data-python-splitter="left"]');
@@ -225,6 +218,237 @@
     state.editor.setSize("100%", "100%");
   }
 
+  function initRobotUi() {
+    if (NS.RobotRuntime && ui.robotSimPreview) {
+      NS.RobotRuntime.init({ container: ui.robotSimPreview });
+    }
+    renderRobotChooser();
+    void loadTier1Missions();
+  }
+
+  function activeManifest() {
+    return NS.RobotRegistry && NS.RobotRegistry.getActive ? NS.RobotRegistry.getActive() : null;
+  }
+
+  function activeRobotId() {
+    const manifest = activeManifest();
+    return manifest ? manifest.id : "arduino_arm";
+  }
+
+  function isArduinoActive() {
+    return activeRobotId() === "arduino_arm";
+  }
+
+  function activeJoints() {
+    const manifest = activeManifest();
+    return manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
+  }
+
+  function getActiveHomeAngles() {
+    return NS.RobotSafety && activeManifest() ? NS.RobotSafety.getHomeAngles(activeManifest()) : HOME_ANGLES.slice();
+  }
+
+  function getActiveJointLimits() {
+    return NS.RobotSafety && activeManifest() ? NS.RobotSafety.getJointLimits(activeManifest()) : JOINT_LIMITS.slice();
+  }
+
+  function getActiveJointState() {
+    const joints = {};
+    activeJoints().forEach((joint, index) => {
+      joints[joint.id] = state.angles[index] ?? joint.home ?? 0;
+    });
+    return joints;
+  }
+
+  function renderRobotChooser() {
+    if (!ui.robotChooser || !NS.RobotRegistry) {
+      return;
+    }
+    const active = activeRobotId();
+    ui.robotChooser.innerHTML = NS.RobotRegistry.list().map((manifest) => (
+      `<option value="${escapeHtml(manifest.id)}"${manifest.id === active ? " selected" : ""}>${escapeHtml(manifest.name)}</option>`
+    )).join("");
+  }
+
+  async function loadTier1Missions() {
+    try {
+      const results = await Promise.all(TIER1_MISSION_FILES.map((file) => (
+        fetch(`missions/tier1/${file}`)
+          .then((res) => res.ok ? res.json() : null)
+          .catch(() => null)
+      )));
+      state.tier1Missions = results.filter(Boolean);
+    } catch (error) {
+      state.tier1Missions = [];
+    }
+    updateCodeExampleMenu();
+  }
+
+  function codeExampleMissions() {
+    const robotId = activeRobotId();
+    return state.tier1Missions.filter((mission) => (
+      Array.isArray(mission.robotIds) &&
+      mission.robotIds.includes(robotId) &&
+      typeof mission.starterPython === "string" &&
+      mission.starterPython.trim()
+    ));
+  }
+
+  function updateCodeExampleMenu() {
+    if (!ui.codeExampleMenu) {
+      return;
+    }
+    const missions = codeExampleMissions();
+    if (missions.length === 0) {
+      const manifest = activeManifest();
+      const robotName = manifest ? (manifest.shortName || manifest.name) : "this robot";
+      ui.codeExampleMenu.innerHTML = `<p class="python-draft__example-empty">No code examples for ${escapeHtml(robotName)}.</p>`;
+      return;
+    }
+    ui.codeExampleMenu.innerHTML = missions.map((mission) => `
+      <button class="python-draft__example-item" type="button" role="menuitem" data-code-example-id="${escapeHtml(mission.id)}">
+        <span>${escapeHtml(mission.title)}</span>
+        <small>${escapeHtml(mission.brief || mission.difficulty || "Example code")}</small>
+      </button>
+    `).join("");
+  }
+
+  function setCodeExampleMenuOpen(open) {
+    if (!ui.btnLoadCodeExample || !ui.codeExampleMenu) {
+      return;
+    }
+    const shouldOpen = Boolean(open);
+    if (shouldOpen) {
+      updateCodeExampleMenu();
+    }
+    ui.codeExampleMenu.hidden = !shouldOpen;
+    ui.btnLoadCodeExample.setAttribute("aria-expanded", String(shouldOpen));
+  }
+
+  function loadCodeExample(missionId) {
+    if (state.runner.isRunning() || state.pythonBusy) {
+      setStatus("Wait for the active run to finish before loading example code.");
+      return;
+    }
+    const mission = state.tier1Missions.find((item) => item.id === missionId);
+    if (!mission) {
+      setStatus("Example code not found");
+      return;
+    }
+    if (!Array.isArray(mission.robotIds) || !mission.robotIds.includes(activeRobotId())) {
+      setStatus("Example code is not available for the selected robot.");
+      return;
+    }
+    if (!mission.starterPython || !mission.starterPython.trim()) {
+      setStatus("Example has no Python snippet.");
+      return;
+    }
+    setPythonEditorValue(mission.starterPython);
+    state.blockReferenceCommands = null;
+    state.lastGeneratedPython = "";
+    updateCommandSummary("-");
+    updateEffectStatus("Example code loaded. Run to validate commands.", "warning");
+    setStatus(`Loaded example code: ${mission.title}`);
+    updateRunControls();
+  }
+
+  function wireRobotUi() {
+    if (ui.robotChooser) {
+      ui.robotChooser.addEventListener("change", () => {
+        clearRobotScopedBlocklyState();
+        if (NS.RobotRuntime) {
+          NS.RobotRuntime.setActive(ui.robotChooser.value);
+        } else if (NS.RobotRegistry) {
+          NS.RobotRegistry.setActive(ui.robotChooser.value);
+        }
+      });
+    }
+    window.addEventListener("robobuddy:active-robot-change", () => {
+      syncRobotUi();
+      setCodeExampleMenuOpen(false);
+      updateCodeExampleMenu();
+      setStatus(`Robot switched to ${activeManifest().name}`);
+    });
+    syncRobotUi();
+    updateCodeExampleMenu();
+  }
+
+  function syncRobotUi() {
+    const robotId = activeRobotId();
+    if (state.lastSyncedRobotId && state.lastSyncedRobotId !== robotId) {
+      clearRobotScopedBlocklyState();
+    }
+    if (ui.robotChooser) {
+      ui.robotChooser.value = robotId;
+    }
+    if (NS.Blocks && typeof NS.Blocks.refreshToolbox === "function") {
+      NS.Blocks.refreshToolbox(state.workspace, ui.toolbox);
+    }
+    if (ui.btnConnect) {
+      ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
+      const span = ui.btnConnect.querySelector("span");
+      if (span && !isArduinoActive()) {
+        span.textContent = activeRobotId() === "so101_follower" ? "Use Bridge" : "Sim Only";
+      }
+    }
+    if (ui.motorsEnabled) {
+      ui.motorsEnabled.disabled = !isArduinoActive();
+      if (!isArduinoActive()) {
+        ui.motorsEnabled.checked = false;
+      }
+    }
+    syncRobotPreviewVisibility();
+    applyAngles(getActiveHomeAngles(), { source: "robot-switch" });
+    state.lastSyncedRobotId = robotId;
+  }
+
+  function clearRobotScopedBlocklyState() {
+    if (!state.workspace || state.workspace.getTopBlocks(false).length === 0) {
+      return;
+    }
+    state.workspace.clear();
+    state.blockReferenceCommands = null;
+    state.lastGeneratedPython = "";
+    updateCommandSummary("-");
+    updateEffectStatus("Blockly workspace cleared for the selected robot.", "warning");
+    scheduleBlocklyResize();
+  }
+
+  function syncRobotPreviewVisibility() {
+    const showArduino = isArduinoActive();
+    if (ui.previewSketchPanel) {
+      ui.previewSketchPanel.hidden = !showArduino;
+      if (showArduino && state.preview3d && typeof state.preview3d.resize === "function") {
+        window.requestAnimationFrame(() => state.preview3d.resize());
+      }
+    }
+    if (ui.robotSimPreview) {
+      ui.robotSimPreview.hidden = showArduino;
+      if (!showArduino && NS.RobotRuntime) {
+        NS.RobotRuntime.render(ui.robotSimPreview);
+      }
+    }
+  }
+
+  function mark3dPreviewUnavailable() {
+    const container = ui.previewSketchPanel
+      ? ui.previewSketchPanel.querySelector(".arm-preview-container")
+      : null;
+    if (!container) {
+      return;
+    }
+    container.classList.add("is-3d-unavailable");
+    const preview = container.querySelector("[data-arm-preview-3d]");
+    if (preview) {
+      preview.hidden = true;
+    }
+    const fallbackStatus = container.querySelector("[data-arm-preview-3d-fallback-status]");
+    if (fallbackStatus) {
+      fallbackStatus.hidden = false;
+      fallbackStatus.textContent = "3D preview unavailable.";
+    }
+  }
+
   function getPythonEditorValue() {
     return state.editor ? state.editor.getValue() : (ui.pythonEditor.value || "");
   }
@@ -250,7 +474,7 @@
 
     state.serial.addEventListener("positions", (event) => {
       const angles = event.detail && Array.isArray(event.detail.angles) ? event.detail.angles : null;
-      if (angles) {
+      if (angles && isArduinoActive()) {
         applyAngles(angles, { source: "serial" });
       }
     });
@@ -354,6 +578,46 @@
       loadInitialWorkspace({ force: true });
     });
 
+    if (ui.btnLoadCodeExample) {
+      ui.btnLoadCodeExample.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (state.runner.isRunning() || state.pythonBusy) {
+          setStatus("Wait for the active run to finish before loading example code.");
+          return;
+        }
+        setCodeExampleMenuOpen(ui.codeExampleMenu && ui.codeExampleMenu.hidden);
+      });
+    }
+
+    if (ui.codeExampleMenu) {
+      ui.codeExampleMenu.addEventListener("click", (event) => {
+        const item = event.target.closest("[data-code-example-id]");
+        if (!item) {
+          return;
+        }
+        loadCodeExample(item.dataset.codeExampleId || "");
+        setCodeExampleMenuOpen(false);
+      });
+      document.addEventListener("click", (event) => {
+        if (
+          !ui.codeExampleMenu.hidden &&
+          !ui.codeExampleMenu.contains(event.target) &&
+          ui.btnLoadCodeExample &&
+          !ui.btnLoadCodeExample.contains(event.target)
+        ) {
+          setCodeExampleMenuOpen(false);
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !ui.codeExampleMenu.hidden) {
+          setCodeExampleMenuOpen(false);
+          if (ui.btnLoadCodeExample) {
+            ui.btnLoadCodeExample.focus();
+          }
+        }
+      });
+    }
+
     if (ui.btnSaveBlocks) {
       ui.btnSaveBlocks.addEventListener("click", () => {
         void saveBlocksToFile();
@@ -405,14 +669,6 @@
       ui.outputPanelToggle.addEventListener("click", () => {
         setOutputPanelCollapsed(!state.outputPanelCollapsed, { persist: true });
       });
-    }
-
-    if (ui.btnPreviewCurrent) {
-      ui.btnPreviewCurrent.addEventListener("click", () => setPreviewMode("current"));
-    }
-
-    if (ui.btnPreviewSketch) {
-      ui.btnPreviewSketch.addEventListener("click", () => setPreviewMode("sketch"));
     }
   }
 
@@ -508,8 +764,9 @@
         type: "run",
         id,
         python: code,
-        initialAngles: state.angles,
-        jointLimits: JOINT_LIMITS,
+        manifest: activeManifest(),
+        activeRobotId: activeRobotId(),
+        initialJoints: getActiveJointState(),
         poses: state.poses,
         maxCommands: MAX_PYTHON_COMMANDS
       });
@@ -635,7 +892,7 @@
       setStatus("Program already running");
       return false;
     }
-    if (state.serial.isConnected() && !ensureMotionAllowed()) {
+    if (isArduinoActive() && state.serial.isConnected() && !ensureMotionAllowed()) {
       return false;
     }
 
@@ -655,14 +912,13 @@
   }
 
   function validatePythonCommands(rawCommands) {
-    if (!Array.isArray(rawCommands)) {
-      throw new Error("Python did not return a command list.");
+    if (!NS.RobotCommandSchema) {
+      if (!Array.isArray(rawCommands)) {
+        throw new Error("Python did not return a command list.");
+      }
+      return rawCommands;
     }
-    if (rawCommands.length > MAX_PYTHON_COMMANDS) {
-      throw new Error(`Python returned too many commands (${rawCommands.length}/${MAX_PYTHON_COMMANDS}).`);
-    }
-
-    return rawCommands.map((command, index) => validatePythonCommand(command, index));
+    return NS.RobotCommandSchema.validateCommandList(rawCommands, { activeRobotId: activeRobotId() });
   }
 
   function validatePythonCommand(command, index) {
@@ -746,11 +1002,56 @@
       if (type === "home" || type === "emergencyStop") {
         return { type };
       }
+      if (type === "move_joint") {
+        return {
+          type,
+          robotId: String(command.robotId || ""),
+          joint: String(command.joint || ""),
+          value: Number(command.value),
+          speed: Number(command.speed)
+        };
+      }
+      if (type === "move_joints") {
+        return {
+          type,
+          robotId: String(command.robotId || ""),
+          joints: command.joints || {},
+          speed: Number(command.speed)
+        };
+      }
+      if (type === "set_gripper") {
+        return {
+          type,
+          robotId: String(command.robotId || ""),
+          value: Number(command.value),
+          speed: Number(command.speed)
+        };
+      }
+      if (type === "wait") {
+        return { type, seconds: Number(command.seconds) };
+      }
+      if (type === "drive") {
+        return {
+          type,
+          robotId: String(command.robotId || ""),
+          vx: Number(command.vx),
+          vy: Number(command.vy),
+          omega: Number(command.omega),
+          seconds: Number(command.seconds)
+        };
+      }
+      if (type === "stop") {
+        return { type, robotId: String(command.robotId || "") };
+      }
       return { type };
     });
   }
 
   async function handleConnectToggle() {
+    if (!isArduinoActive()) {
+      setStatus(activeRobotId() === "so101_follower" ? "SO-101 hardware uses the main page local bridge panel." : "LeKiwi is simulation-only in Tier 1.");
+      return;
+    }
     if (state.serial.isConnected()) {
       try {
         await parkBeforeDisconnect();
@@ -817,6 +1118,14 @@
   }
 
   async function handleHome() {
+    if (!isArduinoActive()) {
+      if (NS.RobotRuntime) {
+        NS.RobotRuntime.home();
+        applyAngles(NS.RobotRuntime.getJointArray(), { source: "home" });
+      }
+      setStatus(`${activeManifest().shortName || activeManifest().name} moved to home pose`);
+      return;
+    }
     if (state.serial.isConnected() && !ensureMotionAllowed()) {
       return;
     }
@@ -834,6 +1143,9 @@
   async function handleEmergencyStop() {
     terminatePythonRun("Python stopped by emergency stop");
     state.runner.stop();
+    if (NS.RobotRuntime) {
+      NS.RobotRuntime.stop();
+    }
     try {
       if (state.serial.isConnected()) {
         await state.serial.emergencyStop();
@@ -897,6 +1209,12 @@
   }
 
   async function setMotorsEnabled(enabled, options = {}) {
+    if (!isArduinoActive()) {
+      state.motorsEnabled = false;
+      syncMotorsToggleUi();
+      setStatus("Motors toggle is only available for the Arduino arm in Tier 1.");
+      return false;
+    }
     const requested = Boolean(enabled);
     if (requested && state.firmwareMismatch) {
       setStatus(state.firmwareMismatch.message || "Firmware mismatch detected. Motors remain disabled.");
@@ -941,6 +1259,9 @@
   }
 
   async function ensureFirmwareProfileCompatible(source) {
+    if (!isArduinoActive()) {
+      return true;
+    }
     let profile = null;
     try {
       profile = await state.serial.getFirmwareProfile();
@@ -1024,129 +1345,40 @@
     if (!Array.isArray(nextAngles)) {
       return;
     }
-    state.angles = nextAngles.slice(0, 6).map((value, index) => clampAngle(index, value));
-    if (state.preview2d) {
-      state.preview2d.setAngles(state.angles);
-    }
-    if (state.preview3d) {
+    const joints = activeJoints();
+    const fallback = getActiveHomeAngles();
+    state.angles = joints.map((joint, index) => {
+      const raw = index < nextAngles.length ? nextAngles[index] : fallback[index];
+      return clampAngle(index, raw);
+    });
+    if (isArduinoActive() && state.preview3d) {
       state.preview3d.setAngles(state.angles);
     }
-    if (state.previewSketch2d) {
-      state.previewSketch2d.setAngles(state.angles);
+    if (!isArduinoActive() && NS.RobotRuntime) {
+      NS.RobotRuntime.updateJointsFromArray(state.angles);
+      NS.RobotRuntime.render(ui.robotSimPreview);
     }
-    for (let servo = 0; servo < 6; servo += 1) {
+    for (let servo = 0; servo < ui.jointValues.length; servo += 1) {
       const valueEl = ui.jointValues[servo];
       if (valueEl) {
-        valueEl.textContent = `${state.angles[servo]} deg`;
-      }
-    }
-  }
-
-  function setPreviewMode(mode) {
-    state.previewMode = normalizePreviewMode(mode);
-    try {
-      localStorage.setItem(previewModeStorageKey(), state.previewMode);
-    } catch (error) {
-      // Persistence is optional; the visual toggle still works.
-    }
-    syncPreviewModeUi();
-  }
-
-  function syncPreviewModeUi() {
-    state.previewMode = normalizePreviewMode(state.previewMode);
-    const use3d = state.previewMode === "sketch3d" && is3dPreviewSupported();
-    const useLegacySketch = state.previewMode === "sketch" && isLegacySketchPreviewAvailable();
-    if (ui.previewSketchPanel) {
-      ui.previewSketchPanel.toggleAttribute("hidden", !use3d);
-    }
-    if (ui.previewCurrentPanel) {
-      ui.previewCurrentPanel.toggleAttribute("hidden", Boolean(use3d));
-    }
-    if (ui.armSvg && !ui.previewCurrentPanel) {
-      ui.armSvg.toggleAttribute("hidden", useLegacySketch);
-    }
-    if (ui.armSketchSvg) {
-      ui.armSketchSvg.toggleAttribute("hidden", !useLegacySketch);
-    }
-    syncPreviewModeButton(ui.btnPreviewSketch, Boolean(use3d || useLegacySketch));
-    syncPreviewModeButton(ui.btnPreviewCurrent, !use3d && !useLegacySketch);
-    if (ui.btnPreviewSketch) {
-      const available = preferredSketchMode() !== "current";
-      ui.btnPreviewSketch.disabled = !available;
-      ui.btnPreviewSketch.classList.toggle("is-unavailable", !available);
-      if (!available) {
-        ui.btnPreviewSketch.title = "3D unavailable";
-        ui.btnPreviewSketch.dataset.hint = "3D unavailable";
-      } else {
-        ui.btnPreviewSketch.title = "3D Sketch";
-        ui.btnPreviewSketch.dataset.hint = "3D Sketch";
-      }
-    }
-    if (use3d && state.preview3d && typeof state.preview3d.resize === "function") {
-      window.requestAnimationFrame(() => state.preview3d.resize());
-    }
-  }
-
-  function syncPreviewModeButton(button, active) {
-    if (!button) {
-      return;
-    }
-    button.classList.toggle("is-active", Boolean(active));
-    button.setAttribute("aria-pressed", active ? "true" : "false");
-  }
-
-  function is3dPreviewAvailable() {
-    return Boolean(state.preview3d && state.preview3d.ready && !state.preview3d.fallback);
-  }
-
-  function is3dPreviewSupported() {
-    return Boolean(state.preview3d && !state.preview3d.fallback);
-  }
-
-  function isLegacySketchPreviewAvailable() {
-    return Boolean(state.previewSketch2d);
-  }
-
-  function preferredSketchMode() {
-    if (is3dPreviewSupported()) {
-      return "sketch3d";
-    }
-    if (isLegacySketchPreviewAvailable()) {
-      return "sketch";
-    }
-    return "current";
-  }
-
-  function schedulePreviewAvailabilityChecks() {
-    [0, 1200, 3600].forEach((delay) => {
-      window.setTimeout(() => {
-        if (state.previewMode === "sketch3d" && !is3dPreviewSupported()) {
-          state.previewMode = "current";
-          try {
-            localStorage.setItem(previewModeStorageKey(), state.previewMode);
-          } catch (error) {
-            // Persistence is optional; the fallback still applies.
-          }
+        const joint = joints[servo] || {};
+        const label = valueEl.parentElement ? valueEl.parentElement.querySelector("span") : null;
+        if (label) {
+          label.textContent = joint.label || `Joint ${servo + 1}`;
         }
-        syncPreviewModeUi();
-      }, delay);
-    });
-  }
-
-  function normalizePreviewMode(mode) {
-    if (mode === "current") {
-      return "current";
+        valueEl.parentElement.hidden = servo >= joints.length;
+        valueEl.textContent = `${state.angles[servo] ?? ""}${joint.unit === "percent" ? "%" : " deg"}`;
+      }
     }
-    if (mode === "sketch3d" && is3dPreviewSupported()) {
-      return "sketch3d";
-    }
-    if (mode === "sketch" && isLegacySketchPreviewAvailable()) {
-      return "sketch";
-    }
-    return preferredSketchMode();
   }
 
   function loadInitialWorkspace(options = {}) {
+    if (!isArduinoActive()) {
+      if (options.force) {
+        setStatus(`${activeManifest().shortName || activeManifest().name} starts from missions or Python.`);
+      }
+      return;
+    }
     if (!options.force && state.workspace.getTopBlocks(false).length > 0) {
       return;
     }
@@ -1617,6 +1849,12 @@
     if (ui.btnLoadExample) {
       ui.btnLoadExample.disabled = busy;
     }
+    if (ui.btnLoadCodeExample) {
+      ui.btnLoadCodeExample.disabled = busy;
+      if (busy) {
+        setCodeExampleMenuOpen(false);
+      }
+    }
     if (ui.btnLoadUserBlocks) {
       ui.btnLoadUserBlocks.disabled = busy;
     }
@@ -1648,8 +1886,11 @@
     const connected = state.serial.isConnected();
     const span = ui.btnConnect.querySelector("span");
     if (span) {
-      span.textContent = connected ? "Disconnect" : "Connect";
+      span.textContent = !isArduinoActive()
+        ? (activeRobotId() === "so101_follower" ? "Use Bridge" : "Sim Only")
+        : (connected ? "Disconnect" : "Connect");
     }
+    ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
     const icon = ui.btnConnect.querySelector("[data-lucide]");
     if (icon && window.lucide) {
       icon.setAttribute("data-lucide", connected ? "unlink" : "plug");
@@ -1659,33 +1900,13 @@
 
   function syncMotorsToggleUi() {
     ui.motorsEnabled.checked = state.motorsEnabled;
+    ui.motorsEnabled.disabled = !isArduinoActive();
     updateRunControls();
   }
 
   function readMotorsEnabled() {
     const raw = localStorage.getItem(MOTORS_STORAGE_KEY);
     return raw === "1" || raw === "true";
-  }
-
-  function readPreviewMode() {
-    const fallback = defaultPreviewMode();
-    try {
-      const raw = localStorage.getItem(previewModeStorageKey());
-      return raw ? normalizePreviewMode(raw) : fallback;
-    } catch (error) {
-      return fallback;
-    }
-  }
-
-  function previewModeStorageKey() {
-    return document.body && document.body.dataset.previewStorageKey
-      ? document.body.dataset.previewStorageKey
-      : PREVIEW_MODE_STORAGE_KEY;
-  }
-
-  function defaultPreviewMode() {
-    const defaultMode = document.body ? document.body.dataset.defaultPreviewMode : "";
-    return defaultMode === "sketch" ? preferredSketchMode() : "current";
   }
 
   function readStoredOutputPanelCollapsed(fallback) {
@@ -1814,10 +2035,18 @@
   }
 
   function clampAngle(servo, angle) {
-    const limits = JOINT_LIMITS[servo] || [0, 180];
+    const limits = getActiveJointLimits()[servo] || [0, 180];
     const value = Number(angle);
     const safe = Number.isFinite(value) ? Math.round(value) : limits[0];
     return Math.min(limits[1], Math.max(limits[0], safe));
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   async function waitForRunnerIdle(timeoutMs) {

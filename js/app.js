@@ -22,10 +22,6 @@
   const MANUAL_SESSION_RELEASE_MS = 180;
   const MANUAL_SEND_DEBOUNCE_MS = 55;
   const MANUAL_SEND_SPEED = 65;
-  const WORKSPACE_TAB = {
-    MANUAL: "manual",
-    BLOCK: "block"
-  };
   const TEACH_PHASE = {
     OFF: "off",
     IDLE: "idle",
@@ -59,7 +55,6 @@
     runner: null,
     motorsEnabled: false,
     serialConsoleLines: [],
-    activeTab: WORKSPACE_TAB.MANUAL,
     controlOwner: CONTROL_OWNER.IDLE,
     manualControl: {
       activeServo: null,
@@ -90,7 +85,8 @@
     programStopInProgress: false,
     programLastError: "",
     firmwareMismatch: null,
-    pendingDefaultReset: false
+    pendingDefaultReset: false,
+    lastSyncedRobotId: null
   };
 
   const ui = {};
@@ -100,6 +96,7 @@
   function init() {
     cacheUi();
     initMotorDebugUi();
+    initRobotPortalUi();
 
     NS.Blocks.registerBlocks();
     ui.toolbox.innerHTML = NS.Blocks.toolboxXml();
@@ -126,11 +123,15 @@
     });
 
     state.serial = new NS.SerialManager({ baudRate: 9600 });
-    state.preview = new NS.ArmPreview(ui.armSvg, {
-      jointLimits: JOINT_LIMITS,
-      onAnglesChange: (angles, meta) => onPreviewAnglesChange(angles, meta),
-      onDragStateChange: (isDragging) => onPreviewDragStateChange(isDragging)
-    });
+    if (typeof NS.ArmPreview === "function" && ui.armPreview) {
+      state.preview = new NS.ArmPreview(ui.armPreview, {
+        jointLimits: JOINT_LIMITS,
+        onAnglesChange: (angles, meta) => onPreviewAnglesChange(angles, meta),
+        onDragStateChange: (isDragging) => onPreviewDragStateChange(isDragging)
+      });
+    } else {
+      mark3dPreviewUnavailable();
+    }
     state.storage = new NS.ProgramStorage();
 
     NS.getPoseNames = () => Object.keys(state.poses).sort((a, b) => a.localeCompare(b));
@@ -147,17 +148,18 @@
     });
 
     state.motorsEnabled = readMotorsEnabled();
+    syncRobotSpecificUi();
 
     wireSerialEvents();
     wireRunnerEvents();
     wireButtons();
     wireSliders();
-    wireWorkspaceTabs();
+    wireRobotPortalEvents();
     wireKeyboardShortcuts();
 
     syncSliderLimitsFromJointLimits();
     loadInitialWorkspace();
-    applyAngles(state.angles, { syncSliders: true, source: "init" });
+    applyAngles(getActiveHomeAngles(), { syncSliders: true, source: "init" });
 
     document.querySelectorAll(".servo-slider").forEach(updateSliderFill);
     syncMotorsToggleUi();
@@ -170,7 +172,7 @@
     updateMotorDebugUi();
 
     window.addEventListener("resize", () => {
-      if (state.workspace && state.activeTab === WORKSPACE_TAB.BLOCK) {
+      if (state.workspace) {
         Blockly.svgResize(state.workspace);
       }
     });
@@ -183,14 +185,11 @@
 
   function cacheUi() {
     ui.toolbox = document.getElementById("toolbox");
-    ui.workspaceTabs = document.getElementById("workspaceTabs");
-    ui.tabBlock = document.getElementById("tabBlock");
-    ui.tabManual = document.getElementById("tabManual");
+    ui.robotChooser = document.getElementById("robotChooser");
     ui.panelBlock = document.getElementById("panelBlock");
-    ui.panelManual = document.getElementById("panelManual");
 
     ui.armPreview = document.getElementById("armPreview");
-    ui.armSvg = document.getElementById("armSvg");
+    ui.robotSimPreview = document.getElementById("robotSimPreview");
 
     ui.statusDot = document.getElementById("statusDot");
     ui.statusText = document.getElementById("statusText");
@@ -210,6 +209,16 @@
     ui.btnLoadUserBlocks = document.getElementById("btnLoadUserBlocks");
     ui.btnClear = document.getElementById("btnClear");
     ui.manualControlsCard = document.querySelector(".sidebar__controls");
+    ui.servoSliders = document.querySelector(".servo-sliders");
+    ui.robotDriveControls = document.getElementById("robotDriveControls");
+    ui.robotBridgePanel = document.getElementById("robotBridgePanel");
+    ui.bridgeUrl = document.getElementById("bridgeUrl");
+    ui.bridgePort = document.getElementById("bridgePort");
+    ui.bridgeRobotInstance = document.getElementById("bridgeRobotInstance");
+    ui.bridgeSafetyConfirm = document.getElementById("bridgeSafetyConfirm");
+    ui.btnBridgeHealth = document.getElementById("btnBridgeHealth");
+    ui.btnBridgeConnect = document.getElementById("btnBridgeConnect");
+    ui.bridgeStatus = document.getElementById("bridgeStatus");
 
     ui.motorsEnabled = document.getElementById("motorsEnabled");
     ui.teachModeEnabled = document.getElementById("teachModeEnabled");
@@ -241,6 +250,8 @@
     ui.serialConsoleLog = document.getElementById("serialConsoleLog");
     ui.btnConsoleCopy = document.getElementById("btnConsoleCopy");
     ui.btnConsoleClear = document.getElementById("btnConsoleClear");
+    ui.indexConsoleToggle = document.getElementById("btnIndexConsoleToggle");
+    ui.indexConsolePanel = document.getElementById("indexConsolePanelBody");
 
     ui.saveDialog = document.getElementById("saveDialog");
     ui.saveName = document.getElementById("saveName");
@@ -256,6 +267,425 @@
     ui.scriptDialogText = document.getElementById("scriptDialogText");
     ui.scriptDialogCopy = document.getElementById("scriptDialogCopy");
     ui.scriptDialogClose = document.getElementById("scriptDialogClose");
+  }
+
+  function initRobotPortalUi() {
+    if (NS.RobotRuntime && ui.robotSimPreview) {
+      NS.RobotRuntime.init({ container: ui.robotSimPreview });
+    }
+    window.addEventListener("robobuddy:robot-preview-3d-ready", () => {
+      if (!isArduinoActive() && NS.RobotRuntime && ui.robotSimPreview) {
+        NS.RobotRuntime.render(ui.robotSimPreview);
+      }
+    });
+    renderRobotChooser();
+    renderManualControls();
+    renderDriveControls();
+    syncRobotPreviewVisibility();
+  }
+
+  function activeManifest() {
+    return NS.RobotRegistry && NS.RobotRegistry.getActive
+      ? NS.RobotRegistry.getActive()
+      : null;
+  }
+
+  function activeRobotId() {
+    const manifest = activeManifest();
+    return manifest ? manifest.id : "arduino_arm";
+  }
+
+  function isArduinoActive() {
+    return activeRobotId() === "arduino_arm";
+  }
+
+  function activeJoints() {
+    const manifest = activeManifest();
+    return manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
+  }
+
+  function getActiveHomeAngles() {
+    if (NS.RobotSafety && activeManifest()) {
+      return NS.RobotSafety.getHomeAngles(activeManifest());
+    }
+    return HOME_ANGLES.slice();
+  }
+
+  function getActiveJointLimits() {
+    if (NS.RobotSafety && activeManifest()) {
+      return NS.RobotSafety.getJointLimits(activeManifest());
+    }
+    return JOINT_LIMITS.slice();
+  }
+
+  function getServoName(servo) {
+    const joint = activeJoints()[servo];
+    return joint ? joint.label : (SERVO_NAMES[servo] || `Joint ${servo + 1}`);
+  }
+
+  function formatNumericReadout(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return String(value ?? "");
+    }
+    return Math.abs(numeric - Math.round(numeric)) < 0.001
+      ? String(Math.round(numeric))
+      : String(Math.round(numeric * 10) / 10);
+  }
+
+  function getGripperStateLabel(joint, value) {
+    if (!joint || joint.type !== "gripper") {
+      return "";
+    }
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return "";
+    }
+    const open = Number(joint.open);
+    const close = Number(joint.close);
+    const min = Number(joint.min);
+    const max = Number(joint.max);
+    const openValue = Number.isFinite(open) ? open : min;
+    const closeValue = Number.isFinite(close) ? close : max;
+    const tolerance = 0.5;
+    if (Number.isFinite(closeValue) && numeric >= closeValue - tolerance) {
+      return "closed";
+    }
+    if (Number.isFinite(openValue) && numeric <= openValue + tolerance) {
+      return "open";
+    }
+    return "";
+  }
+
+  function formatJointReadout(joint, value) {
+    const display = formatNumericReadout(value);
+    const unit = joint && joint.unit === "percent" ? "%" : "\u00B0";
+    const stateLabel = getGripperStateLabel(joint, value);
+    return `${display}${unit}${stateLabel ? ` ${stateLabel}` : ""}`;
+  }
+
+  function formatJointAriaValue(joint, value, rangePercent = null) {
+    const display = formatNumericReadout(value);
+    const unit = joint && joint.unit === "percent" ? "percent" : "degrees";
+    const stateLabel = getGripperStateLabel(joint, value);
+    const stateText = stateLabel ? `, ${stateLabel}` : "";
+    const rangeText = Number.isFinite(rangePercent) ? ` (${rangePercent}% of range)` : "";
+    return `${display} ${unit}${stateText}${rangeText}`;
+  }
+
+  function renderRobotChooser() {
+    if (!ui.robotChooser || !NS.RobotRegistry) {
+      return;
+    }
+    const active = activeRobotId();
+    ui.robotChooser.innerHTML = NS.RobotRegistry.list().map((manifest) => (
+      `<option value="${escapeHtml(manifest.id)}"${manifest.id === active ? " selected" : ""}>${escapeHtml(manifest.name)}</option>`
+    )).join("");
+  }
+
+  function renderManualControls() {
+    if (!ui.servoSliders) {
+      return;
+    }
+    const joints = activeJoints();
+    ui.servoSliders.innerHTML = joints.map((joint, index) => {
+      const value = Number.isFinite(Number(joint.home)) ? Number(joint.home) : Number(joint.min) || 0;
+      const readout = formatJointReadout(joint, value);
+      const ariaValueText = formatJointAriaValue(joint, value);
+      return `
+        <div class="servo-channel servo-channel--${escapeHtml(slugJoint(joint.id))}">
+          <label class="servo-channel__label" for="slider${index}">
+            <span class="servo-channel__dot"></span>${escapeHtml(joint.label)}
+          </label>
+          <input type="range" class="servo-slider" id="slider${index}" min="${escapeHtml(joint.min)}" max="${escapeHtml(joint.max)}" value="${escapeHtml(value)}" data-servo="${index}" data-joint="${escapeHtml(joint.id)}" aria-describedby="val${index}" aria-valuenow="${escapeHtml(value)}" aria-valuetext="${escapeHtml(ariaValueText)}">
+          <span class="servo-channel__value" id="val${index}">${escapeHtml(readout)}</span>
+        </div>
+      `;
+    }).join("");
+
+    wireSliders();
+  }
+
+  function renderDriveControls() {
+    if (!ui.robotDriveControls) {
+      return;
+    }
+    const manifest = activeManifest();
+    const show = Boolean(manifest && manifest.mobileBase);
+    const controlsCard = ui.robotDriveControls.closest(".sidebar__controls");
+    if (controlsCard) {
+      controlsCard.classList.toggle("has-drive-controls", show);
+    }
+    ui.robotDriveControls.hidden = !show;
+    if (!show) {
+      ui.robotDriveControls.innerHTML = "";
+      return;
+    }
+    const driveActions = [
+      { action: "turn-left", label: "Turn Left", icon: "rotate-ccw", tone: "btn--load", slot: "turn-left" },
+      { action: "forward", label: "Forward", icon: "arrow-up", tone: "btn--load", slot: "forward" },
+      { action: "turn-right", label: "Turn Right", icon: "rotate-cw", tone: "btn--load", slot: "turn-right" },
+      { action: "left", label: "Strafe Left", icon: "arrow-left", tone: "btn--load", slot: "left" },
+      { action: "stop", label: "Stop", icon: "square", tone: "btn--stop", slot: "stop" },
+      { action: "right", label: "Strafe Right", icon: "arrow-right", tone: "btn--load", slot: "right" },
+      { action: "backward", label: "Backward", icon: "arrow-down", tone: "btn--load", slot: "backward" }
+    ];
+    ui.robotDriveControls.innerHTML = `
+      <div class="panel-label"><i data-lucide="navigation"></i> Drive</div>
+      <div class="robot-drive-controls__grid">
+        ${driveActions.map(({ action, label, icon, tone, slot }) => `
+          <button class="btn ${tone} robot-drive-controls__button robot-drive-controls__button--${slot}" type="button" data-drive="${action}" aria-label="${label}" title="${label}" data-hint="${label}">
+            <i data-lucide="${icon}" aria-hidden="true"></i>
+          </button>
+        `).join("")}
+      </div>
+    `;
+    ui.robotDriveControls.querySelectorAll("[data-drive]").forEach((button) => {
+      button.addEventListener("click", () => {
+        void handleDriveButton(button.dataset.drive);
+      });
+    });
+    if (window.lucide) {
+      lucide.createIcons({ nodes: ui.robotDriveControls.querySelectorAll("[data-lucide]") });
+    }
+  }
+
+  function syncRobotPreviewVisibility() {
+    const showArduino = isArduinoActive();
+    if (ui.armPreview) {
+      ui.armPreview.dataset.activeRobotId = activeRobotId();
+      ui.armPreview.classList.toggle("is-robot-sim-active", !showArduino);
+      const threeUnavailable = ui.armPreview.classList.contains("is-3d-unavailable");
+      const three = ui.armPreview.querySelector(".arm-preview-3d");
+      if (three) {
+        three.hidden = !showArduino || threeUnavailable;
+      }
+      const threeFallback = ui.armPreview.querySelector("[data-arm-preview-3d-fallback-status]");
+      if (threeFallback && !showArduino) {
+        threeFallback.hidden = true;
+      } else if (threeFallback && threeUnavailable) {
+        threeFallback.hidden = false;
+        threeFallback.textContent = "3D preview unavailable.";
+      }
+    }
+    if (ui.robotSimPreview) {
+      ui.robotSimPreview.hidden = showArduino;
+      if (!showArduino && NS.RobotRuntime) {
+        NS.RobotRuntime.render(ui.robotSimPreview);
+      }
+    }
+    const label = document.querySelector(".sidebar__preview .panel-label");
+    const manifest = activeManifest();
+    if (label && manifest) {
+      label.innerHTML = `<i data-lucide="eye"></i> ${escapeHtml(manifest.shortName || manifest.name)} Preview`;
+      if (window.lucide) {
+        lucide.createIcons({ nodes: [label.querySelector("[data-lucide]")] });
+      }
+    }
+  }
+
+  function mark3dPreviewUnavailable() {
+    if (!ui.armPreview) {
+      return;
+    }
+    ui.armPreview.classList.add("is-3d-unavailable");
+    const three = ui.armPreview.querySelector(".arm-preview-3d");
+    if (three) {
+      three.hidden = true;
+    }
+    const fallbackStatus = ui.armPreview.querySelector("[data-arm-preview-3d-fallback-status]");
+    if (fallbackStatus) {
+      fallbackStatus.hidden = false;
+      fallbackStatus.textContent = "3D preview unavailable.";
+    }
+  }
+
+  function syncRobotSpecificUi() {
+    const manifest = activeManifest();
+    if (!manifest) {
+      return;
+    }
+    if (state.lastSyncedRobotId && state.lastSyncedRobotId !== manifest.id) {
+      clearRobotScopedBlocklyState();
+    }
+    if (ui.robotChooser) {
+      ui.robotChooser.value = manifest.id;
+    }
+    renderManualControls();
+    renderDriveControls();
+    syncSliderLimitsFromJointLimits();
+    if (NS.Blocks && typeof NS.Blocks.refreshToolbox === "function") {
+      NS.Blocks.refreshToolbox(state.workspace, ui.toolbox);
+    }
+    if (ui.robotBridgePanel) {
+      ui.robotBridgePanel.hidden = true;
+    }
+    const supportsTeach = Array.isArray(manifest.capabilities) && manifest.capabilities.includes("teach_replay");
+    if (ui.teachControls) {
+      ui.teachControls.hidden = !supportsTeach;
+    }
+    if (ui.teachModeEnabled) {
+      ui.teachModeEnabled.disabled = !supportsTeach;
+    }
+    if (ui.motorsEnabled) {
+      ui.motorsEnabled.disabled = !isArduinoActive();
+      if (!isArduinoActive()) {
+        ui.motorsEnabled.checked = false;
+      }
+    }
+    if (ui.btnConnect) {
+      ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
+      const span = ui.btnConnect.querySelector("span");
+      if (span && !isArduinoActive()) {
+        span.textContent = "Sim Only";
+      }
+    }
+    syncRobotPreviewVisibility();
+    applyAngles(getActiveHomeAngles(), { syncSliders: true, source: "robot-switch" });
+    state.lastSyncedRobotId = manifest.id;
+  }
+
+  function clearRobotScopedBlocklyState() {
+    if (!state.workspace || state.workspace.getTopBlocks(false).length === 0) {
+      return;
+    }
+    state.workspace.clear();
+    setProgramStatus("Blockly workspace cleared for the selected robot.");
+  }
+
+  function wireRobotPortalEvents() {
+    if (ui.robotChooser) {
+      ui.robotChooser.addEventListener("change", () => {
+        clearRobotScopedBlocklyState();
+        switchActiveRobot(ui.robotChooser.value);
+      });
+    }
+    window.addEventListener("robobuddy:active-robot-change", () => {
+      syncRobotSpecificUi();
+      appendSerialConsole("SYS", `Robot switched to ${activeManifest().name}; incompatible queued commands cleared.`);
+      clearPendingManualSends();
+      clearManualSessionState();
+    });
+    if (ui.btnBridgeHealth) {
+      ui.btnBridgeHealth.addEventListener("click", () => {
+        void testBridgeHealth();
+      });
+    }
+    if (ui.btnBridgeConnect) {
+      ui.btnBridgeConnect.addEventListener("click", () => {
+        void connectSo101Bridge();
+      });
+    }
+    if (ui.bridgeSafetyConfirm) {
+      ui.bridgeSafetyConfirm.addEventListener("change", () => {
+        if (NS.RobotRuntime) {
+          NS.RobotRuntime.setBridgeSafetyConfirmed(ui.bridgeSafetyConfirm.checked);
+        }
+      });
+    }
+  }
+
+  function switchActiveRobot(robotId) {
+    if (!NS.RobotRuntime) {
+      NS.RobotRegistry.setActive(robotId);
+      return;
+    }
+    NS.RobotRuntime.setActive(robotId);
+  }
+
+  async function applyManualRobotCommand(command) {
+    if (isArduinoActive()) {
+      const legacy = NS.RobotCommandSchema ? NS.RobotCommandSchema.toLegacyArduinoCommand(command) : null;
+      if (legacy && legacy.type === "servo") {
+        const servo = legacy.servo;
+        state.angles[servo] = clampAngle(servo, legacy.angle);
+        applyAngles(state.angles, { syncSliders: true, source: "manual-gripper" });
+        if (state.serial.isConnected() && state.motorsEnabled && !state.runner.isRunning()) {
+          scheduleManualSend(servo, state.angles[servo], null, { debounceMs: 0, showStatus: true });
+        }
+        return;
+      }
+    }
+    try {
+      await NS.RobotRuntime.applyCommand(command);
+      applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "manual-robot" });
+      setProgramStatus(`${activeManifest().shortName || activeManifest().name}: ${command.type}`);
+    } catch (error) {
+      setProgramStatus(`Robot command rejected: ${error.message}`);
+    }
+  }
+
+  async function handleDriveButton(action) {
+    const manifest = activeManifest();
+    if (!manifest || !manifest.mobileBase) {
+      return;
+    }
+    const maxLinear = Number(manifest.mobileBase.maxLinearSpeed) || 1;
+    const maxAngular = Number(manifest.mobileBase.maxAngularSpeed) || 90;
+    const base = { type: "drive", robotId: manifest.id, vx: 0, vy: 0, omega: 0, seconds: 0.7, frame: "robot" };
+    if (action === "forward") base.vx = 0.35 * maxLinear;
+    if (action === "backward") base.vx = -0.35 * maxLinear;
+    if (action === "left") base.vy = 0.35 * maxLinear;
+    if (action === "right") base.vy = -0.35 * maxLinear;
+    if (action === "turn-left") base.omega = 0.5 * maxAngular;
+    if (action === "turn-right") base.omega = -0.5 * maxAngular;
+    if (action === "stop") {
+      await applyManualRobotCommand({ type: "stop", robotId: manifest.id, reason: "user" });
+      return;
+    }
+    await applyManualRobotCommand(base);
+  }
+
+  async function testBridgeHealth() {
+    if (!NS.RobotRuntime || !ui.bridgeUrl) {
+      return;
+    }
+    const bridge = NS.RobotRuntime.createBridgeAdapter({ baseUrl: ui.bridgeUrl.value });
+    try {
+      const result = await bridge.health();
+      setBridgeStatus(`Bridge ${result.status || "READY"}`, "ready");
+    } catch (error) {
+      setBridgeStatus(error.message || "Bridge unavailable", "error");
+    }
+  }
+
+  async function connectSo101Bridge() {
+    if (!NS.RobotRuntime || !ui.bridgeUrl) {
+      return;
+    }
+    const bridge = NS.RobotRuntime.createBridgeAdapter({ baseUrl: ui.bridgeUrl.value });
+    try {
+      const result = await bridge.connect("so101_follower", {
+        port: ui.bridgePort ? ui.bridgePort.value : "",
+        robotInstanceId: ui.bridgeRobotInstance ? ui.bridgeRobotInstance.value : "classroom_so101_01",
+        dryRun: false
+      });
+      NS.RobotRuntime.setMode("local_bridge");
+      NS.RobotRuntime.setBridgeConnected(result);
+      setBridgeStatus(result.status || "CONNECTED", "ready");
+    } catch (error) {
+      setBridgeStatus(error.message || "SO-101 bridge connection failed", "error");
+    }
+  }
+
+  function setBridgeStatus(text, tone) {
+    if (ui.bridgeStatus) {
+      ui.bridgeStatus.textContent = text;
+      ui.bridgeStatus.dataset.tone = tone || "warning";
+    }
+    setProgramStatus(text);
+  }
+
+  function slugJoint(value) {
+    return String(value || "joint").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function wireSerialEvents() {
@@ -406,6 +836,14 @@
     });
 
     ui.btnHome.addEventListener("click", async () => {
+      if (!isArduinoActive()) {
+        if (NS.RobotRuntime) {
+          NS.RobotRuntime.home();
+          applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "home" });
+        }
+        setProgramStatus(`${activeManifest().shortName || activeManifest().name} moved to home pose`);
+        return;
+      }
       if (!ensureMotionAllowed()) {
         return;
       }
@@ -429,6 +867,9 @@
     ui.btnEmergencyStop.addEventListener("click", async () => {
       const replayingTeach = state.teach.phase === TEACH_PHASE.REPLAYING;
       state.runner.stop();
+      if (NS.RobotRuntime) {
+        NS.RobotRuntime.stop();
+      }
       clearPendingManualSends();
       clearManualSessionState();
       if (replayingTeach) {
@@ -494,6 +935,14 @@
       const enabled = Boolean(event.target && event.target.checked);
       await setMotorsEnabled(enabled, { sendCommand: true, showStatus: true });
     });
+
+    if (ui.indexConsoleToggle && ui.indexConsolePanel) {
+      ui.indexConsoleToggle.addEventListener("click", () => {
+        const expanded = ui.indexConsoleToggle.getAttribute("aria-expanded") === "true";
+        setIndexConsoleExpanded(!expanded);
+      });
+      setIndexConsoleExpanded(false);
+    }
 
     if (ui.teachModeEnabled) {
       ui.teachModeEnabled.addEventListener("change", (event) => {
@@ -589,7 +1038,7 @@
 
         try {
           const xml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(state.workspace));
-          state.storage.saveProgram(name, xml, { source: "blockly" });
+          state.storage.saveProgram(name, xml, { source: "blockly", robotId: activeRobotId() });
           ui.saveDialog.close();
           ui.saveName.value = "";
           renderProgramList();
@@ -630,7 +1079,12 @@
     const sliders = document.querySelectorAll(".servo-slider");
 
     sliders.forEach((slider) => {
+      if (slider.dataset.sliderWired === "true") {
+        return;
+      }
+      slider.dataset.sliderWired = "true";
       const servo = Number.parseInt(slider.dataset.servo, 10);
+      const jointId = slider.dataset.joint || String(servo);
 
       slider.addEventListener("pointerdown", () => {
         if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
@@ -653,11 +1107,13 @@
         state.angles[servo] = angle;
         updateSliderValue(servo, angle);
         updateSliderFill(target);
-        state.preview.setAngles(state.angles);
+        syncActivePreviewFromAngles();
         updateMotorDebugUi();
         scheduleTeachDragCapture();
 
-        if (state.serial.isConnected() && !state.runner.isRunning() && state.motorsEnabled) {
+        if (!isArduinoActive()) {
+          void applyManualRobotCommand({ type: "move_joint", robotId: activeRobotId(), joint: jointId, value: angle, speed: MANUAL_SEND_SPEED });
+        } else if (state.serial.isConnected() && !state.runner.isRunning() && state.motorsEnabled) {
           scheduleManualSend(servo, angle, token);
         }
 
@@ -667,6 +1123,11 @@
       slider.addEventListener("change", (event) => {
         if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
           showProgramLockHint();
+          return;
+        }
+
+        if (!isArduinoActive()) {
+          scheduleManualSessionRelease();
           return;
         }
 
@@ -688,10 +1149,10 @@
         state.angles[servo] = angle;
         updateSliderValue(servo, angle);
         updateSliderFill(target);
-        state.preview.setAngles(state.angles);
+        syncActivePreviewFromAngles();
         updateMotorDebugUi();
         captureTeachReleaseKeyframe();
-        const servoName = SERVO_NAMES[servo] || `Servo ${servo}`;
+        const servoName = getServoName(servo);
         setProgramStatus(`Sending manual move: ${servoName} ${angle} deg`);
         scheduleManualSend(servo, angle, token, { debounceMs: 0, showStatus: true });
         scheduleManualSessionRelease();
@@ -703,133 +1164,19 @@
     });
   }
 
-  function wireWorkspaceTabs() {
-    if (!ui.tabManual || !ui.tabBlock) {
-      return;
-    }
-
-    const tabByButton = new Map([
-      [ui.tabManual, { name: WORKSPACE_TAB.MANUAL, button: ui.tabManual }],
-      [ui.tabBlock, { name: WORKSPACE_TAB.BLOCK, button: ui.tabBlock }]
-    ]);
-    const orderedButtons = ui.workspaceTabs
-      ? Array.from(ui.workspaceTabs.querySelectorAll("#tabManual, #tabBlock"))
-      : [ui.tabManual, ui.tabBlock];
-    const tabs = orderedButtons
-      .map((button) => tabByButton.get(button))
-      .filter(Boolean);
-
-    tabs.forEach((tab, index) => {
-      tab.button.addEventListener("click", () => {
-        setActiveTab(tab.name);
-      });
-
-      tab.button.addEventListener("keydown", (event) => {
-        if (event.key === " " || event.key === "Enter") {
-          event.preventDefault();
-          event.stopPropagation();
-          setActiveTab(tab.name);
-          return;
-        }
-
-        if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-          event.preventDefault();
-          const direction = event.key === "ArrowRight" ? 1 : -1;
-          const nextIndex = (index + direction + tabs.length) % tabs.length;
-          const nextTab = tabs[nextIndex];
-          nextTab.button.focus();
-          setActiveTab(nextTab.name);
-          return;
-        }
-
-        if (event.key === "Home" || event.key === "End") {
-          event.preventDefault();
-          const targetIndex = event.key === "Home" ? 0 : tabs.length - 1;
-          const targetTab = tabs[targetIndex];
-          targetTab.button.focus();
-          setActiveTab(targetTab.name);
-        }
-      });
-    });
-
-    setActiveTab(readDefaultWorkspaceTab(), { force: true });
-  }
-
-  function readDefaultWorkspaceTab() {
-    if (!ui.workspaceTabs) {
-      return state.activeTab;
-    }
-    return normalizeWorkspaceTab(ui.workspaceTabs.dataset.defaultTab || state.activeTab);
-  }
-
-  function readShortcutWorkspaceTab(slot) {
-    if (!ui.workspaceTabs) {
-      return slot === "2" ? WORKSPACE_TAB.BLOCK : WORKSPACE_TAB.MANUAL;
-    }
-    const key = slot === "2" ? "shortcutTab2" : "shortcutTab1";
-    const fallback = slot === "2" ? WORKSPACE_TAB.BLOCK : WORKSPACE_TAB.MANUAL;
-    return normalizeWorkspaceTab(ui.workspaceTabs.dataset[key] || fallback);
-  }
-
-  function normalizeWorkspaceTab(tabName) {
-    return tabName === WORKSPACE_TAB.BLOCK ? WORKSPACE_TAB.BLOCK : WORKSPACE_TAB.MANUAL;
-  }
-
-  function setActiveTab(tabName, options = {}) {
-    const nextTab = normalizeWorkspaceTab(tabName);
-    const force = Boolean(options.force);
-
-    if (!force && state.activeTab === nextTab) {
-      return;
-    }
-
-    state.activeTab = nextTab;
-
-    const manualActive = nextTab === WORKSPACE_TAB.MANUAL;
-    const blockActive = nextTab === WORKSPACE_TAB.BLOCK;
-
-    if (ui.tabManual) {
-      ui.tabManual.classList.toggle("is-active", manualActive);
-      ui.tabManual.setAttribute("aria-selected", manualActive ? "true" : "false");
-      ui.tabManual.tabIndex = manualActive ? 0 : -1;
-    }
-
-    if (ui.tabBlock) {
-      ui.tabBlock.classList.toggle("is-active", blockActive);
-      ui.tabBlock.setAttribute("aria-selected", blockActive ? "true" : "false");
-      ui.tabBlock.tabIndex = blockActive ? 0 : -1;
-    }
-
-    if (ui.panelManual) {
-      ui.panelManual.classList.toggle("is-hidden", !manualActive);
-      ui.panelManual.hidden = !manualActive;
-      ui.panelManual.setAttribute("aria-hidden", manualActive ? "false" : "true");
-    }
-
-    if (ui.panelBlock) {
-      ui.panelBlock.classList.toggle("is-hidden", !blockActive);
-      ui.panelBlock.hidden = !blockActive;
-      ui.panelBlock.setAttribute("aria-hidden", blockActive ? "false" : "true");
-    }
-
-    if (blockActive) {
-      scheduleBlocklyResize();
-    }
-  }
-
   function scheduleBlocklyResize() {
     if (!state.workspace) {
       return;
     }
 
     window.requestAnimationFrame(() => {
-      if (!state.workspace || state.activeTab !== WORKSPACE_TAB.BLOCK) {
+      if (!state.workspace) {
         return;
       }
       Blockly.svgResize(state.workspace);
 
       window.setTimeout(() => {
-        if (!state.workspace || state.activeTab !== WORKSPACE_TAB.BLOCK) {
+        if (!state.workspace) {
           return;
         }
         Blockly.svgResize(state.workspace);
@@ -846,18 +1193,6 @@
 
       const hasCommandModifier = event.ctrlKey || event.metaKey;
       const isTyping = isTypingTarget(event.target);
-
-      if (hasCommandModifier && !event.altKey && !event.shiftKey && key === "1" && !isTyping) {
-        event.preventDefault();
-        setActiveTab(readShortcutWorkspaceTab("1"));
-        return;
-      }
-
-      if (hasCommandModifier && !event.altKey && !event.shiftKey && key === "2" && !isTyping) {
-        event.preventDefault();
-        setActiveTab(readShortcutWorkspaceTab("2"));
-        return;
-      }
 
       if (hasCommandModifier && !event.altKey && !event.shiftKey && key === "b" && !isTyping) {
         event.preventDefault();
@@ -914,9 +1249,6 @@
           await handleProgramStop();
           return;
         }
-        if (state.activeTab !== WORKSPACE_TAB.BLOCK) {
-          return;
-        }
         if (ui.btnRun && ui.btnRun.disabled) {
           return;
         }
@@ -928,6 +1260,16 @@
   }
 
   async function handleConnectToggle() {
+    if (!isArduinoActive()) {
+      const manifest = activeManifest();
+      setProgramStatus(
+        manifest && manifest.id === "so101_follower"
+          ? "SO-101 hardware uses the local bridge panel, not Web Serial."
+          : "LeKiwi is simulation-only in Tier 1."
+      );
+      return;
+    }
+
     if (state.serial.isConnected()) {
       const transportLabel = getConnectionTransportLabel();
       let parked = false;
@@ -1075,7 +1417,7 @@
       return false;
     }
 
-    if (state.serial.isConnected() && !ensureMotionAllowed()) {
+    if (isArduinoActive() && state.serial.isConnected() && !ensureMotionAllowed()) {
       updateProgramControlUi();
       return false;
     }
@@ -1178,6 +1520,15 @@
 
     if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
       showProgramLockHint();
+      return;
+    }
+
+    if (!isArduinoActive()) {
+      if (NS.RobotRuntime) {
+        NS.RobotRuntime.home();
+        applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "default-reset" });
+      }
+      setProgramStatus(`${activeManifest().shortName || activeManifest().name} reset to home pose`);
       return;
     }
 
@@ -1541,6 +1892,7 @@
       scriptText,
       motionIr: ir,
       teachMeta,
+      robotId: "arduino_arm",
       source: "teach"
     });
     return programName;
@@ -2104,6 +2456,9 @@
   }
 
   function scheduleManualSend(servo, angle, token = null, options = {}) {
+    if (!isArduinoActive()) {
+      return;
+    }
     if (!state.motorsEnabled) {
       return;
     }
@@ -2130,6 +2485,9 @@
   }
 
   function queueManualMove(servo, angle, token = null, options = {}) {
+    if (!isArduinoActive()) {
+      return;
+    }
     state.manualQueuedTargets.set(servo, { angle, token, showStatus: Boolean(options.showStatus) });
     void flushManualQueue(servo);
   }
@@ -2165,11 +2523,11 @@
         try {
           await state.serial.moveServo(servo, angle, MANUAL_SEND_SPEED);
           if (showStatus) {
-            const servoName = SERVO_NAMES[servo] || `Servo ${servo}`;
+            const servoName = getServoName(servo);
             setProgramStatus(`Manual move applied: ${servoName} ${angle} deg`);
           }
         } catch (error) {
-          const servoName = SERVO_NAMES[servo] || `Servo ${servo}`;
+          const servoName = getServoName(servo);
           setProgramStatus(`Move failed (${servoName}): ${error.message}`);
         }
       }
@@ -2259,6 +2617,14 @@
   }
 
   async function setMotorsEnabled(enabled, options = {}) {
+    if (!isArduinoActive()) {
+      state.motorsEnabled = false;
+      syncMotorsToggleUi();
+      if (options.showStatus !== false) {
+        setProgramStatus("Motors toggle is only available for the Arduino arm in Tier 1.");
+      }
+      return false;
+    }
     const sendCommand = options.sendCommand !== false;
     const showStatus = options.showStatus !== false;
     const requestedEnabled = Boolean(enabled);
@@ -2332,7 +2698,7 @@
     });
 
     if (ui.motorsEnabled) {
-      ui.motorsEnabled.disabled = false;
+      ui.motorsEnabled.disabled = !isArduinoActive();
     }
 
     if (ui.btnResetDefault) {
@@ -2369,6 +2735,31 @@
       ui.motorsEnabled.checked = state.motorsEnabled;
     }
     updateProgramControlUi();
+  }
+
+  function setIndexConsoleExpanded(expanded) {
+    if (!ui.indexConsoleToggle || !ui.indexConsolePanel) {
+      return;
+    }
+    const nextExpanded = Boolean(expanded);
+    ui.indexConsoleToggle.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
+    ui.indexConsoleToggle.setAttribute("aria-label", nextExpanded ? "Hide Consoles" : "Show Consoles");
+    ui.indexConsoleToggle.title = nextExpanded ? "Hide Consoles" : "Show Consoles";
+    ui.indexConsoleToggle.dataset.hint = nextExpanded ? "Hide Consoles" : "Show Consoles";
+    ui.indexConsolePanel.hidden = !nextExpanded;
+  }
+
+  function syncActivePreviewFromAngles() {
+    if (isArduinoActive()) {
+      if (state.preview) {
+        state.preview.setAngles(state.angles);
+      }
+      return;
+    }
+    if (NS.RobotRuntime) {
+      NS.RobotRuntime.updateJointsFromArray(state.angles);
+      NS.RobotRuntime.render(ui.robotSimPreview);
+    }
   }
 
   function readMotorsEnabled() {
@@ -2439,6 +2830,9 @@
   }
 
   async function processDevicePositions(positions, source = "device") {
+    if (!isArduinoActive()) {
+      return false;
+    }
     if (!Array.isArray(positions) || positions.length < 6) {
       return false;
     }
@@ -2453,6 +2847,9 @@
   }
 
   async function ensureFirmwareProfileCompatible(source = "device") {
+    if (!isArduinoActive()) {
+      return true;
+    }
     if (!state.serial.isConnected()) {
       return false;
     }
@@ -2572,10 +2969,17 @@
   }
 
   function applyAngles(nextAngles, options = {}) {
-    state.angles = nextAngles.slice(0, 6).map((value, index) => clampAngle(index, value));
+    const joints = activeJoints();
+    const count = Math.max(joints.length, 1);
+    const fallback = getActiveHomeAngles();
+    state.angles = [];
+    for (let index = 0; index < count; index += 1) {
+      const raw = Array.isArray(nextAngles) && index < nextAngles.length ? nextAngles[index] : fallback[index];
+      state.angles.push(clampAngle(index, raw));
+    }
 
     if (options.syncSliders) {
-      for (let servo = 0; servo < 6; servo += 1) {
+      for (let servo = 0; servo < state.angles.length; servo += 1) {
         const slider = document.getElementById(`slider${servo}`);
         if (slider) {
           slider.value = String(state.angles[servo]);
@@ -2585,21 +2989,25 @@
       }
     }
 
-    if (state.preview) {
+    if (isArduinoActive() && state.preview) {
       state.preview.setAngles(state.angles);
+    } else if (NS.RobotRuntime) {
+      NS.RobotRuntime.updateJointsFromArray(state.angles);
+      NS.RobotRuntime.render(ui.robotSimPreview);
     }
 
     updateMotorDebugUi();
   }
 
   function syncSliderLimitsFromJointLimits() {
-    for (let servo = 0; servo < 6; servo += 1) {
+    const limitsList = getActiveJointLimits();
+    for (let servo = 0; servo < activeJoints().length; servo += 1) {
       const slider = document.getElementById(`slider${servo}`);
       if (!slider) {
         continue;
       }
 
-      const limits = JOINT_LIMITS[servo] || [0, 180];
+      const limits = limitsList[servo] || [0, 180];
       const min = Number(limits[0]);
       const max = Number(limits[1]);
       if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) {
@@ -2622,7 +3030,8 @@
     const slider = document.getElementById(`slider${servo}`);
     const valueEl = document.getElementById(`val${servo}`);
     if (valueEl) {
-      const limits = JOINT_LIMITS[servo] || [0, 180];
+      const limits = getActiveJointLimits()[servo] || [0, 180];
+      const joint = activeJoints()[servo] || {};
       const min = Number(limits[0]);
       const max = Number(limits[1]);
       let pct = 0;
@@ -2630,11 +3039,11 @@
         pct = Math.round(((angle - min) / (max - min)) * 100);
       }
       pct = Math.min(100, Math.max(0, pct));
-      valueEl.textContent = `${angle}\u00B0`;
-      valueEl.title = `Range ${min}..${max} deg`;
+      valueEl.textContent = formatJointReadout(joint, angle);
+      valueEl.title = `Range ${min}..${max} ${joint.unit || "deg"}`;
       if (slider) {
         slider.setAttribute("aria-valuenow", String(angle));
-        slider.setAttribute("aria-valuetext", `${angle} degrees (${pct}% of range)`);
+        slider.setAttribute("aria-valuetext", formatJointAriaValue(joint, angle, pct));
       }
     }
   }
@@ -2916,7 +3325,7 @@
       const speed = Number.parseInt(servoMove[3], 10);
       return {
         servos: [servo],
-        note: `${SERVO_NAMES[servo]} to ${angle} deg @${speed}`
+        note: `${getServoName(servo)} to ${angle} deg @${speed}`
       };
     }
 
@@ -3014,7 +3423,7 @@
     const queue = getSerialQueueSnapshot();
     const modeLabel = getMotionModeLabel();
     const protocolLabel = getProtocolPathLabel();
-    const activeText = activeServos.length > 0 ? activeServos.map((servo) => SERVO_NAMES[servo]).join(", ") : "None";
+    const activeText = activeServos.length > 0 ? activeServos.map((servo) => getServoName(servo)).join(", ") : "None";
     const motionText = state.motorDebug.pendingMotion.length > 0
       ? state.motorDebug.pendingMotion[0].note
       : (state.motorDebug.note || "None");
@@ -3038,16 +3447,20 @@
 
   function getLimitWatchInfo() {
     const nearLimit = [];
-    for (let servo = 0; servo < 6; servo += 1) {
-      const limits = JOINT_LIMITS[servo] || [0, 180];
+    const joints = activeJoints();
+    const limitsList = getActiveJointLimits();
+    for (let servo = 0; servo < joints.length; servo += 1) {
+      const limits = limitsList[servo] || [0, 180];
+      const joint = joints[servo] || {};
+      const unit = joint.unit === "percent" ? "%" : " deg";
       const angle = state.angles[servo];
       if (!Number.isFinite(angle)) {
         continue;
       }
       if (angle <= limits[0]) {
-        nearLimit.push(`${SERVO_NAMES[servo]} min (${angle})`);
+        nearLimit.push(`${getServoName(servo)} min (${angle}${unit})`);
       } else if (angle >= limits[1]) {
-        nearLimit.push(`${SERVO_NAMES[servo]} max (${angle})`);
+        nearLimit.push(`${getServoName(servo)} max (${angle}${unit})`);
       }
     }
 
@@ -3086,7 +3499,7 @@
     }
 
     const limitWatch = getLimitWatchInfo();
-    const activeText = activeServos.length > 0 ? activeServos.map((servo) => SERVO_NAMES[servo]).join(", ") : "None";
+    const activeText = activeServos.length > 0 ? activeServos.map((servo) => getServoName(servo)).join(", ") : "None";
     const stateLine = `State: ${stateText} | Active: ${activeText}`;
     const limitLine = limitWatch.alert ? limitWatch.text : "No joint at hard limit";
     const noteLine = state.motorDebug.note ? ` | ${state.motorDebug.note}` : "";
@@ -3241,6 +3654,10 @@
       return;
     }
 
+    if (program.robotId && program.robotId !== activeRobotId() && NS.RobotRegistry && NS.RobotRegistry.get(program.robotId)) {
+      switchActiveRobot(program.robotId);
+    }
+
     const mode = options.mode === "script" ? "script" : "block";
     if (mode === "script") {
       if (!program.hasScript || typeof program.scriptText !== "string" || program.scriptText.length === 0) {
@@ -3268,7 +3685,6 @@
       const xml = parseWorkspaceXml(xmlText);
       state.workspace.clear();
       Blockly.Xml.domToWorkspace(xml, state.workspace);
-      setActiveTab(WORKSPACE_TAB.BLOCK);
       setProgramStatus(`Loaded: ${name}`);
       if (ui.loadDialog && ui.loadDialog.open) {
         ui.loadDialog.close();
@@ -3297,6 +3713,9 @@
   }
 
   function loadInitialWorkspace() {
+    if (!isArduinoActive()) {
+      return;
+    }
     const waveHello = state.storage.getProgram("Wave Hello");
     if (!waveHello) {
       return;
@@ -3423,7 +3842,7 @@
   }
 
   function clampAngle(servo, angle) {
-    const limits = JOINT_LIMITS[servo] || [0, 180];
+    const limits = getActiveJointLimits()[servo] || [0, 180];
     const safeAngle = Number.isFinite(angle) ? angle : limits[0];
     return Math.min(limits[1], Math.max(limits[0], safeAngle));
   }

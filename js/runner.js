@@ -60,7 +60,7 @@
       this._emitPaused(false);
 
       try {
-        await this._runCommandList(commands || [], workspace);
+        await this._runCommandList(prepareCommandList(commands || []), workspace);
         this._emitStatus(this.stopRequested ? "Program stopped" : "Program complete");
       } catch (error) {
         this._emitStatus(`Program error: ${error.message}`);
@@ -168,11 +168,40 @@
           return;
 
         case "home":
-          await this._executeHome();
+          await this._executeHomeCommand(cmd);
+          return;
+
+        case "wait":
+          await this._executeDelay(Math.round(Number(cmd.seconds || 0) * 1000));
           return;
 
         case "delay":
           await this._executeDelay(cmd.ms);
+          return;
+
+        case "move_joint":
+          await this._executeUniversalMoveJoint(cmd);
+          return;
+
+        case "move_joints":
+          await this._executeUniversalMoveJoints(cmd);
+          return;
+
+        case "set_gripper":
+          await this._executeUniversalSetGripper(cmd);
+          return;
+
+        case "drive":
+          await this._executeRuntimeCommand(cmd);
+          await this._executeDelay(Math.round(Number(cmd.seconds || 0) * 1000));
+          return;
+
+        case "smooth_move":
+          await this._executeUniversalSmoothMove(cmd);
+          return;
+
+        case "stop":
+          await this._executeUniversalStop(cmd);
           return;
 
         case "savePose": {
@@ -208,7 +237,7 @@
           return;
 
         case "loopForever": {
-          const body = Array.isArray(cmd.body) ? cmd.body : [];
+          const body = prepareCommandList(Array.isArray(cmd.body) ? cmd.body : []);
           if (body.length === 0) {
             return;
           }
@@ -258,6 +287,107 @@
         const line = await this._simulateHome();
         this._consumeMotionAck(line);
       }
+    }
+
+    async _executeHomeCommand(cmd) {
+      if (isArduinoCommand(cmd)) {
+        await this._executeHome();
+        return;
+      }
+      await this._executeRuntimeCommand({ ...cmd, type: "home" });
+    }
+
+    async _executeUniversalMoveJoint(cmd) {
+      if (isArduinoCommand(cmd)) {
+        const legacy = toLegacyArduinoCommand(cmd);
+        if (!legacy) {
+          throw new Error(`Cannot map joint ${cmd.joint} to Arduino servo.`);
+        }
+        await this._executeServo(legacy);
+        return;
+      }
+      await this._executeRuntimeCommand(cmd);
+    }
+
+    async _executeUniversalMoveJoints(cmd) {
+      if (isArduinoCommand(cmd)) {
+        const joints = cmd.joints || {};
+        for (const [joint, value] of Object.entries(joints)) {
+          if (this.stopRequested) {
+            return;
+          }
+          await this._executeUniversalMoveJoint({
+            type: "move_joint",
+            robotId: cmd.robotId,
+            joint,
+            value,
+            unit: cmd.unit,
+            speed: cmd.speed,
+            blockId: cmd.blockId
+          });
+        }
+        return;
+      }
+      await this._executeRuntimeCommand(cmd);
+    }
+
+    async _executeUniversalSetGripper(cmd) {
+      if (isArduinoCommand(cmd)) {
+        const legacy = toLegacyArduinoCommand(cmd);
+        if (!legacy) {
+          throw new Error("Cannot map gripper command to Arduino servo.");
+        }
+        await this._executeServo(legacy);
+        return;
+      }
+      await this._executeRuntimeCommand(cmd);
+    }
+
+    async _executeUniversalSmoothMove(cmd) {
+      if (isArduinoCommand(cmd)) {
+        const schema = NS.RobotCommandSchema;
+        const manifest = NS.RobotRegistry ? NS.RobotRegistry.get("arduino_arm") : null;
+        const joint = schema && manifest ? schema.resolveJoint(manifest, cmd.joint) : null;
+        if (!joint) {
+          throw new Error(`Cannot map joint ${cmd.joint} to Arduino servo.`);
+        }
+        await this._executeSmoothMove({
+          type: "smoothMove",
+          servo: joint.servoIndex ?? joint.index,
+          from: cmd.from,
+          to: cmd.to,
+          durationMs: Math.round(Number(cmd.seconds || 1.5) * 1000),
+          blockId: cmd.blockId
+        });
+        return;
+      }
+      await this._executeRuntimeCommand(cmd);
+      await this._executeDelay(Math.round(Number(cmd.seconds || 1.5) * 1000));
+    }
+
+    async _executeUniversalStop(cmd) {
+      if (isArduinoCommand(cmd) && this.serial.isConnected()) {
+        await this.serial.emergencyStop();
+      }
+      if (NS.RobotRuntime) {
+        NS.RobotRuntime.stop();
+      }
+      this.stopRequested = true;
+      this._emitStatus("Emergency stop sent");
+    }
+
+    async _executeRuntimeCommand(cmd) {
+      if (!NS.RobotRuntime || typeof NS.RobotRuntime.applyCommand !== "function") {
+        throw new Error("Robot runtime is not available.");
+      }
+      await NS.RobotRuntime.applyCommand(cmd);
+      if (typeof NS.RobotRuntime.getJointArray === "function") {
+        const angles = NS.RobotRuntime.getJointArray();
+        if (Array.isArray(angles) && angles.length > 0) {
+          this.applyAngles(angles);
+        }
+      }
+      this._emitStatus(`${cmd.robotId || "Robot"} ${cmd.type} applied`);
     }
 
     async _executeDelay(ms) {
@@ -455,6 +585,43 @@
 
   function delay(ms) {
     return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  function prepareCommandList(commands) {
+    const schema = NS.RobotCommandSchema;
+    if (!schema) {
+      return Array.isArray(commands) ? commands : [];
+    }
+    return (Array.isArray(commands) ? commands : []).map((command) => {
+      if (!command || typeof command !== "object") {
+        return command;
+      }
+      if (command.type === "savePose" || command.type === "goPose" || command.type === "loopForever") {
+        return {
+          ...command,
+          body: command.type === "loopForever" ? prepareCommandList(command.body || []) : command.body
+        };
+      }
+      const activeRobotId = NS.RobotRegistry && NS.RobotRegistry.getActive ? NS.RobotRegistry.getActive().id : "arduino_arm";
+      const result = schema.validateCommand(command, { activeRobotId });
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
+      return { ...result.command, blockId: command.blockId };
+    });
+  }
+
+  function isArduinoCommand(command) {
+    const activeRobotId = NS.RobotRegistry && NS.RobotRegistry.getActive ? NS.RobotRegistry.getActive().id : "arduino_arm";
+    const robotId = command && command.robotId ? command.robotId : activeRobotId;
+    return robotId === "arduino_arm";
+  }
+
+  function toLegacyArduinoCommand(command) {
+    if (!NS.RobotCommandSchema || typeof NS.RobotCommandSchema.toLegacyArduinoCommand !== "function") {
+      return null;
+    }
+    return NS.RobotCommandSchema.toLegacyArduinoCommand(command);
   }
 
   function clampServo(servo, angle) {

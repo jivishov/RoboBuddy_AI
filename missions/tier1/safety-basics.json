@@ -1,0 +1,14 @@
+{
+  "id": "safety-basics-01",
+  "title": "Safety Basics",
+  "robotIds": ["arduino_arm", "so101_follower", "lekiwi_sim"],
+  "difficulty": "beginner",
+  "skills": ["home", "stop", "wait", "joint_limits"],
+  "brief": "Practice home, wait, and STOP-ready command sequencing.",
+  "starterPython": "robot.home()\nrobot.wait(0.5)\nprint(\"Check the preview and keep STOP available.\")",
+  "successCriteria": [
+    "uses home",
+    "uses wait",
+    "finishes with no validation errors"
+  ]
+}
