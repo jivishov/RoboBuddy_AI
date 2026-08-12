@@ -28,6 +28,3 @@ export const G1_SIMULATION = Object.freeze({
   ensureG1Styles,
   g1StatusText
 });
-
-
-\n

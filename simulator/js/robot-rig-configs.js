@@ -377,4 +377,5 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       fallback: { color: 0xf06a5d, roughness: 0.62, metalness: 0.04 }
     },
     chain: []
+  }
 });

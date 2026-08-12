@@ -49,6 +49,3 @@ export function releaseObject(handId, toolFrames, taskObjects) {
   mesh.userData.heldBy = "";
   return { ok: true, objectId };
 }
-
-
-\n

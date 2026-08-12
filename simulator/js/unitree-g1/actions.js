@@ -66,6 +66,3 @@ function normalizeAction(id, definition) {
     }))
   };
 }
-
-
-\n

@@ -62,6 +62,3 @@ export function secondsPerStep(speed) {
   const ratio = clamp(speed, 1, 100) / 100;
   return lerp(0.92, 0.34, ratio);
 }
-
-
-\n
