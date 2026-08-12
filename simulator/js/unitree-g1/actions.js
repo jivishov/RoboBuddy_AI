@@ -1,5 +1,5 @@
-import { interpolateJoints, interpolateRoot } from "./calculations.js";
-import { createDemoKeyframes, createTurnKeyframes, createWalkKeyframes } from "./steps.js";
+import { interpolateJoints, interpolateRoot } from "./calculations.js?v=20260812-g1-registration-fix-2";
+import { createDemoKeyframes, createTurnKeyframes, createWalkKeyframes } from "./steps.js?v=20260812-g1-registration-fix-2";
 
 export function createG1Action(command, state, manifest) {
   if (!command || !state) return null;

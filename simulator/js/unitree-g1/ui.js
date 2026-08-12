@@ -1,4 +1,4 @@
-import { G1_INSTRUCTIONS } from "./instructions.js";
+import { G1_INSTRUCTIONS } from "./instructions.js?v=20260812-g1-registration-fix-2";
 
 export function ensureG1Styles() {
   if (typeof document === "undefined" || document.querySelector('link[data-unitree-g1-styles]')) return;

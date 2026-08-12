@@ -1,4 +1,4 @@
-import { distance3 } from "./calculations.js";
+import { distance3 } from "./calculations.js?v=20260812-g1-registration-fix-2";
 
 export function createToolFrames(THREE, groups, definitions = []) {
   const frames = new Map();
