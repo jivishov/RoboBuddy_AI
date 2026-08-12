@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Pages to SO-101 · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>GitHub Pages to SO-101</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>GitHub Pages to SO-101</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html">Local Bridge</a>
+            <a href="docs-github-pages-so101.html" aria-current="page">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html">Windows Verification</a>
+            <a href="docs-windows-blockers.html">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#what-you-need">What You Need</a>
+            <a href="#install-the-local-bridge">Install the Local Bridge</a>
+            <a href="#prepare-the-so-101">Prepare the SO-101</a>
+            <a href="#start-the-bridge">Start the Bridge</a>
+            <a href="#connect-from-github-pages">Connect from GitHub Pages</a>
+            <a href="#safety-notes">Safety Notes</a>
+            <a href="#troubleshooting">Troubleshooting</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/github-pages-so101-localhost.md"
+        data-source-sha256="cf9991409d5f8512b1f84b888cb4bf834f5c29e1713e0f4d888c6227fa51a952"
+      >
+<h1 id="control-lerobot-so-101-from-robobuddy-on-github-pages">Control LeRobot SO-101 from RoboBuddy on GitHub Pages</h1>
+<p>RoboBuddy on GitHub Pages runs in your browser. It cannot access your SO-101 hardware by itself. To control the robot, run the RoboBuddy local bridge on the same computer that has the SO-101 connected, then connect to that bridge from the GitHub Pages app.</p>
+<h2 id="what-you-need">What You Need</h2>
+<ul>
+<li>A desktop or laptop computer with the SO-101 connected by USB.</li>
+<li>Chrome or Edge.</li>
+<li>Python 3.12.</li>
+<li>A calibrated LeRobot SO-101 follower.</li>
+<li>RoboBuddy open from GitHub Pages.</li>
+</ul>
+<h2 id="install-the-local-bridge">Install the Local Bridge</h2>
+<p>Download or clone the RoboBuddy repository, then open PowerShell in the repository folder.</p>
+<pre class="python-docs__code"><code class="language-powershell">py -3.12 -m venv .venv-so101
+.\.venv-so101\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e &quot;.\bridge[so101]&quot;
+</code></pre>
+<h2 id="prepare-the-so-101">Prepare the SO-101</h2>
+<p>Find the robot port:</p>
+<pre class="python-docs__code"><code class="language-powershell">lerobot-find-port
+</code></pre>
+<p>If the motors have not been configured, run setup once with your port:</p>
+<pre class="python-docs__code"><code class="language-powershell">lerobot-setup-motors --robot.type=so101_follower --robot.port=COM24
+</code></pre>
+<p>Calibrate the robot before browser control:</p>
+<pre class="python-docs__code"><code class="language-powershell">lerobot-calibrate --robot.type=so101_follower --robot.port=COM24 --robot.id=classroom_so101_01
+</code></pre>
+<p>Replace <code>COM24</code> with the port shown on your machine.</p>
+<h2 id="start-the-bridge">Start the Bridge</h2>
+<p>In PowerShell:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\.venv-so101\Scripts\Activate.ps1
+python -m robobuddy_bridge
+</code></pre>
+<p>Leave this PowerShell window open. The bridge listens on:</p>
+<pre class="python-docs__code"><code class="language-text">http://127.0.0.1:8765
+</code></pre>
+<p>The bridge prints a local token when it starts. Keep it nearby. You will enter it in RoboBuddy.</p>
+<h3 id="bridge-token">Bridge Token</h3>
+<p>The bridge token is a local safety token for your computer. It is not an OpenAI key, GitHub token, password, or cloud secret.</p>
+<ul>
+<li>If you start the bridge with <code>python -m robobuddy_bridge</code>, the token is printed in that PowerShell window.</li>
+<li>If you start the bridge with <code>.\tools\start-so101-bridge.ps1 -Restart</code>, the helper prints the token after the bridge reports ready.</li>
+<li>If you restart the bridge, the token can change. Click <code>Test Bridge</code> again and enter the current token.</li>
+<li>If a bridge is already running and you did not save its token, close it or restart it so a new token is printed.</li>
+<li>Use <code>--no-token</code> or <code>-NoToken</code> only for local development, not for normal robot control from GitHub Pages.</li>
+<li>If you intentionally started the bridge without a token, check <code>No-token local</code> in the Diagnostics panel instead of entering a token.</li>
+<li>If <code>No-token local</code> is checked but the running bridge is still token-protected, RoboBuddy keeps the checkbox checked and blocks Connect. Restart the bridge with <code>--no-token</code> or <code>-NoToken</code>, then click <code>Test Bridge</code>, or uncheck <code>No-token local</code> and enter the printed token.</li>
+</ul>
+<h2 id="connect-from-github-pages">Connect from GitHub Pages</h2>
+<ol>
+<li>Open RoboBuddy on GitHub Pages in Chrome or Edge.</li>
+<li>Select <code>LeRobot SO-101 F</code>.</li>
+<li>In the Local Bridge panel, click <code>Test Bridge</code>.</li>
+<li>If the browser asks for local network access, allow it.</li>
+<li>Enter the bridge token if RoboBuddy asks for it. If you intentionally started the bridge with <code>--no-token</code> or <code>-NoToken</code>, check <code>No-token local</code> instead.</li>
+<li>Select the SO-101 port.</li>
+<li>Click <code>Connect SO-101</code>.</li>
+<li>If RoboBuddy reports <code>NEEDS_CALIBRATION</code>, run the calibration command shown, then test/connect again.</li>
+<li>Check <code>Arm motion for this session</code> only when the robot is clear to move.</li>
+<li>Use the sliders or programs to control the robot.</li>
+</ol>
+<h2 id="safety-notes">Safety Notes</h2>
+<ul>
+<li>Keep the robot on a stable surface with a clear workspace.</li>
+<li>Do not arm motion until calibration has passed.</li>
+<li>Use STOP immediately if movement is unexpected.</li>
+<li>Do not enter cloud API keys or passwords as the bridge token.</li>
+<li>Close the PowerShell bridge window when finished.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><code>Bridge unavailable</code>: start the bridge and confirm it is listening on <code>127.0.0.1:8765</code>.</li>
+<li>Browser blocks the request: allow local network access or apps-on-device access for the RoboBuddy page, then click <code>Test Bridge</code> again.</li>
+<li><code>Bridge token required</code>: enter the token printed by the currently running bridge. If <code>No-token local</code> is checked, the bridge was not actually started in no-token mode; restart it with <code>--no-token</code> or <code>-NoToken</code>, then click <code>Test Bridge</code>.</li>
+<li><code>Port list unavailable</code>: install the bridge extras and reconnect the robot USB cable.</li>
+<li><code>SO-101 port is busy</code>: close other serial tools, restart the bridge, or replug the robot.</li>
+<li><code>LEROBOT_NOT_INSTALLED</code>: install with <code>python -m pip install -e ".\bridge[so101]"</code>.</li>
+<li><code>NEEDS_CALIBRATION</code>: run the displayed <code>lerobot-calibrate</code> command before trying motion again.</li>
+</ul>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

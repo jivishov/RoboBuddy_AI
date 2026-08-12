@@ -3,15 +3,8 @@
 
   const HOME_ANGLES = [90, 90, 90, 90, 90, 90];
   const JOINT_LIMITS = NS.Generator ? NS.Generator.JOINT_LIMITS : [[20, 130], [15, 165], [0, 180], [0, 180], [0, 180], [25, 130]];
-  const JOINT_NAMES = ["Base", "Shoulder", "Elbow", "Wrist Rot", "Wrist Tilt", "Gripper"];
   const MOTORS_STORAGE_KEY = "roboadmin.motorsEnabled.v1";
   const OUTPUT_PANEL_COLLAPSED_STORAGE_KEY = "roboadmin.pythonOutputPanelCollapsed.v1";
-  const PYTHON_SPLIT_LEFT_STORAGE_KEY = "roboadmin.pythonSplitLeftPercent.v1";
-  const PYTHON_SPLIT_RIGHT_STORAGE_KEY = "roboadmin.pythonSplitRightPercent.v1";
-  const PYTHON_SPLIT_DEFAULT_LEFT = 40.7;
-  const PYTHON_SPLIT_DEFAULT_RIGHT = 77.5;
-  const PYTHON_SPLIT_PANEL_MIN_PERCENT = 18;
-  const PYTHON_SPLIT_PANEL_MAX_PERCENT = 58;
   const EXPECTED_FIRMWARE_PROFILE_ID = "RA1";
   const BLOCKS_FILE_SCHEMA = "robobuddy.blocks.v1";
   const BLOCKS_FILE_ACCEPT = ".robobuddy-blocks.json,.json";
@@ -26,6 +19,7 @@
     PROGRAM: "program"
   };
   const TIER1_MISSION_FILES = [
+    "python-quick-start.json",
     "safety-basics.json",
     "first-joint-move.json",
     "robot-wave.json",
@@ -33,6 +27,23 @@
     "lekiwi-drive-square.json",
     "lekiwi-mobile-pick-preview.json"
   ];
+  const QUICK_START_PYTHON = [
+    "robot.home()",
+    'robot.move_joint("base", 100, speed=50)',
+    "robot.wait(0.5)",
+    "print(robot.get_joints())"
+  ].join("\n");
+  const QUICK_START_MISSION = Object.freeze({
+    id: "python-quick-start",
+    title: "Python Quick Start",
+    robotIds: ["arduino_arm"],
+    difficulty: "beginner",
+    brief: "Home the Arduino arm, move the base safely, wait, and inspect joint values.",
+    starterPython: QUICK_START_PYTHON
+  });
+  const ALLOWED_URL_EXAMPLES = Object.freeze({
+    "python-quick-start": Object.freeze({ missionId: "python-quick-start", robotId: "arduino_arm" })
+  });
 
   const state = {
     angles: HOME_ANGLES.slice(),
@@ -55,13 +66,22 @@
     pythonRuntimeReady: false,
     pythonBusy: false,
     editor: null,
-    pythonSplitLeftPercent: PYTHON_SPLIT_DEFAULT_LEFT,
-    pythonSplitRightPercent: PYTHON_SPLIT_DEFAULT_RIGHT,
-    activeSplitter: null,
     resizeQueued: false,
     outputPanelCollapsed: true,
+    outputPanel: null,
+    jointState: null,
     tier1Missions: [],
-    lastSyncedRobotId: null
+    lastSyncedRobotId: null,
+    activeMode: "python",
+    savedPython: "",
+    pythonSourceKind: "starter",
+    suppressEditorChange: false,
+    pageInitialized: false,
+    urlExampleHandled: false,
+    bridgeSessionStatus: "none",
+    bridgeArmPending: false,
+    copyableStatusText: "",
+    copyStatusResetTimer: 0
   };
 
   const ui = {};
@@ -70,13 +90,10 @@
 
   function init() {
     cacheUi();
-    initRobotUi();
     setupEditor();
-    state.pythonSplitLeftPercent = readStoredPythonSplitLeft(PYTHON_SPLIT_DEFAULT_LEFT);
-    state.pythonSplitRightPercent = readStoredPythonSplitRight(PYTHON_SPLIT_DEFAULT_RIGHT);
-    state.outputPanelCollapsed = readStoredOutputPanelCollapsed(true);
-    applyPythonSplitLayout({ persist: false });
-    setOutputPanelCollapsed(state.outputPanelCollapsed, { persist: false, updateState: false });
+    markPythonSaved("starter");
+    initRobotUi();
+    initSharedWorkbenchUi();
 
     NS.Blocks.registerBlocks();
     ui.toolbox.innerHTML = NS.Blocks.toolboxXml();
@@ -135,41 +152,65 @@
     wireRunnerEvents();
     wireButtons();
     wireRobotUi();
-    wireSplitters();
+    selectProgramMode("python", { focus: false });
     createPythonWorker();
     loadInitialWorkspace();
-    applyAngles(getActiveHomeAngles(), { source: "init" });
+    applyAngles(getActiveInitialAngles(), { source: "init" });
     syncRobotPreviewVisibility();
     syncMotorsToggleUi();
     updateRunControls();
     appendOutput("Python runtime loading...");
+    state.pageInitialized = true;
 
     window.addEventListener("resize", scheduleLayoutRefresh);
+    if (ui.workbench) {
+      ui.workbench.addEventListener(NS.WorkbenchUI.LAYOUT_EVENT, scheduleLayoutRefresh);
+    }
+    window.addEventListener("unload", destroySharedWorkbenchUi, { once: true });
 
     if (!state.serial.supportsWebSerial()) {
       ui.btnConnect.disabled = true;
       setConnectionStatus(false, "Web Serial unavailable");
     }
+    window.addEventListener("pagehide", () => {
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.disarmBridgeForPageExit === "function") {
+        NS.RobotRuntime.disarmBridgeForPageExit();
+      }
+    }, { capture: true });
+    void restoreSo101BridgeSession();
   }
 
   function cacheUi() {
-    ui.pythonDraft = document.querySelector(".python-draft");
+    ui.workbench = document.querySelector(".python-workbench");
     ui.statusDot = document.getElementById("statusDot");
     ui.statusText = document.getElementById("statusText");
     ui.programStatus = document.getElementById("programStatus");
     ui.programStatusIcon = document.getElementById("programStatusIcon");
+    ui.outputDrawer = document.querySelector(".python-output-drawer");
+    ui.btnCopyProgramStatus = document.getElementById("btnCopyProgramStatus");
     ui.btnConnect = document.getElementById("btnConnect");
     ui.btnHome = document.getElementById("btnHome");
     ui.btnEmergencyStop = document.getElementById("btnEmergencyStop");
     ui.btnMainPage = document.getElementById("btnMainPage");
     ui.robotChooser = document.getElementById("pythonRobotChooser");
+    ui.executionTarget = document.querySelector("[data-execution-target]");
     ui.btnLoadCodeExample = document.getElementById("btnLoadCodeExample");
     ui.codeExampleMenu = document.getElementById("pythonCodeExampleMenu");
+    ui.codeExampleItems = document.querySelector("[data-code-example-items]");
+    ui.fileMenuTrigger = document.getElementById("btnPythonFileMenu");
+    ui.fileMenu = document.getElementById("pythonFileMenu");
+    ui.modeTabs = Array.from(document.querySelectorAll("[data-python-mode]"));
+    ui.blocklyPanel = document.getElementById("pythonBlocklyPanel");
+    ui.pythonPanel = document.getElementById("pythonPythonPanel");
+    ui.modeOnly = Array.from(document.querySelectorAll("[data-mode-only]"));
+    ui.fileBadge = document.getElementById("pythonFileBadge");
+    ui.fileState = document.getElementById("pythonFileState");
 
     ui.toolbox = document.getElementById("pythonToolbox");
     ui.blocklyDiv = document.getElementById("pythonBlocklyDiv");
     ui.pythonEditor = document.getElementById("pythonEditor");
     ui.pythonRuntimeStatus = document.getElementById("pythonRuntimeStatus");
+    ui.effectCard = document.getElementById("pythonEffectCard");
     ui.effectStatus = document.getElementById("pythonEffectStatus");
     ui.commandSummary = document.getElementById("pythonCommandSummary");
     ui.outputLog = document.getElementById("pythonOutputLog");
@@ -179,9 +220,12 @@
     ui.robotSimPreview = document.getElementById("pythonRobotSimPreview");
     ui.outputPanelToggle = document.getElementById("btnOutputPanelToggle");
     ui.outputPanelBody = document.getElementById("pythonOutputPanelBody");
-    ui.leftSplitter = document.querySelector('[data-python-splitter="left"]');
-    ui.rightSplitter = document.querySelector('[data-python-splitter="right"]');
+    ui.jointStatePanel = document.getElementById("pythonJointStatePanel");
+    ui.jointStateToggle = document.getElementById("pythonJointStateToggle");
+    ui.jointStateBody = document.getElementById("pythonJointStateBody");
+    ui.jointStateCount = document.getElementById("pythonJointStateCount");
     ui.motorsEnabled = document.getElementById("pythonMotorsEnabled");
+    ui.motorsLabel = document.getElementById("pythonMotorsLabel");
     ui.btnRunBlocks = document.getElementById("btnRunBlocks");
     ui.btnConvertPython = document.getElementById("btnConvertPython");
     ui.btnConvertRunPython = document.getElementById("btnConvertRunPython");
@@ -196,14 +240,58 @@
     ui.btnLoadPython = document.getElementById("btnLoadPython");
     ui.btnCopyPython = document.getElementById("btnCopyPython");
     ui.btnClearOutput = document.getElementById("btnClearOutput");
-    ui.jointValues = [];
-    for (let servo = 0; servo < 6; servo += 1) {
-      ui.jointValues.push(document.getElementById(`pythonJointValue${servo}`));
+  }
+
+  function initSharedWorkbenchUi() {
+    const workbenchUi = NS.WorkbenchUI;
+    if (!workbenchUi) {
+      throw new Error("The shared RoboBuddy workbench UI module is unavailable.");
     }
+    state.outputPanel = new workbenchUi.CollapsiblePanel({
+      root: ui.outputPanelToggle ? ui.outputPanelToggle.closest(".python-output-drawer") : null,
+      toggle: ui.outputPanelToggle,
+      body: ui.outputPanelBody,
+      label: "Output & Serial",
+      defaultExpanded: false,
+      readExpanded: () => !readStoredOutputPanelCollapsed(true),
+      writeExpanded: (expanded) => localStorage.setItem(OUTPUT_PANEL_COLLAPSED_STORAGE_KEY, expanded ? "false" : "true"),
+      onChange: (expanded) => {
+        state.outputPanelCollapsed = !expanded;
+        scheduleLayoutRefresh();
+      }
+    });
+    state.outputPanelCollapsed = !state.outputPanel.expanded;
+
+    const adapter = workbenchUi.createJointStateAdapter({
+      getManifest: () => activeManifest(),
+      getValues: () => state.angles
+    });
+    state.jointState = new workbenchUi.JointStateView({
+      root: ui.jointStatePanel,
+      toggle: ui.jointStateToggle,
+      body: ui.jointStateBody,
+      list: ui.jointStateBody,
+      count: ui.jointStateCount,
+      adapter,
+      storageKey: "robobuddy:panel:python:joint-state:v1",
+      defaultExpanded: true,
+      rowSelector: "[data-python-joint-row]",
+      rowAttribute: "data-python-joint-row",
+      valueIdPrefix: "pythonJointValue",
+      onExpandedChange: scheduleLayoutRefresh
+    });
+  }
+
+  function destroySharedWorkbenchUi() {
+    if (state.outputPanel) state.outputPanel.destroy();
+    if (state.jointState) state.jointState.destroy();
   }
 
   function setupEditor() {
     if (!window.CodeMirror || !ui.pythonEditor) {
+      if (ui.pythonEditor) {
+        ui.pythonEditor.addEventListener("input", handlePythonEditorChange);
+      }
       return;
     }
 
@@ -216,6 +304,11 @@
       viewportMargin: Infinity
     });
     state.editor.setSize("100%", "100%");
+    const editorInput = state.editor.getInputField();
+    if (editorInput) {
+      editorInput.setAttribute("aria-label", "Python code editor");
+    }
+    state.editor.on("change", handlePythonEditorChange);
   }
 
   function initRobotUi() {
@@ -248,6 +341,12 @@
     return NS.RobotSafety && activeManifest() ? NS.RobotSafety.getHomeAngles(activeManifest()) : HOME_ANGLES.slice();
   }
 
+  function getActiveInitialAngles() {
+    return NS.RobotSafety && activeManifest() && typeof NS.RobotSafety.getInitialAngles === "function"
+      ? NS.RobotSafety.getInitialAngles(activeManifest())
+      : getActiveHomeAngles();
+  }
+
   function getActiveJointLimits() {
     return NS.RobotSafety && activeManifest() ? NS.RobotSafety.getJointLimits(activeManifest()) : JOINT_LIMITS.slice();
   }
@@ -255,7 +354,10 @@
   function getActiveJointState() {
     const joints = {};
     activeJoints().forEach((joint, index) => {
-      joints[joint.id] = state.angles[index] ?? joint.home ?? 0;
+      const value = state.angles[index] ?? joint.home ?? 0;
+      joints[joint.id] = NS.RobotSafety && typeof NS.RobotSafety.clampJointValue === "function"
+        ? NS.RobotSafety.clampJointValue(joint, value)
+        : Math.min(Number(joint.max), Math.max(Number(joint.min), Number(value)));
     });
     return joints;
   }
@@ -277,11 +379,16 @@
           .then((res) => res.ok ? res.json() : null)
           .catch(() => null)
       )));
-      state.tier1Missions = results.filter(Boolean);
+      const byId = new Map([[QUICK_START_MISSION.id, QUICK_START_MISSION]]);
+      results.filter(Boolean).forEach((mission) => byId.set(mission.id, mission));
+      state.tier1Missions = Array.from(byId.values());
     } catch (error) {
-      state.tier1Missions = [];
+      state.tier1Missions = [QUICK_START_MISSION];
     }
     updateCodeExampleMenu();
+    await waitForPageInitialization();
+    ensureStarterForActiveRobot();
+    applyAllowlistedExampleFromUrl();
   }
 
   function codeExampleMissions() {
@@ -295,22 +402,25 @@
   }
 
   function updateCodeExampleMenu() {
-    if (!ui.codeExampleMenu) {
+    if (!ui.codeExampleItems) {
       return;
     }
     const missions = codeExampleMissions();
     if (missions.length === 0) {
       const manifest = activeManifest();
       const robotName = manifest ? (manifest.shortName || manifest.name) : "this robot";
-      ui.codeExampleMenu.innerHTML = `<p class="python-draft__example-empty">No code examples for ${escapeHtml(robotName)}.</p>`;
+      ui.codeExampleItems.innerHTML = `<p class="python-draft__example-empty">No code examples for ${escapeHtml(robotName)}.</p>`;
       return;
     }
-    ui.codeExampleMenu.innerHTML = missions.map((mission) => `
+    ui.codeExampleItems.innerHTML = missions.map((mission) => `
       <button class="python-draft__example-item" type="button" role="menuitem" data-code-example-id="${escapeHtml(mission.id)}">
-        <span>${escapeHtml(mission.title)}</span>
-        <small>${escapeHtml(mission.brief || mission.difficulty || "Example code")}</small>
+        <i data-lucide="file-code-2" aria-hidden="true"></i>
+        <span><strong>${escapeHtml(mission.title)}</strong><small>${escapeHtml(mission.brief || mission.difficulty || "Example code")}</small></span>
       </button>
     `).join("");
+    if (window.lucide) {
+      lucide.createIcons({ nodes: Array.from(ui.codeExampleItems.querySelectorAll("[data-lucide]")) });
+    }
   }
 
   function setCodeExampleMenuOpen(open) {
@@ -343,20 +453,29 @@
       setStatus("Example has no Python snippet.");
       return;
     }
-    setPythonEditorValue(mission.starterPython);
+    setPythonEditorValue(mission.starterPython, { dirty: true, sourceKind: "example" });
     state.blockReferenceCommands = null;
     state.lastGeneratedPython = "";
     updateCommandSummary("-");
     updateEffectStatus("Example code loaded. Run to validate commands.", "warning");
     setStatus(`Loaded example code: ${mission.title}`);
+    selectProgramMode("python", { focus: false });
     updateRunControls();
   }
 
   function wireRobotUi() {
     if (ui.robotChooser) {
-      ui.robotChooser.addEventListener("change", () => {
+      ui.robotChooser.addEventListener("change", async () => {
         clearRobotScopedBlocklyState();
         if (NS.RobotRuntime) {
+          if (
+            activeRobotId() === "so101_follower" &&
+            ui.robotChooser.value !== "so101_follower" &&
+            NS.RobotRuntime.isBridgeConnected &&
+            NS.RobotRuntime.isBridgeConnected()
+          ) {
+            await NS.RobotRuntime.setBridgeSafetyConfirmed(false).catch(() => NS.RobotRuntime.stopHardware());
+          }
           NS.RobotRuntime.setActive(ui.robotChooser.value);
         } else if (NS.RobotRegistry) {
           NS.RobotRegistry.setActive(ui.robotChooser.value);
@@ -365,9 +484,15 @@
     }
     window.addEventListener("robobuddy:active-robot-change", () => {
       syncRobotUi();
-      setCodeExampleMenuOpen(false);
+      closeAllMenus();
       updateCodeExampleMenu();
       setStatus(`Robot switched to ${activeManifest().name}`);
+      if (activeRobotId() === "so101_follower") {
+        void restoreSo101BridgeSession();
+      } else {
+        state.bridgeSessionStatus = "none";
+        syncExecutionContext();
+      }
     });
     syncRobotUi();
     updateCodeExampleMenu();
@@ -384,22 +509,12 @@
     if (NS.Blocks && typeof NS.Blocks.refreshToolbox === "function") {
       NS.Blocks.refreshToolbox(state.workspace, ui.toolbox);
     }
-    if (ui.btnConnect) {
-      ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
-      const span = ui.btnConnect.querySelector("span");
-      if (span && !isArduinoActive()) {
-        span.textContent = activeRobotId() === "so101_follower" ? "Use Bridge" : "Sim Only";
-      }
-    }
-    if (ui.motorsEnabled) {
-      ui.motorsEnabled.disabled = !isArduinoActive();
-      if (!isArduinoActive()) {
-        ui.motorsEnabled.checked = false;
-      }
-    }
+    syncConnectButton();
+    syncMotorsToggleUi();
     syncRobotPreviewVisibility();
-    applyAngles(getActiveHomeAngles(), { source: "robot-switch" });
+    applyAngles(getActiveInitialAngles(), { source: "robot-switch" });
     state.lastSyncedRobotId = robotId;
+    ensureStarterForActiveRobot();
   }
 
   function clearRobotScopedBlocklyState() {
@@ -453,13 +568,128 @@
     return state.editor ? state.editor.getValue() : (ui.pythonEditor.value || "");
   }
 
-  function setPythonEditorValue(code) {
+  function setPythonEditorValue(code, options = {}) {
+    state.suppressEditorChange = true;
     if (state.editor) {
       state.editor.setValue(code || "");
       window.requestAnimationFrame(() => state.editor.refresh());
+    } else {
+      ui.pythonEditor.value = code || "";
+    }
+    state.suppressEditorChange = false;
+    if (options.saved) {
+      markPythonSaved(options.sourceKind || "starter");
+    } else if (options.dirty) {
+      state.pythonSourceKind = options.sourceKind || "example";
+      renderPythonFileState(true);
+    } else {
+      syncPythonFileState();
+    }
+  }
+
+  function handlePythonEditorChange() {
+    if (state.suppressEditorChange) {
       return;
     }
-    ui.pythonEditor.value = code || "";
+    state.blockReferenceCommands = null;
+    state.lastGeneratedPython = "";
+    updateCommandSummary("-");
+    updateEffectStatus("Python changed. Validate & Run to check commands.", "warning");
+    syncPythonFileState();
+  }
+
+  function markPythonSaved(sourceKind = "user") {
+    state.savedPython = getPythonEditorValue();
+    state.pythonSourceKind = sourceKind;
+    renderPythonFileState(false);
+  }
+
+  function syncPythonFileState() {
+    renderPythonFileState(getPythonEditorValue() !== state.savedPython);
+  }
+
+  function renderPythonFileState(dirty) {
+    if (ui.fileBadge) {
+      ui.fileBadge.dataset.state = dirty ? "dirty" : "saved";
+      ui.fileBadge.title = dirty ? "robot_program.py — Unsaved changes" : "robot_program.py — Saved";
+    }
+    if (ui.fileState) {
+      ui.fileState.textContent = dirty ? "Unsaved changes" : "Saved";
+    }
+  }
+
+  function pythonFileIsDirty() {
+    return getPythonEditorValue() !== state.savedPython;
+  }
+
+  function starterMissionForActiveRobot() {
+    const robotId = activeRobotId();
+    if (robotId === "arduino_arm") {
+      return state.tier1Missions.find((mission) => mission.id === QUICK_START_MISSION.id) || QUICK_START_MISSION;
+    }
+    return state.tier1Missions.find((mission) => (
+      Array.isArray(mission.robotIds) &&
+      mission.robotIds.includes(robotId) &&
+      typeof mission.starterPython === "string" &&
+      mission.starterPython.trim()
+    )) || null;
+  }
+
+  function ensureStarterForActiveRobot() {
+    if (!state.editor && !ui.pythonEditor) {
+      return;
+    }
+    if (state.pythonSourceKind !== "starter" || pythonFileIsDirty()) {
+      return;
+    }
+    const mission = starterMissionForActiveRobot();
+    if (!mission || !mission.starterPython || getPythonEditorValue() === mission.starterPython) {
+      return;
+    }
+    setPythonEditorValue(mission.starterPython, { saved: true, sourceKind: "starter" });
+    state.blockReferenceCommands = null;
+    state.lastGeneratedPython = "";
+    updateCommandSummary("-");
+    updateEffectStatus(`Ready to validate for ${activeManifest().shortName || activeManifest().name}.`, "ready");
+  }
+
+  async function waitForPageInitialization() {
+    const startedAt = Date.now();
+    while (!state.pageInitialized && Date.now() - startedAt < 2000) {
+      await new Promise((resolve) => window.setTimeout(resolve, 10));
+    }
+  }
+
+  function applyAllowlistedExampleFromUrl() {
+    if (state.urlExampleHandled) {
+      return;
+    }
+    state.urlExampleHandled = true;
+    const params = new URLSearchParams(window.location.search);
+    const requestedId = String(params.get("example") || "").trim();
+    if (!requestedId) {
+      return;
+    }
+    const route = ALLOWED_URL_EXAMPLES[requestedId];
+    if (!route) {
+      setStatus(`Unknown example "${requestedId}". Editor unchanged.`);
+      return;
+    }
+
+    if (NS.RobotRuntime) {
+      NS.RobotRuntime.setActive(route.robotId);
+    } else if (NS.RobotRegistry) {
+      NS.RobotRegistry.setActive(route.robotId);
+    }
+    const mission = state.tier1Missions.find((item) => item.id === route.missionId) || QUICK_START_MISSION;
+    setPythonEditorValue(mission.starterPython, { dirty: true, sourceKind: "example" });
+    state.blockReferenceCommands = null;
+    state.lastGeneratedPython = "";
+    updateCommandSummary("-");
+    updateEffectStatus("Quick Start loaded. Validate & Run when you are ready.", "warning");
+    selectProgramMode("python", { focus: false });
+    setStatus("Loaded Python Quick Start from Docs. Nothing has run.");
+    updateRunControls();
   }
 
   function wireSerialEvents() {
@@ -522,7 +752,11 @@
     state.runner.addEventListener("error", (event) => {
       const error = event.detail ? event.detail.error : null;
       if (error) {
-        setStatus(`Runner error: ${error.message || error}`);
+        const presentation = formatRunnerError(error);
+        setStatus(presentation.summary, { copyableText: presentation.detail });
+        updateEffectStatus(presentation.detail, "error");
+        appendOutput(`ERROR: ${presentation.detail}`);
+        setOutputPanelCollapsed(false, { persist: false });
       }
       state.controlOwner = CONTROL_OWNER.IDLE;
       updateRunControls();
@@ -530,6 +764,10 @@
   }
 
   function wireButtons() {
+    document.addEventListener("keydown", handleGlobalEmergencyKey, true);
+    wireProgramTabs();
+    wireProgramMenus();
+
     ui.btnConnect.addEventListener("click", () => {
       void handleConnectToggle();
     });
@@ -576,18 +814,8 @@
         return;
       }
       loadInitialWorkspace({ force: true });
+      closeAllMenus();
     });
-
-    if (ui.btnLoadCodeExample) {
-      ui.btnLoadCodeExample.addEventListener("click", (event) => {
-        event.stopPropagation();
-        if (state.runner.isRunning() || state.pythonBusy) {
-          setStatus("Wait for the active run to finish before loading example code.");
-          return;
-        }
-        setCodeExampleMenuOpen(ui.codeExampleMenu && ui.codeExampleMenu.hidden);
-      });
-    }
 
     if (ui.codeExampleMenu) {
       ui.codeExampleMenu.addEventListener("click", (event) => {
@@ -596,37 +824,21 @@
           return;
         }
         loadCodeExample(item.dataset.codeExampleId || "");
-        setCodeExampleMenuOpen(false);
-      });
-      document.addEventListener("click", (event) => {
-        if (
-          !ui.codeExampleMenu.hidden &&
-          !ui.codeExampleMenu.contains(event.target) &&
-          ui.btnLoadCodeExample &&
-          !ui.btnLoadCodeExample.contains(event.target)
-        ) {
-          setCodeExampleMenuOpen(false);
-        }
-      });
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && !ui.codeExampleMenu.hidden) {
-          setCodeExampleMenuOpen(false);
-          if (ui.btnLoadCodeExample) {
-            ui.btnLoadCodeExample.focus();
-          }
-        }
+        closeAllMenus();
       });
     }
 
     if (ui.btnSaveBlocks) {
       ui.btnSaveBlocks.addEventListener("click", () => {
         void saveBlocksToFile();
+        closeAllMenus();
       });
     }
 
     if (ui.btnLoadUserBlocks) {
       ui.btnLoadUserBlocks.addEventListener("click", () => {
         void loadBlocksFromFile();
+        closeAllMenus();
       });
     }
 
@@ -636,17 +848,20 @@
       state.lastGeneratedPython = "";
       updateEffectStatus("Build blocks, then convert to Python.", "ready");
       setStatus("Workspace cleared");
+      closeAllMenus();
     });
 
     if (ui.btnSavePython) {
       ui.btnSavePython.addEventListener("click", () => {
         void savePythonToFile();
+        closeAllMenus();
       });
     }
 
     if (ui.btnLoadPython) {
       ui.btnLoadPython.addEventListener("click", () => {
         void loadPythonFromFile();
+        closeAllMenus();
       });
     }
 
@@ -657,7 +872,28 @@
       } catch (error) {
         setStatus("Copy failed (clipboard permission)");
       }
+      closeAllMenus();
     });
+
+    if (ui.btnCopyProgramStatus) {
+      ui.btnCopyProgramStatus.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        const text = state.copyableStatusText;
+        if (!text) {
+          return;
+        }
+        try {
+          await copyTextToClipboard(text);
+          setCopyStatusButtonState("Error details copied", "check");
+        } catch (error) {
+          setCopyStatusButtonState("Copy failed", "triangle-alert");
+        }
+        window.clearTimeout(state.copyStatusResetTimer);
+        state.copyStatusResetTimer = window.setTimeout(() => {
+          setCopyStatusButtonState("Copy error details", "copy");
+        }, 2000);
+      });
+    }
 
     ui.btnClearOutput.addEventListener("click", () => {
       state.outputLines = [];
@@ -665,11 +901,149 @@
       setStatus("Python output cleared");
     });
 
-    if (ui.outputPanelToggle) {
-      ui.outputPanelToggle.addEventListener("click", () => {
-        setOutputPanelCollapsed(!state.outputPanelCollapsed, { persist: true });
+  }
+
+  function wireProgramTabs() {
+    ui.modeTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        selectProgramMode(tab.dataset.pythonMode, { focus: false });
       });
+      tab.addEventListener("keydown", (event) => {
+        const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+        if (!keys.includes(event.key)) {
+          return;
+        }
+        const currentIndex = ui.modeTabs.indexOf(tab);
+        let nextIndex = currentIndex;
+        if (event.key === "Home") {
+          nextIndex = 0;
+        } else if (event.key === "End") {
+          nextIndex = ui.modeTabs.length - 1;
+        } else if (event.key === "ArrowLeft") {
+          nextIndex = (currentIndex - 1 + ui.modeTabs.length) % ui.modeTabs.length;
+        } else {
+          nextIndex = (currentIndex + 1) % ui.modeTabs.length;
+        }
+        selectProgramMode(ui.modeTabs[nextIndex].dataset.pythonMode, { focus: true });
+        event.preventDefault();
+      });
+    });
+  }
+
+  function selectProgramMode(mode, options = {}) {
+    const nextMode = mode === "blockly" ? "blockly" : "python";
+    state.activeMode = nextMode;
+    document.body.dataset.workbenchMode = nextMode;
+    ui.modeTabs.forEach((tab) => {
+      const selected = tab.dataset.pythonMode === nextMode;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      if (selected && options.focus) {
+        tab.focus();
+      }
+    });
+    if (ui.blocklyPanel) {
+      ui.blocklyPanel.hidden = nextMode !== "blockly";
     }
+    if (ui.pythonPanel) {
+      ui.pythonPanel.hidden = nextMode !== "python";
+    }
+    ui.modeOnly.forEach((element) => {
+      element.hidden = element.dataset.modeOnly !== nextMode;
+    });
+    closeAllMenus();
+    scheduleLayoutRefresh();
+  }
+
+  function wireProgramMenus() {
+    const menuPairs = [
+      [ui.btnLoadCodeExample, ui.codeExampleMenu],
+      [ui.fileMenuTrigger, ui.fileMenu]
+    ].filter(([trigger, menu]) => trigger && menu);
+
+    menuPairs.forEach(([trigger, menu]) => {
+      trigger.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const willOpen = menu.hidden;
+        closeAllMenus();
+        setMenuOpen(trigger, menu, willOpen, { focusFirst: false });
+      });
+      trigger.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowDown") {
+          return;
+        }
+        closeAllMenus();
+        setMenuOpen(trigger, menu, true, { focusFirst: true });
+        event.preventDefault();
+      });
+      menu.addEventListener("keydown", (event) => handleMenuKeydown(event, trigger, menu));
+    });
+
+    document.addEventListener("click", (event) => {
+      const insideMenu = menuPairs.some(([trigger, menu]) => trigger.contains(event.target) || menu.contains(event.target));
+      if (!insideMenu) {
+        closeAllMenus();
+      }
+    });
+  }
+
+  function setMenuOpen(trigger, menu, open, options = {}) {
+    menu.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+    if (open && options.focusFirst) {
+      const firstItem = visibleMenuItems(menu)[0];
+      if (firstItem) {
+        firstItem.focus();
+      }
+    }
+  }
+
+  function closeAllMenus() {
+    if (ui.btnLoadCodeExample && ui.codeExampleMenu) {
+      setCodeExampleMenuOpen(false);
+    }
+    if (ui.fileMenuTrigger && ui.fileMenu) {
+      setMenuOpen(ui.fileMenuTrigger, ui.fileMenu, false);
+    }
+  }
+
+  function visibleMenuItems(menu) {
+    return Array.from(menu.querySelectorAll('[role="menuitem"]')).filter((item) => !item.hidden && !item.closest("[hidden]"));
+  }
+
+  function handleMenuKeydown(event, trigger, menu) {
+    const items = visibleMenuItems(menu);
+    const currentIndex = items.indexOf(document.activeElement);
+    if (event.key === "Tab") {
+      window.setTimeout(closeAllMenus, 0);
+      return;
+    }
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) || items.length === 0) {
+      return;
+    }
+    let nextIndex = currentIndex < 0 ? 0 : currentIndex;
+    if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = items.length - 1;
+    } else if (event.key === "ArrowDown") {
+      nextIndex = (nextIndex + 1) % items.length;
+    } else {
+      nextIndex = (nextIndex - 1 + items.length) % items.length;
+    }
+    items[nextIndex].focus();
+    event.preventDefault();
+  }
+
+  function handleGlobalEmergencyKey(event) {
+    if (event.key !== "Escape" || event.__robobuddyEmergencyHandled) {
+      return;
+    }
+    event.__robobuddyEmergencyHandled = true;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void handleEmergencyStop();
+    closeAllMenus();
   }
 
   function createPythonWorker() {
@@ -789,7 +1163,8 @@
       }
 
       const emitted = NS.PythonEmitter.emit(state.workspace);
-      setPythonEditorValue(emitted.code);
+      setPythonEditorValue(emitted.code, { dirty: true, sourceKind: "conversion" });
+      selectProgramMode("python", { focus: false });
       state.lastGeneratedPython = emitted.code;
       state.blockReferenceCommands = blockCommands;
       appendOutput("Converted Blockly workspace to Python.");
@@ -856,6 +1231,23 @@
 
     try {
       setStatus("Preparing Python run...");
+      if (
+        bridgeExecutionRequired() &&
+        NS.RobotRuntime &&
+        typeof NS.RobotRuntime.refreshBridgeState === "function"
+      ) {
+        const programAvailability = typeof NS.RobotRuntime.getProgramAvailability === "function"
+          ? NS.RobotRuntime.getProgramAvailability()
+          : null;
+        if (programAvailability && programAvailability.available === false) {
+          throw new Error(programAvailability.reason);
+        }
+        await NS.RobotRuntime.refreshBridgeState({ strict: true });
+        const measuredAngles = NS.RobotRuntime.getMeasuredJointArray
+          ? NS.RobotRuntime.getMeasuredJointArray()
+          : NS.RobotRuntime.getJointArray();
+        applyAngles(measuredAngles, { source: "bridge-program-seed" });
+      }
       const result = await executePython(code);
       appendPythonResult(result);
       if (!result.ok) {
@@ -890,6 +1282,9 @@
     }
     if (state.runner.isRunning() || state.controlOwner === CONTROL_OWNER.PROGRAM) {
       setStatus("Program already running");
+      return false;
+    }
+    if (!ensureSo101HardwareReady(`${label} run`)) {
       return false;
     }
     if (isArduinoActive() && state.serial.isConnected() && !ensureMotionAllowed()) {
@@ -1048,8 +1443,12 @@
   }
 
   async function handleConnectToggle() {
+    if (activeRobotId() === "so101_follower") {
+      await toggleSo101BridgeArm();
+      return;
+    }
     if (!isArduinoActive()) {
-      setStatus(activeRobotId() === "so101_follower" ? "SO-101 hardware uses the main page local bridge panel." : "LeKiwi is simulation-only in Tier 1.");
+      setStatus("LeKiwi is simulation-only in Tier 1.");
       return;
     }
     if (state.serial.isConnected()) {
@@ -1119,6 +1518,19 @@
 
   async function handleHome() {
     if (!isArduinoActive()) {
+      if (activeRobotId() === "so101_follower" && bridgeExecutionRequired()) {
+        if (!ensureSo101HardwareReady("Home")) {
+          return;
+        }
+        try {
+          await NS.RobotRuntime.applyCommand({ type: "home", robotId: "so101_follower" });
+          applyAngles(NS.RobotRuntime.getJointArray(), { source: "bridge-home" });
+          setStatus("SO-101 moved to Home through the retained local bridge");
+        } catch (error) {
+          setStatus(`SO-101 Home failed: ${error.message}`);
+        }
+        return;
+      }
       if (NS.RobotRuntime) {
         NS.RobotRuntime.home();
         applyAngles(NS.RobotRuntime.getJointArray(), { source: "home" });
@@ -1143,15 +1555,26 @@
   async function handleEmergencyStop() {
     terminatePythonRun("Python stopped by emergency stop");
     state.runner.stop();
+    let hardwareStopError = null;
     if (NS.RobotRuntime) {
-      NS.RobotRuntime.stop();
+      try {
+        if (activeRobotId() === "so101_follower" && bridgeExecutionRequired()) {
+          await NS.RobotRuntime.stopHardware();
+        } else {
+          NS.RobotRuntime.stop();
+        }
+      } catch (error) {
+        hardwareStopError = error;
+      }
     }
     try {
       if (state.serial.isConnected()) {
         await state.serial.emergencyStop();
       }
       await setMotorsEnabled(false, { sendCommand: false });
-      setStatus("Emergency stop triggered");
+      setStatus(hardwareStopError
+        ? `Emergency stop was not confirmed: ${hardwareStopError.message}`
+        : "Emergency stop triggered");
     } catch (error) {
       setStatus(`Emergency stop failed: ${error.message}`);
     }
@@ -1211,6 +1634,7 @@
   async function setMotorsEnabled(enabled, options = {}) {
     if (!isArduinoActive()) {
       state.motorsEnabled = false;
+      localStorage.setItem(MOTORS_STORAGE_KEY, "0");
       syncMotorsToggleUi();
       setStatus("Motors toggle is only available for the Arduino arm in Tier 1.");
       return false;
@@ -1358,17 +1782,8 @@
       NS.RobotRuntime.updateJointsFromArray(state.angles);
       NS.RobotRuntime.render(ui.robotSimPreview);
     }
-    for (let servo = 0; servo < ui.jointValues.length; servo += 1) {
-      const valueEl = ui.jointValues[servo];
-      if (valueEl) {
-        const joint = joints[servo] || {};
-        const label = valueEl.parentElement ? valueEl.parentElement.querySelector("span") : null;
-        if (label) {
-          label.textContent = joint.label || `Joint ${servo + 1}`;
-        }
-        valueEl.parentElement.hidden = servo >= joints.length;
-        valueEl.textContent = `${state.angles[servo] ?? ""}${joint.unit === "percent" ? "%" : " deg"}`;
-      }
+    if (state.jointState) {
+      state.jointState.refresh();
     }
   }
 
@@ -1391,8 +1806,10 @@
       Blockly.Xml.domToWorkspace(parseWorkspaceXml(program.xml), state.workspace);
       state.blockReferenceCommands = null;
       state.lastGeneratedPython = "";
-      setStatus("Loaded example: Wave Hello");
-      updateEffectStatus("Build blocks, then convert to Python.", "ready");
+      if (options.force) {
+        setStatus("Loaded example blocks: Wave Hello");
+        updateEffectStatus("Build blocks, then convert to Python.", "ready");
+      }
       scheduleBlocklyResize();
     } catch (error) {
       setStatus("Could not load startup example");
@@ -1467,7 +1884,7 @@
       return;
     }
     const result = await fileApi.saveTextFile(getPythonEditorValue(), {
-      suggestedName: `robobuddy-python-${slugTimestamp()}.py`,
+      suggestedName: "robot_program.py",
       accept: PYTHON_FILE_ACCEPT,
       description: "Python code",
       mimeType: "text/plain;charset=utf-8"
@@ -1476,6 +1893,7 @@
       setStatus(result.canceled ? "Python save canceled." : `Python save failed: ${result.error ? result.error.message || result.error : "unknown error"}`);
       return;
     }
+    markPythonSaved("user");
     setStatus(result.name ? `Python saved: ${result.name}` : "Python saved to local file.");
   }
 
@@ -1499,7 +1917,7 @@
       setStatus(result.canceled ? "Python load canceled." : `Python load failed: ${result.error ? result.error.message || result.error : "unknown error"}`);
       return;
     }
-    setPythonEditorValue(result.text);
+    setPythonEditorValue(result.text, { saved: true, sourceKind: "file" });
     state.blockReferenceCommands = null;
     state.lastGeneratedPython = "";
     updateCommandSummary("-");
@@ -1587,228 +2005,6 @@
     return xml;
   }
 
-  function wireSplitters() {
-    document.querySelectorAll("[data-python-splitter]").forEach((splitter) => {
-      splitter.addEventListener("pointerdown", handleSplitterPointerDown);
-      splitter.addEventListener("pointermove", handleSplitterPointerMove);
-      splitter.addEventListener("pointerup", endSplitterDrag);
-      splitter.addEventListener("pointercancel", endSplitterDrag);
-      splitter.addEventListener("lostpointercapture", endSplitterDrag);
-      splitter.addEventListener("keydown", handleSplitterKeydown);
-    });
-    document.addEventListener("pointermove", handleSplitterPointerMove);
-    document.addEventListener("pointerup", endSplitterDrag);
-    document.addEventListener("pointercancel", endSplitterDrag);
-  }
-
-  function applyPythonSplitLayout(options = {}) {
-    const normalized = normalizePythonSplits(
-      readStoredPythonSplitLeft(state.pythonSplitLeftPercent),
-      readStoredPythonSplitRight(state.pythonSplitRightPercent)
-    );
-    state.pythonSplitLeftPercent = normalized.left;
-    state.pythonSplitRightPercent = normalized.right;
-    applyPythonSplitCss();
-    updateSplitterA11y();
-    if (options.persist) {
-      persistPythonSplitLayout();
-    }
-  }
-
-  function setPythonSplit(left, right, options = {}) {
-    const next = normalizePythonSplits(left, right);
-    state.pythonSplitLeftPercent = next.left;
-    state.pythonSplitRightPercent = next.right;
-    applyPythonSplitCss();
-    updateSplitterA11y();
-    if (options.persist !== false) {
-      persistPythonSplitLayout();
-    }
-    scheduleLayoutRefresh();
-  }
-
-  function applyPythonSplitCss() {
-    if (!ui.pythonDraft) {
-      return;
-    }
-    ui.pythonDraft.style.setProperty("--python-split-left", `${state.pythonSplitLeftPercent}%`);
-    ui.pythonDraft.style.setProperty("--python-split-mid", `${state.pythonSplitRightPercent}%`);
-  }
-
-  function persistPythonSplitLayout() {
-    try {
-      localStorage.setItem(PYTHON_SPLIT_LEFT_STORAGE_KEY, String(state.pythonSplitLeftPercent));
-      localStorage.setItem(PYTHON_SPLIT_RIGHT_STORAGE_KEY, String(state.pythonSplitRightPercent));
-    } catch (error) {
-      // Split persistence is optional; the live resize should keep working.
-    }
-  }
-
-  function normalizePythonSplits(left, right) {
-    let leftPercent = clampNumber(left, PYTHON_SPLIT_PANEL_MIN_PERCENT, PYTHON_SPLIT_PANEL_MAX_PERCENT);
-    let rightPercent = clampNumber(right, PYTHON_SPLIT_PANEL_MIN_PERCENT * 2, 100 - PYTHON_SPLIT_PANEL_MIN_PERCENT);
-    rightPercent = clampNumber(
-      rightPercent,
-      leftPercent + PYTHON_SPLIT_PANEL_MIN_PERCENT,
-      Math.min(leftPercent + PYTHON_SPLIT_PANEL_MAX_PERCENT, 100 - PYTHON_SPLIT_PANEL_MIN_PERCENT)
-    );
-    leftPercent = clampNumber(
-      leftPercent,
-      Math.max(PYTHON_SPLIT_PANEL_MIN_PERCENT, rightPercent - PYTHON_SPLIT_PANEL_MAX_PERCENT),
-      rightPercent - PYTHON_SPLIT_PANEL_MIN_PERCENT
-    );
-    return {
-      left: Math.round(leftPercent * 10) / 10,
-      right: Math.round(rightPercent * 10) / 10
-    };
-  }
-
-  function updateSplitterA11y() {
-    const leftPanel = state.pythonSplitLeftPercent;
-    const middlePanel = state.pythonSplitRightPercent - state.pythonSplitLeftPercent;
-
-    if (ui.leftSplitter) {
-      ui.leftSplitter.setAttribute("aria-valuemin", String(PYTHON_SPLIT_PANEL_MIN_PERCENT));
-      ui.leftSplitter.setAttribute("aria-valuemax", String(Math.min(PYTHON_SPLIT_PANEL_MAX_PERCENT, state.pythonSplitRightPercent - PYTHON_SPLIT_PANEL_MIN_PERCENT)));
-      ui.leftSplitter.setAttribute("aria-valuenow", String(leftPanel));
-      ui.leftSplitter.setAttribute("aria-valuetext", `Blockly ${leftPanel} percent`);
-    }
-
-    if (ui.rightSplitter) {
-      ui.rightSplitter.setAttribute("aria-valuemin", String(Math.max(state.pythonSplitLeftPercent + PYTHON_SPLIT_PANEL_MIN_PERCENT, 100 - PYTHON_SPLIT_PANEL_MAX_PERCENT)));
-      ui.rightSplitter.setAttribute("aria-valuemax", String(100 - PYTHON_SPLIT_PANEL_MIN_PERCENT));
-      ui.rightSplitter.setAttribute("aria-valuenow", String(state.pythonSplitRightPercent));
-      ui.rightSplitter.setAttribute("aria-valuetext", `Python ${Math.round(middlePanel * 10) / 10} percent`);
-    }
-  }
-
-  function splitterPointerPosition(event) {
-    if (!ui.pythonDraft) {
-      return null;
-    }
-    const bounds = ui.pythonDraft.getBoundingClientRect();
-    if (!bounds.width) {
-      return null;
-    }
-    return (event.clientX - bounds.left) / bounds.width * 100;
-  }
-
-  function handleSplitterPointerDown(event) {
-    if (event.button !== 0 || event.isPrimary === false) {
-      return;
-    }
-    const splitter = event.currentTarget;
-    const key = splitter.getAttribute("data-python-splitter");
-    if (key !== "left" && key !== "right") {
-      return;
-    }
-    state.activeSplitter = {
-      key,
-      pointerId: event.pointerId
-    };
-    splitter.classList.add("is-active");
-    if (splitter.setPointerCapture) {
-      splitter.setPointerCapture(event.pointerId);
-    }
-    document.body.classList.add("is-resizing-python");
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  function handleSplitterPointerMove(event) {
-    if (!state.activeSplitter) {
-      return;
-    }
-    if (
-      Number.isFinite(state.activeSplitter.pointerId) &&
-      Number.isFinite(event.pointerId) &&
-      event.pointerId !== state.activeSplitter.pointerId
-    ) {
-      return;
-    }
-    const percent = splitterPointerPosition(event);
-    if (percent === null) {
-      return;
-    }
-    if (state.activeSplitter.key === "left") {
-      setPythonSplit(percent, state.pythonSplitRightPercent, { persist: false });
-    } else {
-      setPythonSplit(state.pythonSplitLeftPercent, percent, { persist: false });
-    }
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  function endSplitterDrag(event) {
-    if (!state.activeSplitter) {
-      return;
-    }
-    if (
-      Number.isFinite(state.activeSplitter.pointerId) &&
-      event &&
-      Number.isFinite(event.pointerId) &&
-      event.pointerId !== state.activeSplitter.pointerId
-    ) {
-      return;
-    }
-    const activeSplitterNode = document.querySelector(`[data-python-splitter="${state.activeSplitter.key}"]`);
-    if (activeSplitterNode) {
-      activeSplitterNode.classList.remove("is-active");
-      if (event && event.pointerId !== undefined && activeSplitterNode.hasPointerCapture && activeSplitterNode.hasPointerCapture(event.pointerId)) {
-        activeSplitterNode.releasePointerCapture(event.pointerId);
-      }
-    }
-    persistPythonSplitLayout();
-    state.activeSplitter = null;
-    document.body.classList.remove("is-resizing-python");
-    scheduleLayoutRefresh();
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }
-
-  function handleSplitterKeydown(event) {
-    const key = event.key;
-    const isArrow = key === "ArrowLeft" || key === "ArrowRight";
-    if (!isArrow && key !== "Home" && key !== "End") {
-      return;
-    }
-    const splitter = event.currentTarget.getAttribute("data-python-splitter");
-    let nextLeft = state.pythonSplitLeftPercent;
-    let nextRight = state.pythonSplitRightPercent;
-    const step = event.shiftKey ? 10 : 1;
-    if (key === "Home") {
-      if (splitter === "left") {
-        nextLeft = PYTHON_SPLIT_PANEL_MIN_PERCENT;
-      } else {
-        nextRight = state.pythonSplitLeftPercent + PYTHON_SPLIT_PANEL_MIN_PERCENT;
-      }
-    } else if (key === "End") {
-      if (splitter === "left") {
-        nextLeft = Math.min(
-          state.pythonSplitRightPercent - PYTHON_SPLIT_PANEL_MIN_PERCENT,
-          PYTHON_SPLIT_PANEL_MAX_PERCENT
-        );
-      } else {
-        nextRight = 100 - PYTHON_SPLIT_PANEL_MIN_PERCENT;
-      }
-    } else if (key === "ArrowLeft") {
-      if (splitter === "left") {
-        nextLeft = state.pythonSplitLeftPercent - step;
-      } else {
-        nextRight = state.pythonSplitRightPercent - step;
-      }
-    } else if (splitter === "left") {
-      nextLeft = state.pythonSplitLeftPercent + step;
-    } else {
-      nextRight = state.pythonSplitRightPercent + step;
-    }
-    setPythonSplit(nextLeft, nextRight, { persist: true });
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
   function scheduleLayoutRefresh() {
     if (state.resizeQueued) {
       return;
@@ -1865,6 +2061,10 @@
     ui.btnStop.disabled = !busy;
     const pauseLabel = runnerPaused ? "Resume active program" : "Pause active program";
     ui.btnPause.setAttribute("aria-label", pauseLabel);
+    const pauseText = ui.btnPause.querySelector("span");
+    if (pauseText) {
+      pauseText.textContent = runnerPaused ? "Resume" : "Pause";
+    }
     const pauseTool = ui.btnPause.closest(".python-draft__tool");
     if (pauseTool) {
       pauseTool.dataset.hint = runnerPaused ? "Resume" : "Pause";
@@ -1883,24 +2083,161 @@
   }
 
   function syncConnectButton() {
-    const connected = state.serial.isConnected();
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const bridgeConnected = Boolean(
+      activeRobotId() === "so101_follower" &&
+      runtimeState &&
+      runtimeState.connection &&
+      runtimeState.connection.connected
+    );
+    const bridgeArmed = Boolean(bridgeConnected && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
+    const connected = Boolean(isArduinoActive() && state.serial && state.serial.isConnected());
     const span = ui.btnConnect.querySelector("span");
     if (span) {
-      span.textContent = !isArduinoActive()
-        ? (activeRobotId() === "so101_follower" ? "Use Bridge" : "Sim Only")
-        : (connected ? "Disconnect" : "Connect");
+      span.textContent = activeRobotId() === "so101_follower"
+        ? (bridgeConnected ? (bridgeArmed ? "Disarm" : "Arm Motion") : "Setup Bridge")
+        : (!isArduinoActive() ? "Sim Only" : (connected ? "Disconnect" : "Connect"));
     }
-    ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
+    ui.btnConnect.disabled = activeRobotId() === "so101_follower"
+      ? state.bridgeArmPending
+      : (!isArduinoActive() || !state.serial || !state.serial.supportsWebSerial());
     const icon = ui.btnConnect.querySelector("[data-lucide]");
     if (icon && window.lucide) {
-      icon.setAttribute("data-lucide", connected ? "unlink" : "plug");
+      icon.setAttribute("data-lucide", activeRobotId() === "so101_follower"
+        ? (bridgeArmed ? "shield-off" : "shield-check")
+        : (connected ? "unlink" : "plug"));
+      lucide.createIcons({ nodes: [icon] });
+    }
+    syncExecutionContext();
+  }
+
+  function bridgeExecutionRequired() {
+    if (activeRobotId() !== "so101_follower" || !NS.RobotRuntime) {
+      return false;
+    }
+    const runtimeState = NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    return Boolean(
+      (runtimeState && runtimeState.mode === "local_bridge") ||
+      (NS.RobotRuntime.hasBridgeSession && NS.RobotRuntime.hasBridgeSession())
+    );
+  }
+
+  function ensureSo101HardwareReady(action) {
+    if (!bridgeExecutionRequired()) {
+      return true;
+    }
+    if (!NS.RobotRuntime.isBridgeConnected || !NS.RobotRuntime.isBridgeConnected()) {
+      setStatus(`${action} blocked: the retained SO-101 bridge is unavailable. Return to Main and reconnect.`);
+      updateEffectStatus("Hardware execution blocked; commands were not sent to simulation.", "error");
+      return false;
+    }
+    if (!NS.RobotRuntime.isBridgeArmed || !NS.RobotRuntime.isBridgeArmed()) {
+      setStatus(`${action} blocked: select Arm Motion for this page first.`);
+      updateEffectStatus("SO-101 is connected but motion is disarmed.", "warning");
+      return false;
+    }
+    return true;
+  }
+
+  async function restoreSo101BridgeSession() {
+    if (
+      activeRobotId() !== "so101_follower" ||
+      !NS.RobotRuntime ||
+      typeof NS.RobotRuntime.hasBridgeSession !== "function" ||
+      !NS.RobotRuntime.hasBridgeSession() ||
+      typeof NS.RobotRuntime.reattachBridgeSession !== "function"
+    ) {
+      state.bridgeSessionStatus = "none";
+      syncConnectButton();
+      setConnectionStatus(false, activeRobotId() === "so101_follower" ? "Simulation · Bridge setup on Main" : undefined);
+      return false;
+    }
+    state.bridgeSessionStatus = "reattaching";
+    ui.statusDot.classList.add("is-connecting");
+    setConnectionStatus(false, "Reattaching SO-101 bridge…");
+    const result = await NS.RobotRuntime.reattachBridgeSession({ disarm: true });
+    state.bridgeSessionStatus = result.status;
+    if (!result.attached) {
+      setConnectionStatus(false, "Bridge unavailable");
+      setStatus(result.error && result.error.message
+        ? result.error.message
+        : "The retained SO-101 bridge is no longer connected. Return to Main to reconnect.");
+      syncConnectButton();
+      return false;
+    }
+    const angles = NS.RobotRuntime.getMeasuredJointArray
+      ? NS.RobotRuntime.getMeasuredJointArray()
+      : NS.RobotRuntime.getJointArray();
+    applyAngles(angles, { source: "bridge-reattach" });
+    setConnectionStatus(true, "Connected · Disarmed");
+    setStatus("SO-101 connection retained. Select Arm Motion before running hardware commands.");
+    updateEffectStatus("Local bridge attached; motion is disarmed for this page.", "warning");
+    syncConnectButton();
+    return true;
+  }
+
+  async function toggleSo101BridgeArm() {
+    if (!NS.RobotRuntime) {
+      return false;
+    }
+    if (!NS.RobotRuntime.isBridgeConnected || !NS.RobotRuntime.isBridgeConnected()) {
+      const restored = await restoreSo101BridgeSession();
+      if (!restored) {
+        setStatus("Set up and connect the SO-101 from the Main page first.");
+        return false;
+      }
+    }
+    state.bridgeArmPending = true;
+    syncConnectButton();
+    try {
+      const arm = !(NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
+      const runtimeState = await NS.RobotRuntime.setBridgeSafetyConfirmed(arm);
+      const armed = Boolean(runtimeState && runtimeState.connection && runtimeState.connection.armedForMotion);
+      setConnectionStatus(true, armed ? "Connected · Armed" : "Connected · Disarmed");
+      setStatus(armed ? "SO-101 armed for explicit hardware runs on this page." : "SO-101 motion disarmed; physical connection retained.");
+      updateEffectStatus(armed ? "Hardware execution enabled for this page." : "Hardware motion is disarmed.", armed ? "ready" : "warning");
+      return armed;
+    } catch (error) {
+      setStatus(`SO-101 arm change failed: ${error.message}`);
+      return false;
+    } finally {
+      state.bridgeArmPending = false;
+      syncConnectButton();
+    }
+  }
+
+  function syncExecutionContext() {
+    if (!ui.executionTarget) {
+      return;
+    }
+    const bridgeConnected = Boolean(
+      activeRobotId() === "so101_follower" &&
+      NS.RobotRuntime &&
+      NS.RobotRuntime.isBridgeConnected &&
+      NS.RobotRuntime.isBridgeConnected()
+    );
+    const bridgeIntent = bridgeExecutionRequired();
+    const serialHardware = Boolean(isArduinoActive() && state.serial && state.serial.isConnected());
+    const hardware = bridgeConnected || serialHardware;
+    const label = bridgeConnected ? "Local Bridge" : (serialHardware ? "Hardware" : (bridgeIntent ? "Bridge unavailable" : "Simulation"));
+    ui.executionTarget.dataset.executionTarget = hardware ? "hardware" : (bridgeIntent ? "hardware-unavailable" : "simulation");
+    ui.executionTarget.setAttribute("aria-label", `Execution target: ${label}`);
+    const span = ui.executionTarget.querySelector("span");
+    if (span) span.textContent = label;
+    const icon = ui.executionTarget.querySelector("[data-lucide]");
+    if (icon && window.lucide) {
+      icon.setAttribute("data-lucide", hardware || bridgeIntent ? "cable" : "monitor");
       lucide.createIcons({ nodes: [icon] });
     }
   }
 
   function syncMotorsToggleUi() {
-    ui.motorsEnabled.checked = state.motorsEnabled;
-    ui.motorsEnabled.disabled = !isArduinoActive();
+    const available = isArduinoActive();
+    ui.motorsEnabled.checked = available && state.motorsEnabled;
+    ui.motorsEnabled.disabled = !available;
+    if (ui.motorsLabel) {
+      ui.motorsLabel.textContent = available ? (state.motorsEnabled ? "Motors On" : "Motors Off") : "Motors N/A";
+    }
     updateRunControls();
   }
 
@@ -1926,6 +2263,14 @@
 
   function setOutputPanelCollapsed(collapsed, options = {}) {
     const nextCollapsed = Boolean(collapsed);
+    if (state.outputPanel) {
+      state.outputPanel.setExpanded(!nextCollapsed, {
+        persist: Boolean(options.persist),
+        reason: options.reason || "python-output-api"
+      });
+      state.outputPanelCollapsed = nextCollapsed;
+      return;
+    }
     if (options.updateState !== false) {
       state.outputPanelCollapsed = nextCollapsed;
     }
@@ -1936,11 +2281,6 @@
       ui.outputPanelToggle.setAttribute("aria-expanded", nextCollapsed ? "false" : "true");
       ui.outputPanelToggle.title = nextCollapsed ? "Show Output & Serial" : "Hide Output & Serial";
       ui.outputPanelToggle.dataset.hint = nextCollapsed ? "Show Output & Serial" : "Hide Output & Serial";
-      const icon = ui.outputPanelToggle.querySelector("[data-lucide]");
-      if (icon && window.lucide) {
-        icon.setAttribute("data-lucide", nextCollapsed ? "chevron-right" : "chevron-down");
-        lucide.createIcons({ nodes: [icon] });
-      }
     }
     if (options.persist) {
       try {
@@ -1952,36 +2292,129 @@
     scheduleLayoutRefresh();
   }
 
-  function readStoredPythonSplitLeft(fallback) {
-    return readStoredSplitPercent(PYTHON_SPLIT_LEFT_STORAGE_KEY, fallback);
-  }
-
-  function readStoredPythonSplitRight(fallback) {
-    return readStoredSplitPercent(PYTHON_SPLIT_RIGHT_STORAGE_KEY, fallback);
-  }
-
-  function readStoredSplitPercent(storageKey, fallback) {
-    let raw = "";
-    try {
-      raw = localStorage.getItem(storageKey) || "";
-    } catch (error) {
-      raw = "";
-    }
-    if (!raw.trim()) {
-      return fallback;
-    }
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-
   function setConnectionStatus(connected, text) {
     ui.statusDot.classList.toggle("is-connected", connected);
     ui.statusDot.classList.remove("is-connecting");
     ui.statusText.textContent = text || (connected ? "Connected" : "Disconnected");
+    syncExecutionContext();
   }
 
-  function setStatus(text) {
-    ui.programStatus.textContent = text;
+  function formatStatusNumber(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return "?";
+    }
+    return Number.isInteger(number) ? String(number) : number.toFixed(1).replace(/\.0$/, "");
+  }
+
+  function formatRunnerError(error) {
+    const fallback = error && error.message ? error.message : String(error || "Unknown error");
+    if (!error || error.code !== "TARGET_STEP_TOO_LARGE") {
+      return {
+        summary: "Program failed · Error details shown below",
+        detail: `Runner error: ${fallback}`
+      };
+    }
+
+    const jointDetails = error.details && error.details.joints;
+    const steps = jointDetails && typeof jointDetails === "object"
+      ? Object.entries(jointDetails)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([joint, detail]) => {
+          const current = Number(detail && detail.current);
+          const target = Number(detail && detail.target);
+          const limit = Number(detail && detail.maxRelativeTarget);
+          if (![current, target, limit].every(Number.isFinite)) {
+            return null;
+          }
+          const step = Math.abs(target - current);
+          return {
+            joint,
+            limit,
+            text: `${joint}: ${formatStatusNumber(current)}° → ${formatStatusNumber(target)}° `
+              + `needs ${formatStatusNumber(step)}°; limit ${formatStatusNumber(limit)}°`
+          };
+        })
+        .filter(Boolean)
+      : [];
+
+    if (steps.length === 0) {
+      return {
+        summary: "Move blocked · Absolute step exceeds the safety limit",
+        detail: "No motion sent. One or more absolute targets are too far from the measured pose. "
+          + "Add smaller intermediate absolute targets."
+      };
+    }
+    const limits = [...new Set(steps.map((step) => step.limit))];
+    const limitLabel = limits.length === 1
+      ? `${formatStatusNumber(limits[0])}° step limit`
+      : "active step limits";
+    return {
+      summary: `Move blocked · ${steps.length} ${steps.length === 1 ? "joint exceeds" : "joints exceed"} the ${limitLabel}`,
+      detail: `No motion sent. ${steps.map((step) => step.text).join("; ")}. `
+        + "Add intermediate absolute targets within the stated limits."
+    };
+  }
+
+  function setStatus(text, options = {}) {
+    const value = String(text || "");
+    const hadCopyableStatus = Boolean(state.copyableStatusText);
+    ui.programStatus.textContent = value;
+    state.copyableStatusText = options.copyableText
+      ? String(options.copyableText)
+      : (options.copyable ? value : "");
+    ui.programStatus.title = state.copyableStatusText || value;
+    if (ui.btnCopyProgramStatus) {
+      ui.btnCopyProgramStatus.hidden = !state.copyableStatusText;
+      window.clearTimeout(state.copyStatusResetTimer);
+      if (state.copyableStatusText || hadCopyableStatus) {
+        setCopyStatusButtonState("Copy error details", "copy");
+      }
+    }
+  }
+
+  function setCopyStatusButtonState(label, iconName) {
+    if (!ui.btnCopyProgramStatus) {
+      return;
+    }
+    ui.btnCopyProgramStatus.setAttribute("aria-label", label);
+    ui.btnCopyProgramStatus.title = label;
+    ui.btnCopyProgramStatus.dataset.hint = label;
+    const currentIcon = ui.btnCopyProgramStatus.querySelector("svg, i");
+    const icon = document.createElement("i");
+    icon.setAttribute("data-lucide", iconName);
+    icon.setAttribute("aria-hidden", "true");
+    if (currentIcon) {
+      currentIcon.replaceWith(icon);
+    } else {
+      ui.btnCopyProgramStatus.appendChild(icon);
+    }
+    if (window.lucide) {
+      lucide.createIcons({ nodes: [icon] });
+    }
+  }
+
+  async function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch (error) {
+        // Fall through for browsers that expose Clipboard API but deny the write.
+      }
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    if (!copied) {
+      throw new Error("Clipboard write was denied.");
+    }
   }
 
   function setPythonRuntimeStatus(text, tone) {
@@ -1992,6 +2425,9 @@
   function updateEffectStatus(text, tone) {
     ui.effectStatus.textContent = text;
     ui.effectStatus.dataset.tone = tone || "ready";
+    if (ui.effectCard) {
+      ui.effectCard.dataset.tone = tone || "ready";
+    }
   }
 
   function updateCommandSummary(text) {
@@ -2023,15 +2459,6 @@
       throw new Error(`${label} name cannot be empty.`);
     }
     return text.slice(0, 40);
-  }
-
-  function clampNumber(value, min, max) {
-    const parsed = Number(value);
-    const fallback = Number.isFinite(min) ? min : 0;
-    if (!Number.isFinite(parsed)) {
-      return fallback;
-    }
-    return Math.min(max, Math.max(min, parsed));
   }
 
   function clampAngle(servo, angle) {

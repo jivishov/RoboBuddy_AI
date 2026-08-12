@@ -369,7 +369,9 @@
       if (isArduinoCommand(cmd) && this.serial.isConnected()) {
         await this.serial.emergencyStop();
       }
-      if (NS.RobotRuntime) {
+      if (!isArduinoCommand(cmd) && NS.RobotRuntime && typeof NS.RobotRuntime.stopHardware === "function") {
+        await NS.RobotRuntime.stopHardware();
+      } else if (NS.RobotRuntime) {
         NS.RobotRuntime.stop();
       }
       this.stopRequested = true;

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Verification · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>Windows Verification</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>Windows Verification</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html">Local Bridge</a>
+            <a href="docs-github-pages-so101.html">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html" aria-current="page">Windows Verification</a>
+            <a href="docs-windows-blockers.html">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#1-prerequisites">1. Prerequisites</a>
+            <a href="#2-clean-or-repaired-solu-local-environment">2. Clean or repaired SolU-local environment</a>
+            <a href="#3-source-and-offline-test-commands">3. Source and offline test commands</a>
+            <a href="#4-default-disabled-bridge-lifecycle">4. Default-disabled bridge lifecycle</a>
+            <a href="#5-private-lan-https-material">5. Private-LAN HTTPS material</a>
+            <a href="#6-browser-and-android-lifecycle-checks">6. Browser and Android lifecycle checks</a>
+            <a href="#7-physical-verification-boundary">7. Physical verification boundary</a>
+            <a href="#8-rollback-and-cleanup">8. Rollback and cleanup</a>
+            <a href="#9-returned-bundle-verification-record">9. Returned-bundle verification record</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/windows-control/WINDOWS_VERIFICATION.md"
+        data-source-sha256="0ba6dedab58e488c125936df443f92a6e6003a48d394991c0d0e9437ffe23721"
+      >
+<h1 id="native-windows-verification-and-qualification-procedure">Native-Windows verification and qualification procedure</h1>
+<p>This procedure applies after this source slice is merged into the complete checkout at:</p>
+<p><code>E:\Projects\RoboBuddy_AI\SolU</code></p>
+<p>It deliberately separates four boundaries:</p>
+<ol>
+<li>source/offline verification;</li>
+<li>native-Windows dependency and bridge verification;</li>
+<li>real browser/Android lifecycle verification without claiming robot motion;</li>
+<li>separately authorized, supervised physical qualification.</li>
+</ol>
+<p>The returned bundle does not authorize Step 4. Its checked-in safety state remains:</p>
+<pre class="python-docs__code"><code class="language-json">&quot;provisional_limits&quot;: true,
+&quot;hardware&quot;: { &quot;enabled&quot;: false, &quot;qualified&quot;: false }
+</code></pre>
+<h2 id="1-prerequisites">1. Prerequisites</h2>
+<p>Use native 64-bit Windows—not WSL, Docker, a VM, or a remote bridge.</p>
+<p>Install:</p>
+<ul>
+<li>CPython <strong>3.12.10 x64</strong>, including the Python launcher;</li>
+<li>Git for Windows;</li>
+<li>current stable Chrome and Edge;</li>
+<li>Node/npm required by the complete SolU checkout;</li>
+<li>mkcert <strong>1.4.4</strong> from its official release, or Chocolatey only when you explicitly choose the setup script's install switch;</li>
+<li>current stable Chrome on an ARCore-supported physical Android device with Google Play Services for AR.</li>
+</ul>
+<p>Open PowerShell in any directory. Scripts resolve paths from their own location, but the examples below use the target root for clarity:</p>
+<pre class="python-docs__code"><code class="language-powershell">Set-Location E:\Projects\RoboBuddy_AI\SolU
+Set-ExecutionPolicy -Scope Process Bypass
+</code></pre>
+<p>Confirm the exact Python baseline:</p>
+<pre class="python-docs__code"><code class="language-powershell">py -3.12-64 -c &quot;import platform,struct,sys; print(platform.python_version(), 8*struct.calcsize('P'), sys.platform)&quot;
+</code></pre>
+<p>Required output starts with:</p>
+<pre class="python-docs__code"><code class="language-text">3.12.10 64 win32
+</code></pre>
+<h2 id="2-clean-or-repaired-solu-local-environment">2. Clean or repaired SolU-local environment</h2>
+<p>The setup script only accepts <code>SolU\.venv-so101</code>; it rejects junction/reparse-point reuse and verifies the editable bridge source resolves to <code>SolU\bridge</code>.</p>
+<p>Clean construction or idempotent verification:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\setup-so101-windows.ps1
+</code></pre>
+<p>Force a local rebuild after a partial or suspect install:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\setup-so101-windows.ps1 -ForceRepair
+</code></pre>
+<p>The successful JSON report must say:</p>
+<pre class="python-docs__code"><code class="language-text">&quot;setupStatus&quot;: &quot;OFFLINE_RUNTIME_PROBES_PASSED&quot;
+</code></pre>
+<p>That result means dependency, import, phone-protocol, editable-provenance, and real selected-kinematics construction probes passed without enumerating/opening serial ports, starting listeners, or sending motion. It is not the bundle's terminal status.</p>
+<p>Repeat the read-only probe directly:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\.venv-so101\Scripts\python.exe .\bridge\probe_windows_runtime.py `
+  --expected-bridge-root .\bridge `
+  --require-windows
+</code></pre>
+<p>Required facts in the sanitized result include:</p>
+<ul>
+<li>Python 3.12.10, 64-bit, native Windows;</li>
+<li>editable <code>robobuddy-bridge</code> provenance matching this <code>SolU\bridge</code>;</li>
+<li>LeRobot 0.6.1 at commit <code>8a74e0ac6d01706d67fddfed682a09d694d9c8c0</code>;</li>
+<li>exact dependency versions from <code>bridge\pyproject.toml</code>;</li>
+<li>LeRobot SO-101 adapter classes import without serial access;</li>
+<li>phone protocol probe passes;</li>
+<li><code>native_dls_v1</code> constructs and meets its FK/IK software residual;</li>
+<li>all serial/listener/motion booleans remain false.</li>
+</ul>
+<h2 id="3-source-and-offline-test-commands">3. Source and offline test commands</h2>
+<p>Run these in the complete merged checkout:</p>
+<pre class="python-docs__code"><code class="language-powershell">$env:PYTHONPATH = &quot;$PWD\bridge;$PWD&quot;
+.\.venv-so101\Scripts\python.exe -m compileall -q `
+  .\bridge\robobuddy_bridge `
+  .\bridge\probe_lerobot_compat.py `
+  .\bridge\probe_phone_teleop_compat.py `
+  .\bridge\probe_tls_material.py `
+  .\bridge\probe_windows_runtime.py `
+  .\tests\phone_leader `
+  .\tests\test_windows_control_source.py
+
+.\.venv-so101\Scripts\python.exe -m unittest discover `
+  -s .\tests\phone_leader -p &quot;test_*.py&quot; -v
+
+.\.venv-so101\Scripts\python.exe -m unittest discover `
+  -s .\tests -p &quot;test_*.py&quot; -v
+
+Get-ChildItem -Recurse -Filter *.js | ForEach-Object {
+  node --check $_.FullName
+  if ($LASTEXITCODE -ne 0) { throw &quot;JavaScript syntax failed: $($_.FullName)&quot; }
+}
+
+node .\tests\ui-contracts.js
+npm test
+</code></pre>
+<p>The source slice alone intentionally lacks unrelated full-application pages such as <code>python.html</code>; run the complete JavaScript suite only after merging into the complete checkout. Do not manufacture missing pages in this patch slice to make that suite pass.</p>
+<p>The kinematics corpus includes accepted home/compact, interior-workspace, operating-limit-adjacent, and near-singular cases, plus unreachable, malformed/non-finite, position-only, and weighted soft-orientation tests. The independent oracle uses only the standard library and does not import production kinematics or NumPy.</p>
+<h2 id="4-default-disabled-bridge-lifecycle">4. Default-disabled bridge lifecycle</h2>
+<p>Start a token-protected bridge with every hardware Leader feature disabled:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -Restart
+</code></pre>
+<p>Record the printed local token securely; do not place it in source, screenshots, support exports, or test artifacts. Confirm:</p>
+<pre class="python-docs__code"><code class="language-powershell">Invoke-RestMethod http://127.0.0.1:8765/health | ConvertTo-Json -Depth 8
+</code></pre>
+<p>Required postconditions:</p>
+<ul>
+<li><code>status</code> is <code>READY</code>;</li>
+<li><code>authRequired</code> is true;</li>
+<li><code>virtualLeader</code>, <code>gamepadLeader</code>, and <code>phoneLeader</code> are disabled;</li>
+<li>listener owner is the selected <code>SolU\.venv-so101\Scripts\python.exe</code> running <code>-m robobuddy_bridge --host 127.0.0.1 --port 8765</code>.</li>
+</ul>
+<p>Exercise exact ownership-preserving restart and shutdown:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -Restart
+.\tools\start-so101-bridge.ps1 -Stop
+</code></pre>
+<p>The helper must refuse to kill or replace an unrelated process on the selected port.</p>
+<p><code>run-app.bat</code> remains the convenience development launcher and must leave all hardware features disabled.</p>
+<h2 id="5-private-lan-https-material">5. Private-LAN HTTPS material</h2>
+<p>Select one assigned, operational RFC1918 IPv4 address on the Windows machine. Do not use a VPN, virtual adapter, public IP, or an address that is not assigned to an up interface.</p>
+<pre class="python-docs__code"><code class="language-powershell">Get-NetIPConfiguration | Where-Object {
+  $_.IPv4DefaultGateway -and $_.NetAdapter.Status -eq 'Up'
+} | Select-Object InterfaceAlias,IPv4Address,IPv4DefaultGateway
+
+$PrivateIPv4 = '192.168.1.25'   # replace with the selected assigned address
+</code></pre>
+<p>Create runtime-only certificate material and, optionally, one narrowly scoped Private-profile firewall rule:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\setup-phone-leader-tls.ps1 `
+  -PrivateIPv4 $PrivateIPv4 `
+  -Port 8443 `
+  -AddPrivateFirewallRule
+</code></pre>
+<p>When mkcert 1.4.4 is not already installed and Chocolatey is intentionally available, the only script-assisted install path is explicit:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\setup-phone-leader-tls.ps1 `
+  -PrivateIPv4 $PrivateIPv4 `
+  -Port 8443 `
+  -InstallMkcertWithChocolatey `
+  -AddPrivateFirewallRule
+</code></pre>
+<p>All generated files stay under ignored <code>SolU\.runtime-private\phone-leader-tls</code>:</p>
+<ul>
+<li><code>phone-leader-cert.pem</code> — leaf certificate;</li>
+<li><code>phone-leader-key.pem</code> — leaf private key, Windows only;</li>
+<li><code>android-rootCA.pem</code> — public development CA certificate for Android import.</li>
+</ul>
+<p>Never copy <code>rootCA-key.pem</code> or <code>phone-leader-key.pem</code> to Android. Never add any generated certificate, key, token, or pairing material to Git or a source ZIP.</p>
+<h3 id="android-ca-trust-and-pre-pairing-check">Android CA trust and pre-pairing check</h3>
+<ol>
+<li>Transfer only <code>android-rootCA.pem</code> to the intended Android device through a trusted local method.</li>
+<li>Use the device's security settings to install it as a <strong>CA certificate</strong>. The exact menu name varies by Android/vendor; record the device model, Android version, and chosen trust-store path.</li>
+<li>Confirm Windows and Android are on the same trusted private LAN and client isolation is not blocking peer access.</li>
+<li>Start the phone HTTPS source only through the qualified Phone Leader bridge path described below.</li>
+<li>In Android Chrome, open <code>https://&lt;PrivateIPv4&gt;:8443/</code> manually <strong>before scanning a QR code</strong>.</li>
+<li>Do not continue if Chrome shows a certificate warning. Confirm <code>window.isSecureContext === true</code> and that <code>navigator.xr</code> exists.</li>
+</ol>
+<p>A device without required WebXR/ARCore capability is a device/browser compatibility result; it is not evidence that native Windows is impossible.</p>
+<h2 id="6-browser-and-android-lifecycle-checks">6. Browser and Android lifecycle checks</h2>
+<h3 id="xbox-chrome-and-edge">Xbox, Chrome and Edge</h3>
+<p>Do not enable robot motion for these source-level checks. In each browser:</p>
+<ol>
+<li>Connect the intended Xbox controller through the intended Windows transport and press a button after the page has focus.</li>
+<li>Confirm Gamepad API exists and the chosen gamepad reports <code>mapping === "standard"</code>.</li>
+<li>When multiple controllers are visible, verify no automatic selection occurs.</li>
+<li>Explicitly select the intended controller and complete neutral qualification.</li>
+<li>Verify no startup movement intent; left-stick mapping to Base/Bend/Tool; RT analog deadman; LB Fine override; idle-only D-pad pair selection; X cancel/measured hold; B global STOP/disarm; all other controls no motion/safety action.</li>
+<li>Verify monotonic timestamps, poll-gap/stale retirement, unplug/Bluetooth-loss retirement, and explicit re-arm/re-align after STOP.</li>
+</ol>
+<p>Run the complete channel test in the full checkout:</p>
+<pre class="python-docs__code"><code class="language-powershell">npm run test:controller:channels
+</code></pre>
+<h3 id="android-secure-source">Android secure source</h3>
+<p>With the robot still physically disabled, verify the source/session path through approved test/fake facilities:</p>
+<ul>
+<li>one-time QR is consumed once and expires;</li>
+<li>the secure cookie exchange succeeds without exposing pairing code/token in diagnostics;</li>
+<li>only one authorized source WebSocket is accepted;</li>
+<li>recenter/alignment creates no motion;</li>
+<li>hold-to-move intent exists only while held; release retires to hold;</li>
+<li>gripper holds are independent;</li>
+<li>tracking-limited/lost, visibility, focus, pointer, transport, WebSocket, and XR-session loss retire intent;</li>
+<li>reconnect/reload/restart restores no movement intent, alignment, pairing, or armed state;</li>
+<li>stale/non-finite/out-of-workspace/unreachable input fails closed;</li>
+<li>STOP remains global and recovery requires explicit re-arm/re-align.</li>
+</ul>
+<h2 id="7-physical-verification-boundary">7. Physical verification boundary</h2>
+<p>No physical motion was run while producing this bundle. Do not run the commands below merely because they are documented.</p>
+<p>Before any supervised session:</p>
+<ul>
+<li>complete the existing read-only H0/H1 evidence process and replace provisional joint/workspace values through reviewed configuration;</li>
+<li>use the exact robot instance, calibration, effective limits, Home metadata, browser/device/controller versions, and release source under test;</li>
+<li>clear the workspace, remove payloads, maintain direct line of sight, provide a reachable physical power cutoff, and assign an independent observer;</li>
+<li>start at Fine speed;</li>
+<li>confirm authentication, connection, calibration, measured feedback freshness, ownership, STOP, hold, and source-loss behavior before task motion;</li>
+<li>record exact evidence and abort on any uncommanded motion, stale continuation, owner overlap, limit violation, STOP/hold failure, communication ambiguity, or observer concern.</li>
+</ul>
+<p>Only after reviewed physical evidence establishes non-provisional limits and qualification may an authorized maintainer update the config. The checked-in bundle intentionally makes this command fail closed today:</p>
+<pre class="python-docs__code"><code class="language-powershell">$TlsRoot = Join-Path $PWD '.runtime-private\phone-leader-tls'
+.\tools\start-so101-bridge.ps1 `
+  -Restart `
+  -EnablePhoneLeader `
+  -PhoneHttpsHost $PrivateIPv4 `
+  -PhoneHttpsPort 8443 `
+  -PhoneHttpsCertificate (Join-Path $TlsRoot 'phone-leader-cert.pem') `
+  -PhoneHttpsPrivateKey (Join-Path $TlsRoot 'phone-leader-key.pem')
+</code></pre>
+<p>After a genuinely qualified configuration is supplied, the launcher additionally requires <code>/health</code> to report <code>phoneLeader: enabled</code> and <code>phoneLeaderQualified: true</code>; otherwise it stops the process and reports failure.</p>
+<p>Xbox physical qualification separately requires the signed Virtual Leader prerequisite and the complete <code>docs/gamepad-qualification.md</code> protocol. The intended explicit launcher shape is:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -Restart -EnableVirtualLeader -EnableGamepadLeader
+</code></pre>
+<p>Use it only under that supervised protocol.</p>
+<p>The 1.5 mm IK residual is a software numerical tolerance. It does not predict backlash, calibration, servo resolution, compliance, payload error, collision margin, or physical end-effector accuracy.</p>
+<h2 id="8-rollback-and-cleanup">8. Rollback and cleanup</h2>
+<p>Immediately STOP/disarm in the UI and use the physical cutoff when required. Then disable hardware modes with a clean restart:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 `
+  -Restart `
+  -DisableVirtualLeader `
+  -DisableGamepadLeader `
+  -DisablePhoneLeader
+</code></pre>
+<p>Stop the bridge:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -Stop
+</code></pre>
+<p>Remove the exact firewall rule and runtime certificate material:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\remove-phone-leader-tls.ps1 -Port 8443
+</code></pre>
+<p>Optionally remove the local mkcert CA from Windows too:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\remove-phone-leader-tls.ps1 -Port 8443 -UninstallMkcertRootCA
+</code></pre>
+<p>Remove the imported development CA from Android through the same credential settings used to install it.</p>
+<h2 id="9-returned-bundle-verification-record">9. Returned-bundle verification record</h2>
+<p>The packaging host was Linux with Python <strong>3.13.5</strong> and Node <strong>v22.16.0</strong>. PowerShell, native Windows networking/process APIs, current Windows Chrome/Edge channels, Android WebXR hardware, a COM port, and the SO-101 were unavailable. Therefore these results are source/offline evidence only and do not upgrade the terminal status.</p>
+<p>Commands and exact results run against the returned source before manifest generation:</p>
+<pre class="python-docs__code"><code class="language-text">python3 -m compileall -q bridge/robobuddy_bridge \
+  bridge/probe_lerobot_compat.py bridge/probe_phone_teleop_compat.py \
+  bridge/probe_tls_material.py bridge/probe_windows_runtime.py \
+  tests/phone_leader tests/test_windows_control_source.py
+Result: PASS
+
+PYTHONPATH=bridge:tests:. python3 -m unittest -v test_windows_control_source
+Result: PASS — 9 tests
+
+PYTHONPATH=bridge:. python3 -m unittest discover \
+  -s tests/phone_leader -p 'test_*.py' -v
+Result: PASS — 163 tests in 1.396 s
+
+PYTHONPATH=bridge:tests:. python3 tests/test_bridge_gripper_takeover.py
+PYTHONPATH=bridge:tests:. python3 tests/test_bridge_connect_handshake.py
+PYTHONPATH=bridge:tests:. python3 tests/test_bridge_communication_resilience.py
+PYTHONPATH=bridge:tests:. python3 tests/test_bridge_limit_pressure.py
+PYTHONPATH=bridge:tests:. python3 tests/test_bridge_virtual_leader.py
+PYTHONPATH=bridge:tests:. python3 tests/test_gamepad_qualification_schema.py
+Result: PASS — 6 script suites
+
+find . -type f -name '*.js' ... node --check &lt;file&gt;
+Result: PASS — 17 JavaScript files
+
+JSON parse over every returned *.json file
+Result: PASS — 17 files
+</code></pre>
+<p>The independent native-kinematics timing sample ran 200 successful alternating position-only/soft-orientation IK solves after warm-up:</p>
+<pre class="python-docs__code"><code class="language-text">backend: native_dls_v1
+median: 0.969040 ms
+p95: 1.148870 ms
+maximum: 1.970978 ms
+maximum solver iterations observed: 3
+configured wall-clock bound: 20 ms
+</code></pre>
+<p>That timing is from the Linux packaging host. It is not native-Windows timing and is not physical-accuracy evidence.</p>
+<p>Two expected environment/source-slice blockers were reproduced rather than hidden:</p>
+<pre class="python-docs__code"><code class="language-text">PYTHONPATH=bridge:tests:. python3 tests/test_phone_leader_upstream_compat.py
+Result: BLOCKED before tests — ModuleNotFoundError: No module named 'lerobot'
+Reason: the packaging host did not contain the selected external LeRobot installation.
+Required closure: run after tools/setup-so101-windows.ps1 succeeds on native Windows.
+
+node tests/ui-contracts.js
+npm test
+Result: BLOCKED — ENOENT for SolU/python.html
+Reason: python.html was absent from the received patch-oriented source slice.
+Required closure: merge into the complete SolU checkout and rerun; no unrelated replacement page was added.
+</code></pre>
+<p>The final critical review rechecked STOP precedence, ownership, stale/source-loss retirement, authentication, default-disabled hardware gates, local-path/credential redaction, explicit no-fallback kinematics selection, launcher process ownership, and runtime-only TLS material. It also added reparse-point rejection for the TLS runtime parent, runtime directory, and pre-existing output links so setup/cleanup cannot follow an unexpected junction or linked certificate target.</p>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

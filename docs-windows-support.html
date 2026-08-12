@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Support Matrix · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>Windows Support Matrix</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>Windows Support Matrix</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html">Local Bridge</a>
+            <a href="docs-github-pages-so101.html">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html" aria-current="page">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html">Windows Verification</a>
+            <a href="docs-windows-blockers.html">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#selected-runtime">Selected runtime</a>
+            <a href="#kinematics-decision">Kinematics decision</a>
+            <a href="#browserdevice-qualification-boundary">Browser/device qualification boundary</a>
+            <a href="#primary-sources">Primary sources</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/windows-control/WINDOWS_SUPPORT_MATRIX.md"
+        data-source-sha256="14887a423c82229360de695116429aff4b148b38ce25c826a6eda1cee72c963e"
+      >
+<h1 id="native-windows-so-101-support-matrix">Native-Windows SO-101 support matrix</h1>
+<p>Retrieval date: <strong>2026-07-26</strong><br>
+Target: <strong>native 64-bit Windows, x86-64, CPython 3.12 ABI</strong><br>
+Current bundle terminal status: <strong><code>NATIVE_WINDOWS_BLOCKED</code></strong></p>
+<p>The status is narrow: the source implementation and offline cross-platform checks are complete, but the required Windows host, browsers, Android device, and robot were not available in the packaging environment. Nothing here establishes technical impossibility.</p>
+<p>The machine-readable authority is <code>bridge/windows_support_matrix.json</code>; dependency enforcement remains centralized in <code>bridge/pyproject.toml</code>.</p>
+<h2 id="selected-runtime">Selected runtime</h2>
+<div class="python-docs__table-wrap"><table class="python-docs__table">
+<thead>
+<tr>
+<th>Component</th>
+<th>Selected boundary</th>
+<th>Native-Windows evidence and decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPython</td>
+<td>3.12.10, official 64-bit installer</td>
+<td>Exact setup baseline. Python 3.12.10 is the final 3.12 bugfix release with official Windows binary installers. Detect with <code>py -3.12-64 -c "import platform,struct,sys; print(platform.python_version(), 8*struct.calcsize('P'), sys.platform)"</code>; expected <code>3.12.10 64 win32</code>.</td>
+</tr>
+<tr>
+<td>LeRobot</td>
+<td>0.6.1 at commit <code>8a74e0ac6d01706d67fddfed682a09d694d9c8c0</code></td>
+<td>Install <code>lerobot[core_scripts,feetech]</code> from the immutable commit. The Placo extra is deliberately excluded. The adapter import is probed without enumerating/opening serial ports. Real Windows SO-101 I/O remains a qualification item.</td>
+</tr>
+<tr>
+<td>Feetech</td>
+<td><code>feetech-servo-sdk==1.0.0</code>, <code>pyserial==3.5</code></td>
+<td>pyserial officially supports Windows. Feetech 1.0.0 is source-only; this means no prebuilt wheel, not impossibility. Native COM-port operation must be reproduced.</td>
+</tr>
+<tr>
+<td>Phone protocol</td>
+<td><code>teleop==0.1.5</code></td>
+<td>Pure-Python wheel, source attestation commit <code>3a5249176dcd911a82b6fcba7faeef7094f08fc7</code>; compatibility probe retained.</td>
+</tr>
+<tr>
+<td>Cartesian IK</td>
+<td><code>native_dls_v1</code>, <code>numpy==2.2.6</code></td>
+<td>NumPy publishes <code>cp312-win_amd64</code>; wheel SHA-256 is recorded in the JSON matrix. The selected solver parses the pinned URDF, excludes the gripper, uses bounded DLS, and never silently falls back.</td>
+</tr>
+<tr>
+<td>Placo</td>
+<td>0.9.15 reference boundary only</td>
+<td>The compatible wheel workflow has no Windows target. The adapter remains opt-in as <code>lerobot_placo_reference</code>; it is not installed for Windows and is not a fallback.</td>
+</tr>
+<tr>
+<td>HTTPS/QR server</td>
+<td><code>uvicorn[standard]==0.51.0</code>, <code>qrcode[pil]==8.2</code>, <code>Pillow==12.3.0</code></td>
+<td>Pure-Python/Windows-wheel path selected; exact installed versions are checked by the runtime probe.</td>
+</tr>
+<tr>
+<td>Local certificate tool</td>
+<td>mkcert 1.4.4</td>
+<td>Explicit external prerequisite. No executable is silently downloaded. The optional Chocolatey install requires an explicit switch and is followed by an exact version check.</td>
+</tr>
+<tr>
+<td>Xbox browser</td>
+<td>current stable Chrome and Edge</td>
+<td>Capability-qualified rather than hard-pinned. Both must expose Gamepad API and report the chosen controller with <code>mapping === "standard"</code>; neutral/deadman/source-loss behavior is tested separately in each.</td>
+</tr>
+<tr>
+<td>Android browser</td>
+<td>current stable Chrome on an ARCore-supported physical device</td>
+<td>Requires trusted HTTPS, a secure context, WebXR support, an ARCore-supported device, and Google Play Services for AR. Emulator qualification is not accepted.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="kinematics-decision">Kinematics decision</h2>
+<p>The required Windows backend is <strong><code>native_dls_v1</code></strong>:</p>
+<ul>
+<li>semantic order is exactly <code>shoulder_pan</code>, <code>shoulder_lift</code>, <code>elbow_flex</code>, <code>wrist_flex</code>, <code>wrist_roll</code>;</li>
+<li>the gripper never enters FK or IK;</li>
+<li>public joint units are degrees; internal solver units are radians;</li>
+<li>poses use <code>x, y, z, w</code> quaternions;</li>
+<li>the bundled URDF digest must be <code>5ea6695846d5f04416116e75894b8b10627ed4ec559b907ccc9cb47f7a753860</code> and target frame must be <code>gripper_frame_link</code>;</li>
+<li>position is the hard numerical contract; orientation is ignored at zero weight or treated as weighted best effort;</li>
+<li>configured ceilings are 48 iterations and 20 ms, with classified fail-closed outcomes;</li>
+<li>the configured 1.5 mm position residual is <strong>software numerical tolerance</strong>, not physical positioning accuracy.</li>
+</ul>
+<p>A standard-library URDF-chain oracle and immutable reference corpus independently check production FK. IK results are independently forward-transformed before acceptance tests.</p>
+<h2 id="browserdevice-qualification-boundary">Browser/device qualification boundary</h2>
+<p>Gamepad API availability does not prove the physical Xbox mapping. Qualification must be repeated in current Chrome and Edge with explicit controller selection, neutral-state qualification, RT deadman, Fine override, pair selection only while idle, X measured hold, B STOP, poll-gap retirement, and explicit re-arm after STOP.</p>
+<p>The Android path must first load <code>https://&lt;private-ip&gt;:8443/</code> without a certificate warning. Only then may QR pairing be attempted. Verify <code>window.isSecureContext</code>, <code>navigator.xr</code>, one authorized WebSocket, release-to-hold, tracking/background/focus/pointer/transport retirement, reconnect state reset, unreachable-target rejection, and global STOP.</p>
+<h2 id="primary-sources">Primary sources</h2>
+<ul>
+<li>Python 3.12.10: <code>https://www.python.org/downloads/release/python-31210/</code></li>
+<li>Immutable LeRobot dependency catalog: <code>https://github.com/huggingface/lerobot/blob/8a74e0ac6d01706d67fddfed682a09d694d9c8c0/pyproject.toml</code></li>
+<li>Current LeRobot catalog (comparison only): <code>https://github.com/huggingface/lerobot/blob/main/pyproject.toml</code></li>
+<li>NumPy 2.2.6 artifacts: <code>https://pypi.org/project/numpy/2.2.6/</code></li>
+<li>Feetech SDK 1.0.0: <code>https://pypi.org/project/feetech-servo-sdk/1.0.0/</code></li>
+<li>pyserial 3.5: <code>https://pypi.org/project/pyserial/3.5/</code></li>
+<li>teleop 0.1.5: <code>https://pypi.org/project/teleop/0.1.5/</code></li>
+<li>Placo 0.9.15 wheel workflow: <code>https://github.com/Rhoban/placo/blob/v0.9.15/.github/workflows/wheels.yml</code></li>
+<li>Gamepad API: <code>https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API</code></li>
+<li>WebXR/ARCore requirements: <code>https://developers.google.com/ar/develop/webxr/requirements</code></li>
+<li>mkcert 1.4.4: <code>https://github.com/FiloSottile/mkcert/tree/v1.4.4</code></li>
+</ul>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

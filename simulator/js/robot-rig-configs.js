@@ -11,12 +11,19 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       module: "./robot-mesh-data-so101.js",
       version: "20260702-so101-yup-mesh"
     },
+    visualZeroJoints: {
+      shoulder_pan: 0,
+      shoulder_lift: 0,
+      elbow_flex: 0,
+      wrist_flex: 0,
+      wrist_roll: 0
+    },
     camera: {
       position: [430, 320, 520],
       target: [150, 110, 0]
     },
     materials: {
-      printed: { color: 0xf4c430, roughness: 0.64, metalness: 0.03 },
+      printed: { color: 0xf2f4f7, roughness: 0.58, metalness: 0.05 },
       servo: { color: 0x20242c, roughness: 0.72, metalness: 0.06 },
       link: { color: 0x2f7ed8, roughness: 0.58, metalness: 0.04 },
       wrist: { color: 0x16a085, roughness: 0.6, metalness: 0.04 },

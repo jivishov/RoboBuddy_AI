@@ -11,6 +11,10 @@
   const JOINT_LIMITS = NS.Generator ? NS.Generator.JOINT_LIMITS : [[20, 130], [15, 165], [0, 180], [0, 180], [0, 180], [25, 130]];
   const MOTORS_STORAGE_KEY = "roboadmin.motorsEnabled.v1";
   const DEBUG_TELEMETRY_EXPANDED_STORAGE_KEY = "roboadmin.debugTelemetryExpanded.v1";
+  const GRIPPER_MAPPING_STORAGE_KEY = "robobuddy.so101.gripperMapping.v1";
+  const SO101_MANUAL_JOINT_LIMITS = Object.freeze({
+    wrist_roll: Object.freeze([-43.2, 52.2])
+  });
   const CONSOLE_MAX_LINES = 200;
   const CONTROL_OWNER = {
     IDLE: "idle",
@@ -22,6 +26,7 @@
   const MANUAL_SESSION_RELEASE_MS = 180;
   const MANUAL_SEND_DEBOUNCE_MS = 55;
   const MANUAL_SEND_SPEED = 65;
+  const MANUAL_SLIDER_COMMIT_DEDUPE_MS = 300;
   const TEACH_PHASE = {
     OFF: "off",
     IDLE: "idle",
@@ -47,6 +52,7 @@
     poses: {},
     sliderTimers: new Map(),
     manualQueuedTargets: new Map(),
+    manualSliderCommitHistory: new Map(),
     manualInFlight: new Set(),
     workspace: null,
     serial: null,
@@ -60,7 +66,34 @@
       activeServo: null,
       sessionToken: 0,
       releaseTimer: null,
-      lockHintAt: 0
+      lockHintAt: 0,
+      streamSessionId: "",
+      streamSequence: 0,
+      streamPending: null,
+      streamInFlight: false,
+      streamTimer: null,
+      streamLastSentAt: 0,
+      telemetryTimer: null,
+      telemetryFailures: 0,
+      pointerActive: false,
+      keyboardActive: false,
+      armHintTimer: null,
+      lastArmHintAt: 0,
+      lastAnnouncedPhase: ""
+    },
+    bridgeUi: {
+      tested: false,
+      portsLoaded: false,
+      connected: false,
+      calibrated: false,
+      armed: false,
+      authRequired: false,
+      localNoToken: false,
+      localNoTokenRejected: false,
+      connecting: false,
+      armPending: false,
+      homePending: false,
+      lastPayload: null
     },
     teach: {
       enabled: false,
@@ -86,7 +119,12 @@
     programLastError: "",
     firmwareMismatch: null,
     pendingDefaultReset: false,
-    lastSyncedRobotId: null
+    lastSyncedRobotId: null,
+    workbenchMode: "blockly",
+    workbenchModeTransitioning: false,
+    workbenchLayoutQueued: false,
+    drawerTab: "bridge",
+    drawerPinnedLeader: false
   };
 
   const ui = {};
@@ -95,6 +133,7 @@
 
   function init() {
     cacheUi();
+    mountWorkbenchDetails();
     initMotorDebugUi();
     initRobotPortalUi();
 
@@ -121,6 +160,8 @@
       },
       trashcan: true
     });
+
+    installBlocklyWorkspaceSemantics();
 
     state.serial = new NS.SerialManager({ baudRate: 9600 });
     if (typeof NS.ArmPreview === "function" && ui.armPreview) {
@@ -149,6 +190,7 @@
 
     state.motorsEnabled = readMotorsEnabled();
     syncRobotSpecificUi();
+    syncGripperMappingControl();
 
     wireSerialEvents();
     wireRunnerEvents();
@@ -159,12 +201,22 @@
 
     syncSliderLimitsFromJointLimits();
     loadInitialWorkspace();
-    applyAngles(getActiveHomeAngles(), { syncSliders: true, source: "init" });
+    applyAngles(getActiveInitialAngles(), { syncSliders: true, source: "init" });
 
     document.querySelectorAll(".servo-slider").forEach(updateSliderFill);
     syncMotorsToggleUi();
     updateManualControlLockUi();
     updateTeachControlsUi();
+    if (NS.VirtualLeaderUI && typeof NS.VirtualLeaderUI.init === "function") {
+      NS.VirtualLeaderUI.init({
+        getWorkspace: () => state.workspace,
+        onEmergencyStop: ({ source } = {}) => triggerEmergencyStop(source || "gamepad"),
+        onWorkspaceResize: () => {
+          if (state.workspace) Blockly.svgResize(state.workspace);
+        }
+      });
+    }
+    initWorkbenchPresentation();
 
     appendSerialConsole("SYS", "RoboBuddy ready");
     appendSerialConsole("SYS", state.motorsEnabled ? "Motors enabled" : "Motors disabled");
@@ -177,10 +229,39 @@
       }
     });
 
-    if (!state.serial.supportsWebSerial()) {
+    if (isArduinoActive() && !state.serial.supportsWebSerial()) {
       ui.btnConnect.disabled = true;
       setConnectionStatus(false, "Web Serial unavailable (use desktop Chrome/Edge)");
     }
+    window.addEventListener("pagehide", () => {
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.disarmBridgeForPageExit === "function") {
+        NS.RobotRuntime.disarmBridgeForPageExit();
+      }
+    }, { capture: true });
+    void restoreRetainedSo101Bridge();
+  }
+
+  function installBlocklyWorkspaceSemantics() {
+    const blocklyHost = document.getElementById("blocklyDiv");
+    if (!blocklyHost || typeof MutationObserver !== "function") {
+      return;
+    }
+    const applyRoles = () => {
+      blocklyHost.querySelectorAll("g.blocklyWorkspace[aria-label]").forEach((group) => {
+        if (group.getAttribute("role") !== "group") {
+          group.setAttribute("role", "group");
+        }
+      });
+    };
+    const observer = new MutationObserver(applyRoles);
+    observer.observe(blocklyHost, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["aria-label", "role"]
+    });
+    applyRoles();
+    window.requestAnimationFrame(applyRoles);
   }
 
   function cacheUi() {
@@ -209,16 +290,33 @@
     ui.btnLoadUserBlocks = document.getElementById("btnLoadUserBlocks");
     ui.btnClear = document.getElementById("btnClear");
     ui.manualControlsCard = document.querySelector(".sidebar__controls");
+    ui.manualControlMeta = document.getElementById("manualControlMeta");
+    ui.manualControlMetaText = document.getElementById("manualControlMetaText");
+    ui.manualArmAction = document.getElementById("manualArmAction");
+    ui.manualLimitInfo = document.getElementById("manualLimitInfo");
+    ui.manualLimitDetails = document.getElementById("manualLimitDetails");
     ui.servoSliders = document.querySelector(".servo-sliders");
     ui.robotDriveControls = document.getElementById("robotDriveControls");
     ui.robotBridgePanel = document.getElementById("robotBridgePanel");
     ui.bridgeUrl = document.getElementById("bridgeUrl");
-    ui.bridgePort = document.getElementById("bridgePort");
+    ui.bridgePortSelect = document.getElementById("bridgePortSelect");
     ui.bridgeRobotInstance = document.getElementById("bridgeRobotInstance");
+    ui.bridgeGripperMapping = document.getElementById("bridgeGripperMapping");
+    ui.bridgeToken = document.getElementById("bridgeToken");
+    ui.bridgeLocalNoToken = document.getElementById("bridgeLocalNoToken");
+    ui.bridgeDiagnostics = document.querySelector(".robot-bridge-panel__advanced");
+    ui.bridgeLimitDiagnostics = document.getElementById("bridgeLimitDiagnostics");
+    ui.bridgeLimitDiagnosticsStatus = document.getElementById("bridgeLimitDiagnosticsStatus");
+    ui.bridgeLimitDiagnosticsRows = document.getElementById("bridgeLimitDiagnosticsRows");
     ui.bridgeSafetyConfirm = document.getElementById("bridgeSafetyConfirm");
     ui.btnBridgeHealth = document.getElementById("btnBridgeHealth");
     ui.btnBridgeConnect = document.getElementById("btnBridgeConnect");
+    ui.btnBridgeDisconnect = document.getElementById("btnBridgeDisconnect");
     ui.bridgeStatus = document.getElementById("bridgeStatus");
+    ui.bridgeStepBridge = document.getElementById("bridgeStepBridge");
+    ui.bridgeStepPort = document.getElementById("bridgeStepPort");
+    ui.bridgeStepCalibration = document.getElementById("bridgeStepCalibration");
+    ui.bridgeStepMotion = document.getElementById("bridgeStepMotion");
 
     ui.motorsEnabled = document.getElementById("motorsEnabled");
     ui.teachModeEnabled = document.getElementById("teachModeEnabled");
@@ -252,6 +350,18 @@
     ui.btnConsoleClear = document.getElementById("btnConsoleClear");
     ui.indexConsoleToggle = document.getElementById("btnIndexConsoleToggle");
     ui.indexConsolePanel = document.getElementById("indexConsolePanelBody");
+    ui.mainSplit = document.querySelector(".index-3d-main-split");
+    ui.modeSelector = document.getElementById("manualModeSelector");
+    ui.workbenchModeButtons = Array.from(document.querySelectorAll("[data-workbench-mode-option]"));
+    ui.inspectorTitle = document.querySelector("[data-workbench-inspector-title]");
+    ui.executionTarget = document.querySelector("[data-execution-target]");
+    ui.drawerTabs = Array.from(document.querySelectorAll("[data-drawer-tab]"));
+    ui.drawerPanels = Array.from(document.querySelectorAll("[data-drawer-panel]"));
+    ui.drawerBridgeMount = document.getElementById("workbenchBridgeMount");
+    ui.drawerLeaderMount = document.getElementById("workbenchLeaderDetailsMount");
+    ui.drawerProgramMount = document.getElementById("workbenchProgramStatusMount");
+    ui.drawerBridgeSummary = document.getElementById("workbenchBridgeSummary");
+    ui.openProgramWorkspace = document.getElementById("leaderOpenProgramWorkspace");
 
     ui.saveDialog = document.getElementById("saveDialog");
     ui.saveName = document.getElementById("saveName");
@@ -267,6 +377,275 @@
     ui.scriptDialogText = document.getElementById("scriptDialogText");
     ui.scriptDialogCopy = document.getElementById("scriptDialogCopy");
     ui.scriptDialogClose = document.getElementById("scriptDialogClose");
+  }
+
+  function mountWorkbenchDetails() {
+    if (ui.drawerBridgeMount && ui.robotBridgePanel && ui.robotBridgePanel.parentElement !== ui.drawerBridgeMount) {
+      ui.drawerBridgeMount.appendChild(ui.robotBridgePanel);
+    }
+
+    if (ui.drawerBridgeMount && !ui.drawerBridgeMount.querySelector(".workbench-bridge-empty")) {
+      const empty = document.createElement("p");
+      empty.className = "workbench-bridge-empty";
+      empty.hidden = true;
+      ui.drawerBridgeMount.appendChild(empty);
+    }
+
+    if (ui.drawerLeaderMount) {
+      [
+        "leaderRangeRecovery",
+        "leaderLayerControls",
+        "leaderGamepad",
+        "leaderPrecision",
+        "leaderValues"
+      ].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element && element.parentElement !== ui.drawerLeaderMount) {
+          ui.drawerLeaderMount.appendChild(element);
+        }
+      });
+      const telemetry = document.querySelector(".leader-telemetry");
+      const diagnostics = document.getElementById("leaderExportDiagnostics");
+      if (telemetry && telemetry.parentElement !== ui.drawerLeaderMount) ui.drawerLeaderMount.appendChild(telemetry);
+      if (diagnostics && diagnostics.parentElement !== ui.drawerLeaderMount) ui.drawerLeaderMount.appendChild(diagnostics);
+    }
+
+    if (ui.drawerProgramMount) {
+      const messages = document.querySelector(".bottombar__messages");
+      const status = document.querySelector(".bottombar__status");
+      if (messages) {
+        Array.from(messages.children).forEach((child) => ui.drawerProgramMount.appendChild(child));
+      }
+      if (status) ui.drawerProgramMount.appendChild(status);
+    }
+  }
+
+  function initWorkbenchPresentation() {
+    if (ui.mainSplit && NS.WorkbenchUI) {
+      ui.mainSplit.addEventListener(NS.WorkbenchUI.LAYOUT_EVENT, scheduleWorkbenchLayoutRefresh);
+    }
+    ui.workbenchModeButtons.forEach((button, index) => {
+      button.addEventListener("click", () => void setWorkbenchMode(button.dataset.workbenchModeOption));
+      button.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        let nextIndex = index;
+        if (event.key === "ArrowLeft") nextIndex = (index - 1 + ui.workbenchModeButtons.length) % ui.workbenchModeButtons.length;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % ui.workbenchModeButtons.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = ui.workbenchModeButtons.length - 1;
+        const nextButton = ui.workbenchModeButtons[nextIndex];
+        nextButton.focus();
+        void setWorkbenchMode(nextButton.dataset.workbenchModeOption);
+      });
+    });
+
+    ui.drawerTabs.forEach((button, index) => {
+      button.addEventListener("click", () => {
+        if (button.getAttribute("aria-disabled") === "true") {
+          setProgramStatus(button.dataset.disabledReason || "This panel is unavailable for the selected robot.");
+          return;
+        }
+        setDrawerTab(button.dataset.drawerTab);
+      });
+      button.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        let nextIndex = index;
+        if (event.key === "ArrowLeft") nextIndex = (index - 1 + ui.drawerTabs.length) % ui.drawerTabs.length;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % ui.drawerTabs.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = ui.drawerTabs.length - 1;
+        ui.drawerTabs[nextIndex].focus();
+        if (ui.drawerTabs[nextIndex].getAttribute("aria-disabled") !== "true") {
+          setDrawerTab(ui.drawerTabs[nextIndex].dataset.drawerTab);
+        }
+      });
+    });
+
+    if (ui.openProgramWorkspace) {
+      ui.openProgramWorkspace.hidden = false;
+      ui.openProgramWorkspace.addEventListener("click", () => void setWorkbenchMode("blockly", { focusPanel: true }));
+    }
+
+    window.addEventListener("robobuddy:leader-details-request", (event) => {
+      const detail = event.detail || {};
+      if (typeof detail.pin === "boolean") state.drawerPinnedLeader = detail.pin;
+      if (detail.open !== false) openWorkbenchDrawer("leader", { focus: Boolean(detail.focus) });
+    });
+
+    NS.MainWorkbench = Object.freeze({
+      setMode: (mode) => setWorkbenchMode(mode),
+      openDrawer: (tab, options) => openWorkbenchDrawer(tab, options),
+      getMode: () => state.workbenchMode
+    });
+
+    syncWorkbenchAvailability();
+    setDrawerTab("bridge");
+    setIndexConsoleExpanded(true, { force: true });
+    void setWorkbenchMode("blockly", { force: true, silent: true });
+  }
+
+  function scheduleWorkbenchLayoutRefresh() {
+    if (state.workbenchLayoutQueued) {
+      return;
+    }
+    state.workbenchLayoutQueued = true;
+    window.requestAnimationFrame(() => {
+      state.workbenchLayoutQueued = false;
+      if (state.workspace && window.Blockly && Blockly.svgResize) {
+        Blockly.svgResize(state.workspace);
+      }
+      if (state.preview && typeof state.preview.resize === "function") {
+        state.preview.resize();
+      }
+    });
+  }
+
+  function workbenchModeReason(mode) {
+    const manifest = activeManifest();
+    const capabilities = new Set(manifest && Array.isArray(manifest.capabilities) ? manifest.capabilities : []);
+    if (mode === "leader" && !capabilities.has("virtual_leader")) {
+      return "Leader is available for the SO-101 follower.";
+    }
+    if (mode === "teach" && !capabilities.has("teach_replay")) {
+      return "Teach is unavailable for the selected robot.";
+    }
+    if (mode === "joints" && !capabilities.has("joint_control")) {
+      return "Joint control is unavailable for the selected robot.";
+    }
+    return "";
+  }
+
+  function syncWorkbenchAvailability() {
+    ui.workbenchModeButtons.forEach((button) => {
+      const reason = workbenchModeReason(button.dataset.workbenchModeOption);
+      button.setAttribute("aria-disabled", reason ? "true" : "false");
+      button.dataset.disabledReason = reason;
+      button.title = reason;
+    });
+    const leaderTab = ui.drawerTabs.find((button) => button.dataset.drawerTab === "leader");
+    const leaderReason = workbenchModeReason("leader");
+    if (leaderTab) {
+      leaderTab.setAttribute("aria-disabled", leaderReason ? "true" : "false");
+      leaderTab.dataset.disabledReason = leaderReason;
+      leaderTab.title = leaderReason;
+    }
+    const bridgeEmpty = ui.drawerBridgeMount && ui.drawerBridgeMount.querySelector(".workbench-bridge-empty");
+    if (bridgeEmpty) {
+      const manifest = activeManifest();
+      const isSo101 = Boolean(manifest && manifest.id === "so101_follower");
+      bridgeEmpty.hidden = isSo101;
+      bridgeEmpty.textContent = manifest && manifest.id === "arduino_arm"
+        ? "Arduino hardware uses the serial connection in the workbench header."
+        : "This robot is simulation-only; no hardware bridge is available.";
+    }
+    syncExecutionTarget();
+  }
+
+  async function setWorkbenchMode(mode, options = {}) {
+    const next = ["blockly", "joints", "leader", "teach"].includes(mode) ? mode : "blockly";
+    const reason = workbenchModeReason(next);
+    if (reason) {
+      if (!options.silent) setProgramStatus(reason);
+      return false;
+    }
+    if (!options.force && state.workbenchMode === next) return true;
+    if (state.workbenchModeTransitioning) {
+      if (!options.silent) setProgramStatus("Finish the current control handoff before changing modes again.");
+      return false;
+    }
+
+    state.workbenchModeTransitioning = true;
+    if (ui.modeSelector) ui.modeSelector.setAttribute("aria-busy", "true");
+    try {
+      if (NS.VirtualLeaderUI && typeof NS.VirtualLeaderUI.setMode === "function") {
+        await NS.VirtualLeaderUI.setMode(next === "leader" ? "leader" : "joints");
+      }
+    } finally {
+      state.workbenchModeTransitioning = false;
+      if (ui.modeSelector) ui.modeSelector.removeAttribute("aria-busy");
+    }
+    if (next !== "leader" && state.drawerTab === "leader" && !state.drawerPinnedLeader) {
+      setDrawerTab("program");
+    }
+    state.workbenchMode = next;
+    document.body.dataset.workbenchMode = next;
+    ui.workbenchModeButtons.forEach((button) => {
+      const active = button.dataset.workbenchModeOption === next;
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.tabIndex = active ? 0 : -1;
+    });
+
+    const blockCard = document.querySelector(".index-3d-block-card");
+    const manualCard = document.querySelector(".index-3d-manual-card");
+    const previewCard = document.querySelector(".index-3d-preview-card");
+    if (blockCard) blockCard.hidden = next !== "blockly";
+    if (manualCard) manualCard.hidden = next === "blockly";
+    const jointsPanel = document.getElementById("manualJointsPanel");
+    const leaderPanel = document.getElementById("virtualLeaderPanel");
+    const teachPanel = document.getElementById("teachControlsPanel");
+    if (jointsPanel) jointsPanel.hidden = next !== "joints";
+    if (leaderPanel) leaderPanel.hidden = next !== "leader";
+    if (teachPanel) teachPanel.hidden = next !== "teach";
+    if (previewCard) previewCard.dataset.workbenchRole = next === "blockly" ? "inspector" : "stage";
+    if (ui.inspectorTitle) {
+      const labels = { joints: "Joint Control", leader: "Virtual Leader", teach: "Teach & Replay" };
+      ui.inspectorTitle.innerHTML = `<i data-lucide="${next === "leader" ? "scan-line" : next === "teach" ? "history" : "sliders-horizontal"}"></i> ${labels[next] || "Control"}`;
+      if (window.lucide) lucide.createIcons({ nodes: [ui.inspectorTitle.querySelector("[data-lucide]")] });
+    }
+    window.requestAnimationFrame(() => {
+      scheduleWorkbenchLayoutRefresh();
+      if (options.focusPanel) {
+        const focusTarget = next === "blockly" ? document.getElementById("blocklyDiv") : document.querySelector(`[data-workbench-mode-option="${next}"]`);
+        if (focusTarget) focusTarget.focus();
+      }
+    });
+    return true;
+  }
+
+  function setDrawerTab(tab) {
+    const next = ["bridge", "leader", "serial", "debug", "program"].includes(tab) ? tab : "bridge";
+    const targetButton = ui.drawerTabs.find((button) => button.dataset.drawerTab === next);
+    if (targetButton && targetButton.getAttribute("aria-disabled") === "true") return false;
+    state.drawerTab = next;
+    ui.drawerTabs.forEach((button) => {
+      const active = button.dataset.drawerTab === next;
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.tabIndex = active ? 0 : -1;
+    });
+    ui.drawerPanels.forEach((panel) => { panel.hidden = panel.dataset.drawerPanel !== next; });
+    scheduleWorkbenchLayoutRefresh();
+    return true;
+  }
+
+  function openWorkbenchDrawer(tab = state.drawerTab, options = {}) {
+    if (tab === "leader" && workbenchModeReason("leader")) return false;
+    setIndexConsoleExpanded(true, { force: true });
+    if (!setDrawerTab(tab)) return false;
+    if (options.focus) {
+      const button = ui.drawerTabs.find((item) => item.dataset.drawerTab === tab);
+      if (button) button.focus();
+    }
+    return true;
+  }
+
+  function syncExecutionTarget() {
+    if (!ui.executionTarget) return;
+    const manifest = activeManifest();
+    const serialHardware = Boolean(manifest && manifest.id === "arduino_arm" && state.serial && state.serial.isConnected());
+    const bridgeHardware = Boolean(manifest && manifest.id === "so101_follower" && state.bridgeUi.connected);
+    const hardware = serialHardware || bridgeHardware;
+    const label = hardware ? (bridgeHardware ? "Local Bridge" : "Hardware") : "Simulation";
+    ui.executionTarget.dataset.executionTarget = hardware ? "hardware" : "simulation";
+    ui.executionTarget.setAttribute("aria-label", `Execution target: ${label}`);
+    const span = ui.executionTarget.querySelector("span");
+    if (span) span.textContent = label;
+    const icon = ui.executionTarget.querySelector("[data-lucide]");
+    if (icon) {
+      icon.setAttribute("data-lucide", hardware ? "cable" : "monitor");
+      if (window.lucide) lucide.createIcons({ nodes: [icon] });
+    }
   }
 
   function initRobotPortalUi() {
@@ -311,11 +690,42 @@
     return HOME_ANGLES.slice();
   }
 
+  function getActiveInitialAngles() {
+    if (NS.RobotSafety && activeManifest() && typeof NS.RobotSafety.getInitialAngles === "function") {
+      return NS.RobotSafety.getInitialAngles(activeManifest());
+    }
+    return getActiveHomeAngles();
+  }
+
   function getActiveJointLimits() {
     if (NS.RobotSafety && activeManifest()) {
       return NS.RobotSafety.getJointLimits(activeManifest());
     }
     return JOINT_LIMITS.slice();
+  }
+
+  function getManualJointLimits(joint, fallback) {
+    const base = Array.isArray(fallback) ? fallback.map(Number) : [Number(joint && joint.min), Number(joint && joint.max)];
+    const override = activeRobotId() === "so101_follower" && joint
+      ? SO101_MANUAL_JOINT_LIMITS[joint.id]
+      : null;
+    if (!override || !Number.isFinite(base[0]) || !Number.isFinite(base[1])) {
+      return base;
+    }
+    const low = Math.max(base[0], Number(override[0]));
+    const high = Math.min(base[1], Number(override[1]));
+    return low < high ? [low, high] : base;
+  }
+
+  function getManualSliderLimits(servo) {
+    const joint = activeJoints()[servo];
+    const fallback = getActiveJointLimits()[servo] || [0, 180];
+    return getManualJointLimits(joint, fallback);
+  }
+
+  function clampManualSliderValue(servo, value) {
+    const [low, high] = getManualSliderLimits(servo);
+    return Math.min(high, Math.max(low, Number(value)));
   }
 
   function getServoName(servo) {
@@ -388,22 +798,38 @@
       return;
     }
     const joints = activeJoints();
+    const initialAngles = getActiveInitialAngles();
     ui.servoSliders.innerHTML = joints.map((joint, index) => {
-      const value = Number.isFinite(Number(joint.home)) ? Number(joint.home) : Number(joint.min) || 0;
+      const initialValue = Number(initialAngles[index]);
+      const value = Number.isFinite(initialValue)
+        ? initialValue
+        : (Number.isFinite(Number(joint.home)) ? Number(joint.home) : Number(joint.min) || 0);
       const readout = formatJointReadout(joint, value);
       const ariaValueText = formatJointAriaValue(joint, value);
       return `
         <div class="servo-channel servo-channel--${escapeHtml(slugJoint(joint.id))}">
           <label class="servo-channel__label" for="slider${index}">
-            <span class="servo-channel__dot"></span>${escapeHtml(joint.label)}
+            <span class="servo-channel__dot"></span><span class="servo-channel__label-text">${escapeHtml(joint.label)}</span>
           </label>
-          <input type="range" class="servo-slider" id="slider${index}" min="${escapeHtml(joint.min)}" max="${escapeHtml(joint.max)}" value="${escapeHtml(value)}" data-servo="${index}" data-joint="${escapeHtml(joint.id)}" aria-describedby="val${index}" aria-valuenow="${escapeHtml(value)}" aria-valuetext="${escapeHtml(ariaValueText)}">
-          <span class="servo-channel__value" id="val${index}">${escapeHtml(readout)}</span>
+          <div class="servo-channel__track">
+            <input type="range" class="servo-slider" id="slider${index}" min="${escapeHtml(joint.min)}" max="${escapeHtml(joint.max)}" step="${escapeHtml(joint.step || 1)}" value="${escapeHtml(value)}" data-servo="${index}" data-joint="${escapeHtml(joint.id)}" aria-describedby="range${index} actual${index}" aria-valuenow="${escapeHtml(value)}" aria-valuetext="${escapeHtml(ariaValueText)}">
+            <span class="servo-channel__range" id="range${index}"><span data-range-min>${escapeHtml(formatJointReadout(joint, joint.min))}</span><span data-range-max>${escapeHtml(formatJointReadout(joint, joint.max))}</span></span>
+          </div>
+          <span class="servo-channel__metrics">
+            <span class="servo-channel__value" id="val${index}" title="Target">${escapeHtml(readout)}</span>
+            <span class="servo-channel__actual" id="actual${index}" hidden>Actual —</span>
+          </span>
         </div>
       `;
     }).join("");
 
     wireSliders();
+    syncSliderLimitsFromJointLimits();
+    updateManualControlTelemetry();
+  }
+
+  function formatJointRange(joint, min, max) {
+    return `${formatJointReadout(joint, min)} to ${formatJointReadout(joint, max)}`;
   }
 
   function renderDriveControls() {
@@ -514,11 +940,19 @@
     renderManualControls();
     renderDriveControls();
     syncSliderLimitsFromJointLimits();
+    if (ui.manualControlsCard) {
+      ui.manualControlsCard.classList.toggle("has-bridge-controls", manifest.id === "so101_follower");
+    }
     if (NS.Blocks && typeof NS.Blocks.refreshToolbox === "function") {
       NS.Blocks.refreshToolbox(state.workspace, ui.toolbox);
     }
     if (ui.robotBridgePanel) {
-      ui.robotBridgePanel.hidden = true;
+      ui.robotBridgePanel.hidden = manifest.id !== "so101_follower";
+    }
+    if (manifest.id !== "so101_follower") {
+      resetBridgeUiState();
+    } else {
+      syncBridgeUx();
     }
     const supportsTeach = Array.isArray(manifest.capabilities) && manifest.capabilities.includes("teach_replay");
     if (ui.teachControls) {
@@ -534,14 +968,27 @@
       }
     }
     if (ui.btnConnect) {
-      ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
+      const isSo101 = manifest.id === "so101_follower";
+      const isLeKiwi = manifest.id === "lekiwi_sim";
+      ui.btnConnect.disabled = isArduinoActive() ? !state.serial.supportsWebSerial() : isLeKiwi;
       const span = ui.btnConnect.querySelector("span");
-      if (span && !isArduinoActive()) {
-        span.textContent = "Sim Only";
+      if (span) {
+        span.textContent = isArduinoActive()
+          ? (state.serial.isConnected() ? "Disconnect" : "Connect")
+          : (isSo101 ? "Connect Bridge" : "Simulation Only");
       }
+      const actionLabel = isArduinoActive()
+        ? "Connect or disconnect Arduino serial hardware"
+        : isSo101
+          ? "Open local bridge setup"
+          : "LeKiwi is simulation-only";
+      ui.btnConnect.title = actionLabel;
+      ui.btnConnect.dataset.hint = actionLabel;
+      ui.btnConnect.setAttribute("aria-label", actionLabel);
     }
+    syncWorkbenchAvailability();
     syncRobotPreviewVisibility();
-    applyAngles(getActiveHomeAngles(), { syncSliders: true, source: "robot-switch" });
+    applyAngles(getActiveInitialAngles(), { syncSliders: true, source: "robot-switch" });
     state.lastSyncedRobotId = manifest.id;
   }
 
@@ -557,11 +1004,12 @@
     if (ui.robotChooser) {
       ui.robotChooser.addEventListener("change", () => {
         clearRobotScopedBlocklyState();
-        switchActiveRobot(ui.robotChooser.value);
+        void switchActiveRobot(ui.robotChooser.value);
       });
     }
     window.addEventListener("robobuddy:active-robot-change", () => {
       syncRobotSpecificUi();
+      void setWorkbenchMode("blockly", { force: true, silent: true });
       appendSerialConsole("SYS", `Robot switched to ${activeManifest().name}; incompatible queued commands cleared.`);
       clearPendingManualSends();
       clearManualSessionState();
@@ -576,21 +1024,161 @@
         void connectSo101Bridge();
       });
     }
+    if (ui.btnBridgeDisconnect) {
+      ui.btnBridgeDisconnect.addEventListener("click", () => {
+        void disconnectSo101Bridge();
+      });
+    }
+    if (ui.manualArmAction) {
+      ui.manualArmAction.addEventListener("click", () => {
+        if (!ui.bridgeSafetyConfirm || ui.bridgeSafetyConfirm.disabled || state.bridgeUi.armPending) {
+          return;
+        }
+        ui.bridgeSafetyConfirm.checked = true;
+        ui.bridgeSafetyConfirm.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
+    if (ui.manualLimitInfo && ui.manualLimitDetails) {
+      ui.manualLimitInfo.addEventListener("click", () => {
+        const expanded = ui.manualLimitInfo.getAttribute("aria-expanded") === "true";
+        setManualLimitDetailsExpanded(!expanded);
+      });
+      ui.manualControlMeta.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && ui.manualLimitInfo.getAttribute("aria-expanded") === "true") {
+          event.preventDefault();
+          setManualLimitDetailsExpanded(false);
+          ui.manualLimitInfo.focus();
+        }
+      });
+    }
     if (ui.bridgeSafetyConfirm) {
-      ui.bridgeSafetyConfirm.addEventListener("change", () => {
-        if (NS.RobotRuntime) {
-          NS.RobotRuntime.setBridgeSafetyConfirmed(ui.bridgeSafetyConfirm.checked);
+      ui.bridgeSafetyConfirm.addEventListener("change", async () => {
+        if (state.bridgeUi.armPending) {
+          return;
+        }
+        const requested = Boolean(ui.bridgeSafetyConfirm.checked);
+        state.bridgeUi.armPending = true;
+        setBridgeStatus(requested ? "Arming SO-101…" : "Disarming and holding the measured pose…", "warning");
+        updateManualControlMeta(requested ? "Arming…" : "Disarming…", "warning", requested
+          ? "Waiting for the bridge to authorize live control."
+          : "Waiting for the bridge to cancel motion and hold the measured pose.");
+        syncBridgeUx();
+        updateManualControlLockUi();
+        try {
+          const runtimeState = NS.RobotRuntime
+            ? await NS.RobotRuntime.setBridgeSafetyConfirmed(requested)
+            : null;
+          state.bridgeUi.armed = Boolean(runtimeState && runtimeState.connection && runtimeState.connection.armedForMotion);
+          updateManualControlTelemetry(runtimeState);
+          if (state.bridgeUi.armed) {
+            setBridgeStatus("SO-101 armed. Sliders now control hardware while you move them.", "ready");
+          } else if (state.bridgeUi.connected) {
+            setBridgeStatus("SO-101 connected. Arm motion to enable live slider control.", "warning");
+          }
+        } catch (error) {
+          state.bridgeUi.armed = false;
+          ui.bridgeSafetyConfirm.checked = false;
+          setBridgeStatus(`${requested ? "Arm motion" : "Disarm"} failed: ${error.message}`, "error");
+        } finally {
+          state.bridgeUi.armPending = false;
+          syncBridgeUx();
+          updateManualControlLockUi();
+        }
+      });
+    }
+    if (ui.bridgePortSelect) {
+      ui.bridgePortSelect.addEventListener("change", () => {
+        if (!state.bridgeUi.connected) {
+          state.bridgeUi.calibrated = false;
+          state.bridgeUi.armed = false;
+          state.bridgeUi.lastPayload = null;
+          if (ui.bridgeSafetyConfirm) {
+            ui.bridgeSafetyConfirm.checked = false;
+          }
+          if (NS.RobotRuntime && NS.RobotRuntime.setBridgeSafetyConfirmed) {
+            void NS.RobotRuntime.setBridgeSafetyConfirmed(false);
+          }
+          if (NS.RobotRuntime && NS.RobotRuntime.applyBridgeState) {
+            NS.RobotRuntime.applyBridgeState({
+              connected: false,
+              calibrated: false,
+              armed: false,
+              status: "DISCONNECTED",
+              limitStatus: "unavailable",
+              jointLimits: {}
+            });
+            syncSliderLimitsFromJointLimits();
+          }
+          if (state.bridgeUi.tested && getBridgeSelectedPort()) {
+            setBridgeStatus("Port selected. Connect SO-101 to verify calibration.", "warning");
+          }
+        }
+        syncBridgeUx();
+      });
+    }
+    if (ui.bridgeRobotInstance) {
+      ui.bridgeRobotInstance.addEventListener("input", () => {
+        if (!state.bridgeUi.connected && !state.bridgeUi.connecting) {
+          syncGripperMappingControl();
+        }
+      });
+    }
+    if (ui.bridgeGripperMapping) {
+      ui.bridgeGripperMapping.addEventListener("change", () => {
+        if (!state.bridgeUi.connected && !state.bridgeUi.connecting) {
+          persistGripperMapping();
+        }
+      });
+    }
+    if (ui.bridgeToken) {
+      ui.bridgeToken.addEventListener("input", () => {
+        syncBridgeUx();
+        if (state.bridgeUi.authRequired && state.bridgeUi.tested && !state.bridgeUi.connected && bridgeTokenValue()) {
+          setBridgeStatus("Bridge token entered. Select the SO-101 port, then connect.", "ready");
+        }
+      });
+    }
+    if (ui.bridgeLocalNoToken) {
+      ui.bridgeLocalNoToken.addEventListener("change", () => {
+        state.bridgeUi.localNoToken = Boolean(ui.bridgeLocalNoToken.checked);
+        state.bridgeUi.localNoTokenRejected = false;
+        syncBridgeUx();
+        if (state.bridgeUi.localNoToken) {
+          setBridgeStatus("No-token local bridge selected. Use only with a bridge started using --no-token or -NoToken.", "warning");
+        } else if (state.bridgeUi.authRequired && state.bridgeUi.tested && !bridgeTokenValue()) {
+          setBridgeStatus("Enter the local bridge token before connecting.", "warning");
         }
       });
     }
   }
 
-  function switchActiveRobot(robotId) {
+  async function switchActiveRobot(robotId) {
     if (!NS.RobotRuntime) {
       NS.RobotRegistry.setActive(robotId);
       return;
     }
+    if (typeof NS.RobotRuntime.cancelLeaderSession === "function") {
+      try {
+        if (typeof NS.RobotRuntime.cancelRangeRecovery === "function") {
+          await NS.RobotRuntime.cancelRangeRecovery("mode_switch");
+        }
+        await NS.RobotRuntime.cancelLeaderSession("mode_switch");
+      } catch (error) {
+        await NS.RobotRuntime.stopHardware().catch(() => NS.RobotRuntime.stop());
+      }
+    }
+    if (
+      activeRobotId() === "so101_follower" &&
+      robotId !== "so101_follower" &&
+      NS.RobotRuntime.isBridgeConnected &&
+      NS.RobotRuntime.isBridgeConnected()
+    ) {
+      await NS.RobotRuntime.setBridgeSafetyConfirmed(false).catch(() => NS.RobotRuntime.stopHardware());
+    }
     NS.RobotRuntime.setActive(robotId);
+    if (robotId === "so101_follower") {
+      void restoreRetainedSo101Bridge();
+    }
   }
 
   async function applyManualRobotCommand(command) {
@@ -603,16 +1191,358 @@
         if (state.serial.isConnected() && state.motorsEnabled && !state.runner.isRunning()) {
           scheduleManualSend(servo, state.angles[servo], null, { debounceMs: 0, showStatus: true });
         }
-        return;
+        return { ok: true, state: null, error: null };
+      }
+    }
+    if (activeRobotId() === "so101_follower" && command.type !== "stop") {
+      const armed = Boolean(NS.RobotRuntime && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
+      if (!armed) {
+        setProgramStatus("SO-101 preview updated only. Connect, calibrate, and arm motion before hardware moves.");
+        return { ok: false, state: null, error: new Error("SO-101 is not armed for motion.") };
       }
     }
     try {
-      await NS.RobotRuntime.applyCommand(command);
+      const runtimeState = await NS.RobotRuntime.applyCommand(command);
+      syncBridgeUiFromRuntime();
       applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "manual-robot" });
       setProgramStatus(`${activeManifest().shortName || activeManifest().name}: ${command.type}`);
+      return { ok: true, state: runtimeState, error: null };
     } catch (error) {
-      setProgramStatus(`Robot command rejected: ${error.message}`);
+      syncBridgeUiFromRuntime();
+      const message = `Robot command rejected: ${error.message}`;
+      if (activeRobotId() === "so101_follower") {
+        if (error && error.code === "BRIDGE_OFFLINE") {
+          blockSo101BridgeCommands(
+            `Bridge connection lost during ${command.type || "motion"}. Hardware commands are blocked; test the bridge before reconnecting.`,
+            { lastError: error.message || "Bridge connection unavailable." }
+          );
+        } else {
+          setBridgeStatus(message, "error");
+        }
+      } else {
+        setProgramStatus(message);
+      }
+      return { ok: false, state: NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null, error };
     }
+  }
+
+  function syncBridgeUiFromRuntime() {
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    if (runtimeState && runtimeState.connection && activeRobotId() === "so101_follower") {
+      state.bridgeUi.connected = Boolean(runtimeState.connection.connected);
+      state.bridgeUi.calibrated = Boolean(runtimeState.connection.calibrated);
+      state.bridgeUi.armed = Boolean(runtimeState.connection.armedForMotion);
+      syncBridgeUx();
+    }
+    updateManualControlTelemetry(runtimeState);
+    return runtimeState;
+  }
+
+  function startBridgeTelemetryPolling() {
+    stopBridgeTelemetryPolling();
+    state.manualControl.telemetryFailures = 0;
+    state.manualControl.telemetryTimer = window.setInterval(() => {
+      if (
+        activeRobotId() !== "so101_follower" ||
+        !state.bridgeUi.connected ||
+        state.manualControl.telemetryInFlight ||
+        !NS.RobotRuntime ||
+        typeof NS.RobotRuntime.refreshBridgeState !== "function"
+      ) {
+        return;
+      }
+      state.manualControl.telemetryInFlight = true;
+      void NS.RobotRuntime.refreshBridgeState()
+        .then((runtimeState) => {
+          state.manualControl.telemetryFailures = 0;
+          applyBridgeUiPayload(runtimeState ? {
+            connected: runtimeState.connection.connected,
+            calibrated: runtimeState.connection.calibrated,
+            armed: runtimeState.connection.armedForMotion,
+            moving: runtimeState.connection.moving,
+            limitStatus: runtimeState.connection.limitStatus,
+            homeCompatible: runtimeState.connection.homeCompatible,
+            homeLimitErrors: runtimeState.connection.homeLimitErrors,
+            jointLimits: runtimeState.jointLimits,
+            joints: runtimeState.measuredJoints,
+            targetJoints: runtimeState.joints,
+            gripperMapping: runtimeState.gripperMapping,
+            homeControl: runtimeState.homeControl,
+            manualControl: runtimeState.manualControl,
+            status: runtimeState.connection.status,
+            lastError: runtimeState.connection.lastError
+          } : {});
+        })
+        .catch((error) => {
+          state.manualControl.telemetryFailures += 1;
+          if (state.manualControl.telemetryFailures < 3) {
+            setBridgeStatus(`Feedback interrupted (${state.manualControl.telemetryFailures}/3). Retrying…`, "warning");
+            updateManualControlMeta("Feedback unavailable · Retrying", "warning", "Measured feedback was interrupted. RoboBuddy is retrying without changing slider targets.");
+            return;
+          }
+          const offlineState = {
+            status: "BRIDGE_OFFLINE",
+            connected: false,
+            calibrated: false,
+            armed: false,
+            moving: false,
+            limitStatus: "unavailable",
+            jointLimits: {},
+            manualControl: { phase: "error", error: "Bridge state polling failed." },
+            lastError: error.message || "Bridge state polling failed."
+          };
+          blockSo101BridgeCommands(
+            "Bridge connection lost after 3 missed updates. Hardware commands are blocked; test the bridge to reconnect.",
+            offlineState
+          );
+        })
+        .finally(() => {
+          state.manualControl.telemetryInFlight = false;
+        });
+    }, 200);
+  }
+
+  function stopBridgeTelemetryPolling() {
+    clearInterval(state.manualControl.telemetryTimer);
+    state.manualControl.telemetryTimer = null;
+    state.manualControl.telemetryInFlight = false;
+  }
+
+  function updateManualControlMeta(text, tone, title) {
+    if (!ui.manualControlMeta || !ui.manualControlMetaText) {
+      return;
+    }
+    if (ui.manualControlMetaText.textContent !== text) {
+      ui.manualControlMetaText.textContent = text;
+    }
+    ui.manualControlMeta.dataset.tone = tone;
+    ui.manualControlMeta.setAttribute("aria-label", `${text}. ${title}`);
+    ui.manualControlMeta.removeAttribute("title");
+    if (ui.manualLimitInfo) {
+      const showLimitInfo = text.includes("Safe limits");
+      ui.manualLimitInfo.hidden = !showLimitInfo;
+      if (!showLimitInfo) {
+        setManualLimitDetailsExpanded(false);
+      }
+    }
+  }
+
+  function setManualLimitDetailsExpanded(expanded) {
+    if (!ui.manualLimitInfo || !ui.manualLimitDetails || !ui.manualControlMeta) {
+      return;
+    }
+    const next = Boolean(expanded && !ui.manualLimitInfo.hidden);
+    ui.manualLimitInfo.setAttribute("aria-expanded", next ? "true" : "false");
+    ui.manualLimitDetails.hidden = !next;
+    ui.manualControlMeta.dataset.expanded = next ? "true" : "false";
+  }
+
+  function showArmMotionRequiredHint() {
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const connection = runtimeState && runtimeState.connection ? runtimeState.connection : {};
+    if (!connection.connected || !connection.calibrated || connection.limitStatus !== "verified") {
+      setProgramStatus("Preview only. Connect the SO-101 and verify calibration before arming motion.");
+      return;
+    }
+    if (connection.armedForMotion) {
+      return;
+    }
+    const now = Date.now();
+    if (now - state.manualControl.lastArmHintAt < 900) {
+      return;
+    }
+    state.manualControl.lastArmHintAt = now;
+    updateManualControlMeta("Preview only · Arm motion is off", "warning", "Select Arm beside this status to authorize hardware movement for this session.");
+    setBridgeStatus("Preview only. Select Arm beside the Manual Control status to enable hardware movement.", "warning");
+    if (ui.manualArmAction) {
+      ui.manualArmAction.classList.add("is-attention");
+    }
+    const armLabel = ui.bridgeSafetyConfirm ? ui.bridgeSafetyConfirm.closest(".robot-bridge-panel__check--arm") : null;
+    if (armLabel) {
+      armLabel.classList.add("is-attention");
+    }
+    clearTimeout(state.manualControl.armHintTimer);
+    state.manualControl.armHintTimer = window.setTimeout(() => {
+      state.manualControl.armHintTimer = null;
+      if (ui.manualArmAction) {
+        ui.manualArmAction.classList.remove("is-attention");
+      }
+      if (armLabel) {
+        armLabel.classList.remove("is-attention");
+      }
+      updateManualControlTelemetry();
+    }, 2600);
+  }
+
+  function updateManualControlTelemetry(runtimeState = null) {
+    const current = runtimeState || (NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null);
+    const isSo101 = activeRobotId() === "so101_follower";
+    const connected = Boolean(isSo101 && current && current.connection && current.connection.connected);
+    const calibrated = Boolean(connected && current.connection.calibrated);
+    const armed = Boolean(connected && current.connection.armedForMotion);
+    const limitStatus = String((current && current.connection && current.connection.limitStatus) || "unavailable");
+    const manual = current && current.manualControl && typeof current.manualControl === "object" ? current.manualControl : {};
+    const homeControl = current && current.homeControl && typeof current.homeControl === "object" ? current.homeControl : {};
+    const phase = String(manual.phase || "idle");
+    const connectionStatus = String((current && current.connection && current.connection.status) || "").toUpperCase();
+    const connectionError = String((current && current.connection && current.connection.lastError) || "").trim();
+    updateBridgeLimitDiagnostics(current);
+
+    if (!isSo101) {
+      updateManualControlMeta("Preview · Default limits", "preview", "Default software limits are active.");
+    } else if (phase === "feedback_unavailable") {
+      updateManualControlMeta("Feedback unavailable", "error", "Measured joint feedback is unavailable. Target controls are not changed by stale feedback.");
+    } else if (!connected && limitStatus === "calibration_mismatch") {
+      updateManualControlMeta("Preview only · Calibration required", "error", "Hardware limits were read, but LeRobot calibration does not match the servo registers.");
+    } else if (limitStatus === "unsafe_range") {
+      updateManualControlMeta("Preview only · Safe range unavailable", "error", "A servo range is too narrow to apply the required safety inset.");
+    } else if (!connected) {
+      updateManualControlMeta("Preview · Default limits", "preview", "Default software limits are active.");
+    } else if (!calibrated || limitStatus !== "verified") {
+      updateManualControlMeta("Preview only · Calibration required", "error", "Motion is blocked until LeRobot calibration and hardware limits are verified.");
+    } else if (!armed) {
+      updateManualControlMeta("Connected · Not armed · Safe limits", "warning", "Targets stay 5° or 5% inside the servo-register limits. These limits do not detect self-collision.");
+    } else if (homeControl.phase === "moving") {
+      updateManualControlMeta("Moving Home · Safe limits", "live", "Home is converging through bounded LeRobot steps. STOP remains available.");
+    } else {
+      updateManualControlMeta("Live control · Safe limits", phase === "lagging" ? "warning" : "live", "Targets stay 5° or 5% inside the servo-register limits. These limits do not detect self-collision.");
+    }
+
+    if (ui.manualArmAction) {
+      const showArmAction = connected && calibrated && limitStatus === "verified" && !armed;
+      ui.manualArmAction.hidden = !showArmAction;
+      ui.manualArmAction.disabled = Boolean(state.bridgeUi.armPending);
+      ui.manualArmAction.textContent = state.bridgeUi.armPending ? "Arming…" : "Arm";
+      if (!showArmAction) {
+        ui.manualArmAction.classList.remove("is-attention");
+      }
+    }
+
+    const measured = current && current.measuredJoints ? current.measuredJoints : {};
+    activeJoints().forEach((joint, index) => {
+      const actual = document.getElementById(`actual${index}`);
+      if (!actual) {
+        return;
+      }
+      const hasMeasurement = connected && Object.prototype.hasOwnProperty.call(measured, joint.id);
+      actual.hidden = !hasMeasurement;
+      if (!hasMeasurement) {
+        actual.textContent = "Actual —";
+        actual.removeAttribute("data-phase");
+        return;
+      }
+      const isActiveJoint = manual.joint === joint.id;
+      const limit = current && current.jointLimits ? current.jointLimits[joint.id] : null;
+      const measuredValue = Number(measured[joint.id]);
+      const manualLimits = getManualJointLimits(joint, limit ? [Number(limit.min), Number(limit.max)] : [Number(joint.min), Number(joint.max)]);
+      const outsideSafe = Boolean(
+        limit && Number.isFinite(measuredValue) &&
+        (measuredValue < Number(limit.min) || measuredValue > Number(limit.max))
+      );
+      const outsideManual = Boolean(
+        Number.isFinite(measuredValue) &&
+        Number.isFinite(manualLimits[0]) && Number.isFinite(manualLimits[1]) &&
+        (measuredValue < manualLimits[0] || measuredValue > manualLimits[1])
+      );
+      const phaseLabels = {
+        queued: "Queued",
+        moving: "Moving",
+        reached: "Reached",
+        lagging: "Lagging",
+        cancelled: "Cancelled",
+        program: "Program",
+        error: "Error",
+        feedback_unavailable: "No feedback"
+      };
+      let suffix = "";
+      if (outsideSafe) {
+        suffix = " · Outside safe range";
+      } else if (outsideManual) {
+        suffix = " · Outside manual range";
+      } else if (isActiveJoint && phaseLabels[phase]) {
+        suffix = ` · ${phaseLabels[phase]}`;
+      }
+      actual.textContent = `Actual ${formatJointReadout(joint, measured[joint.id])}${suffix}`;
+      actual.title = isActiveJoint && manual.error ? String(manual.error) : "Measured position";
+      if (outsideSafe || outsideManual) {
+        actual.dataset.phase = "outside_safe";
+      } else if (isActiveJoint) {
+        actual.dataset.phase = phase;
+      } else {
+        actual.removeAttribute("data-phase");
+      }
+    });
+
+    if (["reached", "lagging", "cancelled", "error", "feedback_unavailable"].includes(phase) && state.manualControl.lastAnnouncedPhase !== phase) {
+      state.manualControl.lastAnnouncedPhase = phase;
+      const joint = activeJoints().find((item) => item.id === manual.joint);
+      const label = joint ? joint.label : "Joint";
+      const messages = {
+        reached: `${label} reached the requested target.`,
+        lagging: `${label} has not reached the requested target.`,
+        cancelled: `${label} live movement was cancelled.`,
+        error: `${label} live movement failed.`,
+        feedback_unavailable: `${label} measured feedback is unavailable.`
+      };
+      if (messages[phase]) {
+        setProgramStatus(messages[phase]);
+      }
+    } else if (phase === "moving" || phase === "queued") {
+      state.manualControl.lastAnnouncedPhase = "";
+    }
+    if (phase === "error" && manual.error && !armed) {
+      setBridgeStatus(`Motion disarmed: ${manual.error}`, "error");
+    } else if (
+      connected && !armed && connectionError &&
+      (connectionStatus === "ERROR" || /(?:hold|write|feedback).*failed|unavailable/i.test(connectionError))
+    ) {
+      setBridgeStatus(`Motion disarmed: ${connectionError}`, "error");
+    }
+    syncSliderLimitsFromJointLimits();
+    updateManualControlLockUi();
+  }
+
+  function updateBridgeLimitDiagnostics(runtimeState) {
+    if (!ui.bridgeLimitDiagnostics || !ui.bridgeLimitDiagnosticsRows || !ui.bridgeLimitDiagnosticsStatus) {
+      return;
+    }
+    const limits = runtimeState && runtimeState.jointLimits && typeof runtimeState.jointLimits === "object"
+      ? runtimeState.jointLimits
+      : {};
+    const rows = activeJoints()
+      .map((joint) => ({ joint, limit: limits[joint.id] }))
+      .filter(({ limit }) => limit && Number.isFinite(Number(limit.rawMin)) && Number.isFinite(Number(limit.rawMax)));
+    ui.bridgeLimitDiagnostics.hidden = rows.length === 0;
+    if (rows.length === 0) {
+      ui.bridgeLimitDiagnosticsRows.replaceChildren();
+      return;
+    }
+    const limitStatus = String((runtimeState.connection && runtimeState.connection.limitStatus) || "unavailable");
+    ui.bridgeLimitDiagnosticsStatus.textContent = limitStatus === "verified" ? "Safe · verified" : "Safe · unverified";
+    ui.bridgeLimitDiagnosticsRows.innerHTML = rows.map(({ joint, limit }) => {
+      const resolution = Number(limit.resolution);
+      const resolutionText = Number.isFinite(resolution) ? `${resolution} ticks/rev` : "resolution unavailable";
+      const hardwareMin = Number(limit.hardwareMin);
+      const hardwareMax = Number(limit.hardwareMax);
+      const hardwareRange = Number.isFinite(hardwareMin) && Number.isFinite(hardwareMax)
+        ? formatJointRange(joint, hardwareMin, hardwareMax)
+        : "hardware range unavailable";
+      const manualLimits = getManualJointLimits(joint, [Number(limit.min), Number(limit.max)]);
+      const hasManualOverride = Number.isFinite(manualLimits[0]) && Number.isFinite(manualLimits[1]) && (
+        Math.abs(manualLimits[0] - Number(limit.min)) > 0.001 ||
+        Math.abs(manualLimits[1] - Number(limit.max)) > 0.001
+      );
+      const manualRange = hasManualOverride
+        ? ` · Manual ${formatJointRange(joint, manualLimits[0], manualLimits[1])}`
+        : "";
+      const margin = Number(limit.margin);
+      const marginUnit = joint.unit === "percent" ? "%" : "°";
+      return `<div class="robot-bridge-panel__limit-row">
+        <span>${escapeHtml(joint.label)}</span>
+        <code>${escapeHtml(String(limit.rawMin))}–${escapeHtml(String(limit.rawMax))} ticks</code>
+        <small>Safe ${escapeHtml(formatJointRange(joint, Number(limit.min), Number(limit.max)))}${escapeHtml(manualRange)} · Hardware ${escapeHtml(hardwareRange)} · ${escapeHtml(formatNumericReadout(margin))}${marginUnit} inset · ${escapeHtml(resolutionText)}</small>
+      </div>`;
+    }).join("");
   }
 
   async function handleDriveButton(action) {
@@ -640,31 +1570,421 @@
     if (!NS.RobotRuntime || !ui.bridgeUrl) {
       return;
     }
-    const bridge = NS.RobotRuntime.createBridgeAdapter({ baseUrl: ui.bridgeUrl.value });
+    const bridge = NS.RobotRuntime.createBridgeAdapter({ baseUrl: ui.bridgeUrl.value, token: bridgeTokenValue() });
     try {
       const result = await bridge.health();
-      setBridgeStatus(`Bridge ${result.status || "READY"}`, "ready");
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.applyBridgeCapabilities === "function") {
+        NS.RobotRuntime.applyBridgeCapabilities(result);
+      }
+      state.bridgeUi.tested = true;
+      state.bridgeUi.authRequired = Boolean(result && result.authRequired);
+      if (!state.bridgeUi.authRequired) {
+        state.bridgeUi.localNoToken = true;
+        state.bridgeUi.localNoTokenRejected = false;
+      } else if (bridgeUsesLocalNoToken()) {
+        state.bridgeUi.localNoTokenRejected = true;
+      } else {
+        state.bridgeUi.localNoTokenRejected = false;
+      }
+      await loadBridgePorts(bridge);
+      if (state.bridgeUi.localNoTokenRejected) {
+        revealBridgeDiagnostics();
+        setBridgeStatus(noTokenLocalRejectedMessage(), "error");
+      } else if (bridgeRequiresToken() && !bridgeTokenValue()) {
+        revealBridgeDiagnostics();
+        setBridgeStatus(`Bridge ${result.status || "READY"}. Enter the local bridge token before connecting.`, "warning");
+      } else if (bridgeUsesLocalNoToken()) {
+        setBridgeStatus(`Bridge ${result.status || "READY"}. No-token local mode is active.`, "ready");
+      } else {
+        setBridgeStatus(`Bridge ${result.status || "READY"}`, "ready");
+      }
+      syncBridgeUx();
     } catch (error) {
+      state.bridgeUi.tested = false;
+      state.bridgeUi.authRequired = false;
+      state.bridgeUi.localNoTokenRejected = false;
       setBridgeStatus(error.message || "Bridge unavailable", "error");
+      syncBridgeUx();
     }
   }
 
   async function connectSo101Bridge() {
-    if (!NS.RobotRuntime || !ui.bridgeUrl) {
+    if (!NS.RobotRuntime || !ui.bridgeUrl || state.bridgeUi.connecting) {
       return;
     }
-    const bridge = NS.RobotRuntime.createBridgeAdapter({ baseUrl: ui.bridgeUrl.value });
+    const bridge = NS.RobotRuntime.createBridgeAdapter({ baseUrl: ui.bridgeUrl.value, token: bridgeTokenValue() });
+    const port = getBridgeSelectedPort();
+    if (bridgeRequiresToken() && !bridgeTokenValue()) {
+      revealBridgeDiagnostics();
+      setBridgeStatus("Enter the bridge token printed by PowerShell before connecting.", "error");
+      syncBridgeUx();
+      return;
+    }
+    if (!port) {
+      setBridgeStatus("Test the bridge, then select an SO-101 port before connecting.", "error");
+      syncBridgeUx();
+      return;
+    }
+    state.bridgeUi.connecting = true;
+    setBridgeStatus("Connecting to SO-101 and reading servo limits…", "warning");
+    updateManualControlMeta("Connecting · Reading limits", "warning", "Connecting to the bridge and reading servo position-limit registers.");
+    syncBridgeUx();
+    updateManualControlLockUi();
     try {
+      persistGripperMapping();
       const result = await bridge.connect("so101_follower", {
-        port: ui.bridgePort ? ui.bridgePort.value : "",
+        port,
         robotInstanceId: ui.bridgeRobotInstance ? ui.bridgeRobotInstance.value : "classroom_so101_01",
+        gripperMapping: selectedGripperMapping(),
         dryRun: false
       });
+      const description = NS.RobotRuntime.describeBridgeConnectionResult(result);
+      const bridgeState = description.ok ? result : { ...result, connected: false, calibrated: false };
       NS.RobotRuntime.setMode("local_bridge");
-      NS.RobotRuntime.setBridgeConnected(result);
-      setBridgeStatus(result.status || "CONNECTED", "ready");
+      NS.RobotRuntime.applyBridgeState(bridgeState);
+      applyBridgeUiPayload(bridgeState);
+      setBridgeStatus(description.message, description.tone);
+      if (bridgeState.connected) {
+        if (NS.RobotRuntime && typeof NS.RobotRuntime.rememberBridgeSession === "function") {
+          NS.RobotRuntime.rememberBridgeSession({
+            bridgeUrl: ui.bridgeUrl.value,
+            authRequired: state.bridgeUi.authRequired,
+            noTokenLocal: !state.bridgeUi.authRequired
+          });
+        }
+        startBridgeTelemetryPolling();
+      }
     } catch (error) {
+      state.bridgeUi.connected = false;
+      state.bridgeUi.calibrated = false;
+      state.bridgeUi.armed = false;
+      if (/Bridge token required/i.test(error.message || "")) {
+        state.bridgeUi.authRequired = true;
+        if (bridgeUsesLocalNoToken()) {
+          state.bridgeUi.localNoTokenRejected = true;
+          revealBridgeDiagnostics();
+          setBridgeStatus(noTokenLocalRejectedMessage(), "error");
+          syncBridgeUx();
+          return;
+        }
+        state.bridgeUi.localNoTokenRejected = false;
+      }
       setBridgeStatus(error.message || "SO-101 bridge connection failed", "error");
+    } finally {
+      state.bridgeUi.connecting = false;
+      syncBridgeUx();
+      updateManualControlLockUi();
+    }
+  }
+
+  async function disconnectSo101Bridge() {
+    stopBridgeTelemetryPolling();
+    const bridge = NS.RobotRuntime && NS.RobotRuntime.getBridgeAdapter ? NS.RobotRuntime.getBridgeAdapter() : null;
+    if (!bridge) {
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.forgetBridgeSession === "function") {
+        NS.RobotRuntime.forgetBridgeSession();
+      }
+      resetBridgeUiState({ keepTested: true });
+      setBridgeStatus("SO-101 disconnected", "warning");
+      return;
+    }
+    try {
+      await clearManualSessionState("disconnect");
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.cancelRangeRecovery === "function") {
+        await NS.RobotRuntime.cancelRangeRecovery("disconnect");
+      }
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.cancelLeaderSession === "function") {
+        await NS.RobotRuntime.cancelLeaderSession("disconnect");
+      }
+      const result = await bridge.disconnect("so101_follower");
+      if (NS.RobotRuntime.invalidateBridgeConnection) {
+        NS.RobotRuntime.invalidateBridgeConnection(result);
+      } else {
+        NS.RobotRuntime.applyBridgeState(result);
+      }
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.forgetBridgeSession === "function") {
+        NS.RobotRuntime.forgetBridgeSession();
+      }
+      resetBridgeUiState({ keepTested: state.bridgeUi.tested, keepPorts: true });
+      setBridgeStatus("SO-101 disconnected", "warning");
+    } catch (error) {
+      const disconnectDetail = String(error.message || "bridge unavailable").trim().replace(/[.\s]+$/, "");
+      blockSo101BridgeCommands(
+        `Disconnect could not be confirmed: ${disconnectDetail}. Hardware commands are blocked; verify the arm is stationary before reconnecting.`,
+        { lastError: error.message || "Disconnect failed." }
+      );
+    }
+  }
+
+  async function restoreRetainedSo101Bridge() {
+    if (
+      activeRobotId() !== "so101_follower" ||
+      !NS.RobotRuntime ||
+      typeof NS.RobotRuntime.hasBridgeSession !== "function" ||
+      !NS.RobotRuntime.hasBridgeSession() ||
+      typeof NS.RobotRuntime.reattachBridgeSession !== "function"
+    ) {
+      return false;
+    }
+
+    const descriptor = NS.RobotRuntime.readBridgeSession ? NS.RobotRuntime.readBridgeSession() : null;
+    if (descriptor && ui.bridgeUrl) {
+      ui.bridgeUrl.value = descriptor.bridgeUrl;
+    }
+    if (ui.bridgeLocalNoToken) {
+      ui.bridgeLocalNoToken.checked = true;
+    }
+    state.bridgeUi.localNoToken = true;
+    state.bridgeUi.connecting = true;
+    setBridgeStatus("Reattaching to the retained SO-101 bridge...", "warning");
+    syncBridgeUx();
+    try {
+      const result = await NS.RobotRuntime.reattachBridgeSession({ disarm: true });
+      if (!result.attached) {
+        const detail = result.error && result.error.message
+          ? result.error.message
+          : "The retained bridge session is no longer connected. Test the bridge and reconnect the SO-101.";
+        state.bridgeUi.tested = result.status !== "BRIDGE_OFFLINE";
+        resetBridgeUiState({ keepTested: state.bridgeUi.tested, keepPorts: true });
+        setBridgeStatus(detail, "error");
+        return false;
+      }
+
+      const bridgeState = result.bridgeState || {};
+      state.bridgeUi.tested = true;
+      state.bridgeUi.authRequired = false;
+      state.bridgeUi.localNoToken = true;
+      state.bridgeUi.localNoTokenRejected = false;
+      const bridge = NS.RobotRuntime.getBridgeAdapter ? NS.RobotRuntime.getBridgeAdapter() : null;
+      await loadBridgePorts(bridge);
+      if (ui.bridgePortSelect && bridgeState.port) {
+        ui.bridgePortSelect.value = bridgeState.port;
+      }
+      if (ui.bridgeRobotInstance && bridgeState.robotInstanceId) {
+        ui.bridgeRobotInstance.value = bridgeState.robotInstanceId;
+      }
+      if (ui.bridgeGripperMapping && bridgeState.gripperMapping) {
+        ui.bridgeGripperMapping.value = bridgeState.gripperMapping;
+      }
+      applyBridgeUiPayload(bridgeState);
+      setBridgeStatus("SO-101 connection retained. Motion is disarmed for this page; arm it explicitly before moving.", "ready");
+      startBridgeTelemetryPolling();
+      return true;
+    } finally {
+      state.bridgeUi.connecting = false;
+      syncBridgeUx();
+      updateManualControlLockUi();
+    }
+  }
+
+  async function loadBridgePorts(bridge) {
+    if (!ui.bridgePortSelect || !bridge || typeof bridge.listPorts !== "function") {
+      return;
+    }
+    try {
+      const result = await bridge.listPorts();
+      const ports = Array.isArray(result.ports) ? result.ports : [];
+      state.bridgeUi.portsLoaded = true;
+      ui.bridgePortSelect.innerHTML = ports.length
+        ? ports.map((port) => `<option value="${escapeHtml(port.port)}">${escapeHtml(port.port)} - ${escapeHtml(port.label || port.port)}</option>`).join("")
+        : `<option value="">${result.status === "PYSERIAL_NOT_INSTALLED" ? "Install bridge extras to list ports" : "No SO-101 ports found"}</option>`;
+    } catch (error) {
+      state.bridgeUi.portsLoaded = false;
+      ui.bridgePortSelect.innerHTML = `<option value="">Port list unavailable</option>`;
+    }
+  }
+
+  function getBridgeSelectedPort() {
+    return ui.bridgePortSelect ? String(ui.bridgePortSelect.value || "").trim() : "";
+  }
+
+  function normalizedRobotInstanceId() {
+    const value = ui.bridgeRobotInstance ? ui.bridgeRobotInstance.value : "classroom_so101_01";
+    return String(value || "classroom_so101_01").trim().toLowerCase() || "classroom_so101_01";
+  }
+
+  function readGripperMappings() {
+    try {
+      const value = JSON.parse(localStorage.getItem(GRIPPER_MAPPING_STORAGE_KEY) || "{}");
+      return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function selectedGripperMapping() {
+    const value = ui.bridgeGripperMapping ? ui.bridgeGripperMapping.value : "closed_at_min";
+    return value === "closed_at_max" ? "closed_at_max" : "closed_at_min";
+  }
+
+  function syncGripperMappingControl() {
+    if (!ui.bridgeGripperMapping) {
+      return;
+    }
+    const mappings = readGripperMappings();
+    const stored = mappings[normalizedRobotInstanceId()];
+    ui.bridgeGripperMapping.value = stored === "closed_at_max" ? "closed_at_max" : "closed_at_min";
+  }
+
+  function persistGripperMapping() {
+    const mappings = readGripperMappings();
+    mappings[normalizedRobotInstanceId()] = selectedGripperMapping();
+    try {
+      localStorage.setItem(GRIPPER_MAPPING_STORAGE_KEY, JSON.stringify(mappings));
+    } catch (error) {
+      // The active selection still applies to this connection when storage is unavailable.
+    }
+  }
+
+  function applyBridgeUiPayload(payload = {}) {
+    state.bridgeUi.lastPayload = payload;
+    state.bridgeUi.connected = Boolean(payload.connected);
+    state.bridgeUi.calibrated = Boolean(payload.calibrated);
+    state.bridgeUi.armed = Boolean(NS.RobotRuntime && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
+    state.bridgeUi.localNoTokenRejected = false;
+    syncBridgeUx();
+    if ((payload.targetJoints || payload.joints) && state.manualControl.activeServo === null && !state.manualControl.streamPending) {
+      applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "bridge-state" });
+    }
+    updateManualControlTelemetry();
+  }
+
+  function resetBridgeUiState(options = {}) {
+    stopBridgeTelemetryPolling();
+    state.bridgeUi.tested = Boolean(options.keepTested && state.bridgeUi.tested);
+    state.bridgeUi.portsLoaded = Boolean(options.keepPorts && state.bridgeUi.portsLoaded);
+    state.bridgeUi.connected = false;
+    state.bridgeUi.calibrated = false;
+    state.bridgeUi.armed = false;
+    state.bridgeUi.connecting = false;
+    state.bridgeUi.armPending = false;
+    state.bridgeUi.homePending = false;
+    state.manualControl.telemetryFailures = 0;
+    if (!options.keepTested) {
+      state.bridgeUi.authRequired = false;
+      state.bridgeUi.localNoToken = false;
+      state.bridgeUi.localNoTokenRejected = false;
+    }
+    state.bridgeUi.lastPayload = null;
+    if (ui.bridgeSafetyConfirm) {
+      ui.bridgeSafetyConfirm.checked = false;
+    }
+    if (NS.RobotRuntime && NS.RobotRuntime.setBridgeSafetyConfirmed) {
+      void NS.RobotRuntime.setBridgeSafetyConfirmed(false);
+    }
+    syncBridgeUx();
+  }
+
+  function blockSo101BridgeCommands(message, payload = {}) {
+    stopBridgeTelemetryPolling();
+    void clearManualSessionState("bridge_offline", { sendCancel: false });
+    const detail = payload.lastError || payload.error || "Bridge connection unavailable.";
+    const offlineState = {
+      ...payload,
+      status: "BRIDGE_OFFLINE",
+      connected: false,
+      calibrated: false,
+      armed: false,
+      moving: false,
+      limitStatus: "unavailable",
+      jointLimits: {},
+      manualControl: payload.manualControl || {
+        phase: "error",
+        error: detail
+      },
+      lastError: detail
+    };
+    if (NS.RobotRuntime && typeof NS.RobotRuntime.invalidateBridgeConnection === "function") {
+      NS.RobotRuntime.invalidateBridgeConnection(offlineState);
+    } else if (NS.RobotRuntime && typeof NS.RobotRuntime.applyBridgeState === "function") {
+      NS.RobotRuntime.applyBridgeState(offlineState);
+    }
+    resetBridgeUiState({ keepTested: false, keepPorts: true });
+    setBridgeStatus(message, "error");
+    updateManualControlMeta("Feedback unavailable", "error", "Hardware commands are blocked until the bridge is tested and reconnected.");
+  }
+
+  function syncBridgeUx() {
+    if (!ui.robotBridgePanel) {
+      return;
+    }
+    const isSo101 = activeRobotId() === "so101_follower";
+    ui.robotBridgePanel.hidden = !isSo101;
+    if (ui.manualControlsCard) {
+      ui.manualControlsCard.classList.toggle("has-bridge-controls", isSo101);
+    }
+    if (!isSo101) {
+      return;
+    }
+    const hasPort = Boolean(getBridgeSelectedPort());
+    const connected = state.bridgeUi.connected;
+    const calibrated = state.bridgeUi.calibrated;
+    const connecting = state.bridgeUi.connecting;
+    const armPending = state.bridgeUi.armPending;
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const limitVerified = Boolean(runtimeState && runtimeState.connection && runtimeState.connection.limitStatus === "verified");
+    const bridgePayloadStatus = String((state.bridgeUi.lastPayload && state.bridgeUi.lastPayload.status) || "").toUpperCase();
+    const calibrationBlocked = bridgePayloadStatus === "NEEDS_CALIBRATION" || (connected && (!calibrated || !limitVerified));
+    const needsToken = Boolean(bridgeRequiresToken() && !bridgeTokenValue());
+    const noTokenRejected = Boolean(bridgeUsesLocalNoToken() && state.bridgeUi.localNoTokenRejected);
+    const armed = Boolean(NS.RobotRuntime && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
+    state.bridgeUi.armed = armed;
+    ui.robotBridgePanel.dataset.authRequired = state.bridgeUi.authRequired ? "true" : "false";
+    ui.robotBridgePanel.dataset.localNoToken = bridgeUsesLocalNoToken() ? "true" : "false";
+    ui.robotBridgePanel.dataset.localNoTokenRejected = noTokenRejected ? "true" : "false";
+    if (needsToken || noTokenRejected) {
+      revealBridgeDiagnostics();
+    }
+    setBridgeStep(ui.bridgeStepBridge, state.bridgeUi.tested ? "ready" : "pending");
+    setBridgeStep(ui.bridgeStepPort, hasPort ? "ready" : (state.bridgeUi.tested ? "warning" : "pending"));
+    setBridgeStep(ui.bridgeStepCalibration, calibrated && limitVerified ? "ready" : (calibrationBlocked ? "error" : "pending"));
+    setBridgeStep(ui.bridgeStepMotion, armed ? "ready" : (connected && calibrated ? "warning" : "pending"));
+    if (ui.btnBridgeHealth) {
+      ui.btnBridgeHealth.hidden = connected;
+      ui.btnBridgeHealth.disabled = connecting;
+    }
+    if (ui.btnBridgeConnect) {
+      ui.btnBridgeConnect.hidden = false;
+      ui.btnBridgeConnect.disabled = connecting || connected || !state.bridgeUi.tested || !hasPort || needsToken || noTokenRejected;
+    }
+    if (ui.btnBridgeDisconnect) {
+      ui.btnBridgeDisconnect.hidden = false;
+      ui.btnBridgeDisconnect.disabled = connecting || !connected;
+    }
+    if (ui.bridgeSafetyConfirm) {
+      ui.bridgeSafetyConfirm.disabled = armPending || !connected || !calibrated || !limitVerified;
+      ui.bridgeSafetyConfirm.checked = armed;
+    }
+    if (ui.bridgeToken) {
+      ui.bridgeToken.disabled = bridgeUsesLocalNoToken();
+    }
+    if (ui.bridgeLocalNoToken) {
+      ui.bridgeLocalNoToken.checked = bridgeUsesLocalNoToken();
+    }
+    if (ui.bridgePortSelect) {
+      ui.bridgePortSelect.disabled = connecting || connected;
+    }
+    if (ui.bridgeRobotInstance) {
+      ui.bridgeRobotInstance.disabled = connecting || connected;
+    }
+    if (ui.bridgeGripperMapping) {
+      ui.bridgeGripperMapping.disabled = connecting || connected;
+    }
+    syncExecutionTarget();
+  }
+
+  function setBridgeStep(element, stateName) {
+    if (element) {
+      const label = String(element.dataset.label || element.textContent || "").trim() || "Step";
+      const stateLabel = {
+        pending: "pending",
+        ready: "ready",
+        warning: "waiting",
+        error: "blocked"
+      }[stateName] || stateName;
+      element.dataset.state = stateName;
+      element.title = `${label}: ${stateLabel}`;
+      element.setAttribute("aria-label", `${label}: ${stateLabel}`);
     }
   }
 
@@ -673,7 +1993,43 @@
       ui.bridgeStatus.textContent = text;
       ui.bridgeStatus.dataset.tone = tone || "warning";
     }
+    if (ui.drawerBridgeSummary) {
+      ui.drawerBridgeSummary.textContent = text;
+      ui.drawerBridgeSummary.dataset.tone = tone || "warning";
+    }
     setProgramStatus(text);
+    if (tone === "error") {
+      updateStatusIcon("alert-triangle", false, true);
+    } else if (tone === "ready") {
+      updateStatusIcon("circle-check", false, false);
+    } else {
+      updateStatusIcon("alert-triangle", false, false, true);
+    }
+  }
+
+  function bridgeTokenValue() {
+    if (bridgeUsesLocalNoToken()) {
+      return "";
+    }
+    return ui.bridgeToken ? String(ui.bridgeToken.value || "").trim() : "";
+  }
+
+  function bridgeUsesLocalNoToken() {
+    return Boolean(state.bridgeUi.localNoToken);
+  }
+
+  function bridgeRequiresToken() {
+    return Boolean(state.bridgeUi.authRequired && !bridgeUsesLocalNoToken());
+  }
+
+  function noTokenLocalRejectedMessage() {
+    return "This bridge is still token-protected. Restart it with --no-token or -NoToken, then click Test Bridge, or uncheck No-token local and enter the token.";
+  }
+
+  function revealBridgeDiagnostics() {
+    if (ui.bridgeDiagnostics) {
+      ui.bridgeDiagnostics.open = true;
+    }
   }
 
   function slugJoint(value) {
@@ -702,11 +2058,11 @@
       }
 
       const btnSpan = ui.btnConnect.querySelector("span");
-      if (btnSpan) {
+      if (btnSpan && isArduinoActive()) {
         btnSpan.textContent = connected ? "Disconnect" : "Connect";
       }
       const btnIcon = ui.btnConnect.querySelector("[data-lucide]");
-      if (btnIcon && window.lucide) {
+      if (btnIcon && window.lucide && isArduinoActive()) {
         btnIcon.setAttribute("data-lucide", connected ? "unlink" : "plug");
         lucide.createIcons({ nodes: [btnIcon] });
       }
@@ -830,6 +2186,58 @@
     ui.armPreview.classList.toggle("is-dragging", Boolean(isDragging));
   }
 
+  async function triggerEmergencyStop(source = "ui") {
+    const replayingTeach = state.teach.phase === TEACH_PHASE.REPLAYING;
+    if (NS.VirtualLeaderUI && typeof NS.VirtualLeaderUI.retireForEmergencyStop === "function") {
+      NS.VirtualLeaderUI.retireForEmergencyStop(source);
+    }
+    state.runner.stop();
+    if (NS.RobotRuntime) {
+      NS.RobotRuntime.stop();
+    }
+    clearPendingManualSends();
+    clearManualSessionState();
+    if (replayingTeach) {
+      state.teach.replayStopRequested = true;
+    } else {
+      setControlOwner(CONTROL_OWNER.IDLE);
+    }
+    let so101StopConfirmed = false;
+    try {
+      if (!isArduinoActive() && activeRobotId() === "so101_follower" && NS.RobotRuntime && NS.RobotRuntime.stopHardware) {
+        const stopResult = await NS.RobotRuntime.stopHardware();
+        const confirmation = stopResult && stopResult.stopConfirmation;
+        so101StopConfirmed = !confirmation || confirmation.hardwareRequired !== true || confirmation.hardwareConfirmed === true;
+        if (!so101StopConfirmed) {
+          throw new Error("SO-101 hardware STOP was not confirmed.");
+        }
+        applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "bridge-stop" });
+        syncBridgeUx();
+      }
+      if (state.serial.isConnected()) {
+        await state.serial.emergencyStop();
+      }
+      await setMotorsEnabled(false, { sendCommand: false, showStatus: false });
+      if (replayingTeach) {
+        setProgramStatus("Emergency stop triggered. Stopping teach replay...");
+        updateTeachControlsUi();
+        updateProgramControlUi();
+      } else {
+        const controllerSource = source === "gamepad" || source === "leader_fallback";
+        setProgramStatus(`Emergency stop triggered${controllerSource ? " by controller" : ""}`);
+      }
+    } catch (error) {
+      if (activeRobotId() === "so101_follower" && !so101StopConfirmed) {
+        const stopDetail = String(error.message || "bridge unavailable").trim().replace(/[.\s]+$/, "");
+        const message = `STOP could not be confirmed: ${stopDetail}. Hardware commands are blocked locally; verify the arm is stationary before reconnecting.`;
+        blockSo101BridgeCommands(message, { lastError: error.message || "STOP failed." });
+        setProgramStatus(message);
+      } else {
+        setProgramStatus(`Emergency stop failed: ${error.message}`);
+      }
+    }
+  }
+
   function wireButtons() {
     ui.btnConnect.addEventListener("click", async () => {
       await handleConnectToggle();
@@ -837,11 +2245,53 @@
 
     ui.btnHome.addEventListener("click", async () => {
       if (!isArduinoActive()) {
+        if (activeRobotId() === "so101_follower" && NS.RobotRuntime && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed()) {
+          if (state.bridgeUi.homePending) {
+            return;
+          }
+          const label = ui.btnHome.querySelector("span");
+          state.bridgeUi.homePending = true;
+          ui.btnHome.setAttribute("aria-busy", "true");
+          if (label) label.textContent = "Moving…";
+          setBridgeStatus("Moving to Compact Home through bounded servo steps…", "warning");
+          setProgramStatus("Moving to Compact Home…");
+          updateManualControlLockUi();
+          updateProgramControlUi();
+          try {
+            const result = await applyManualRobotCommand({ type: "home", robotId: "so101_follower" });
+            const runtimeState = result.state || (NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null);
+            const homeControl = runtimeState && runtimeState.homeControl ? runtimeState.homeControl : {};
+            const phase = String(homeControl.phase || (result.ok ? "reached" : "error"));
+            if (phase === "reached") {
+              setBridgeStatus("Compact Home reached.", "ready");
+              setProgramStatus("SO-101 Compact Home reached");
+            } else if (phase === "lagging") {
+              setBridgeStatus("Home lagging: one or more joints remain outside tolerance.", "warning");
+              setProgramStatus("SO-101 Home lagging");
+            } else if (phase === "cancelled") {
+              setBridgeStatus("Home cancelled. Motion remains disarmed.", "warning");
+              setProgramStatus("SO-101 Home cancelled");
+            } else {
+              const detail = homeControl.error || (result.error && result.error.message) || "Home failed.";
+              setBridgeStatus(`Home failed: ${detail}`, "error");
+              setProgramStatus(`SO-101 Home failed: ${detail}`);
+            }
+          } finally {
+            state.bridgeUi.homePending = false;
+            ui.btnHome.removeAttribute("aria-busy");
+            if (label) label.textContent = "Move Arm Home";
+            updateManualControlLockUi();
+            updateProgramControlUi();
+          }
+          return;
+        }
         if (NS.RobotRuntime) {
           NS.RobotRuntime.home();
           applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "home" });
         }
-        setProgramStatus(`${activeManifest().shortName || activeManifest().name} moved to home pose`);
+        setProgramStatus(activeRobotId() === "so101_follower"
+          ? "SO-101 preview moved to home. Arm motion is not armed."
+          : `${activeManifest().shortName || activeManifest().name} moved to home pose`);
         return;
       }
       if (!ensureMotionAllowed()) {
@@ -864,35 +2314,7 @@
       });
     }
 
-    ui.btnEmergencyStop.addEventListener("click", async () => {
-      const replayingTeach = state.teach.phase === TEACH_PHASE.REPLAYING;
-      state.runner.stop();
-      if (NS.RobotRuntime) {
-        NS.RobotRuntime.stop();
-      }
-      clearPendingManualSends();
-      clearManualSessionState();
-      if (replayingTeach) {
-        state.teach.replayStopRequested = true;
-      } else {
-        setControlOwner(CONTROL_OWNER.IDLE);
-      }
-      try {
-        if (state.serial.isConnected()) {
-          await state.serial.emergencyStop();
-        }
-        await setMotorsEnabled(false, { sendCommand: false, showStatus: false });
-        if (replayingTeach) {
-          setProgramStatus("Emergency stop triggered. Stopping teach replay...");
-          updateTeachControlsUi();
-          updateProgramControlUi();
-        } else {
-          setProgramStatus("Emergency stop triggered");
-        }
-      } catch (error) {
-        setProgramStatus(`Emergency stop failed: ${error.message}`);
-      }
-    });
+    ui.btnEmergencyStop.addEventListener("click", () => void triggerEmergencyStop("button"));
 
     ui.btnRun.addEventListener("click", () => {
       void runProgram();
@@ -941,7 +2363,7 @@
         const expanded = ui.indexConsoleToggle.getAttribute("aria-expanded") === "true";
         setIndexConsoleExpanded(!expanded);
       });
-      setIndexConsoleExpanded(false);
+      setIndexConsoleExpanded(true, { force: true });
     }
 
     if (ui.teachModeEnabled) {
@@ -1086,11 +2508,19 @@
       const servo = Number.parseInt(slider.dataset.servo, 10);
       const jointId = slider.dataset.joint || String(servo);
 
-      slider.addEventListener("pointerdown", () => {
+      slider.addEventListener("pointerdown", (event) => {
         if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
           showProgramLockHint();
           return;
         }
+        if (event && Number.isFinite(event.pointerId) && slider.setPointerCapture) {
+          try {
+            slider.setPointerCapture(event.pointerId);
+          } catch (error) {
+            // Some browser range controls decline pointer capture; release commits still use change/pointerup.
+          }
+        }
+        state.manualControl.pointerActive = true;
         startManualSession(servo);
       });
 
@@ -1103,7 +2533,8 @@
         const token = startManualSession(servo);
         cancelPendingManualSendsExcept(servo);
         const target = event.target;
-        const angle = clampAngle(servo, Number.parseInt(target.value, 10));
+        const angle = quantizeJointValue(servo, clampAngle(servo, Number.parseFloat(target.value)));
+        target.value = String(angle);
         state.angles[servo] = angle;
         updateSliderValue(servo, angle);
         updateSliderFill(target);
@@ -1112,12 +2543,23 @@
         scheduleTeachDragCapture();
 
         if (!isArduinoActive()) {
-          void applyManualRobotCommand({ type: "move_joint", robotId: activeRobotId(), joint: jointId, value: angle, speed: MANUAL_SEND_SPEED });
+          if (activeRobotId() === "so101_follower" && NS.RobotRuntime && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed()) {
+            queueBridgeManualTarget(servo, jointId, angle, false);
+            setProgramStatus(`Live target: ${getServoName(servo)} ${formatNumericReadout(angle)}`);
+          } else {
+            if (activeRobotId() === "so101_follower") {
+              showArmMotionRequiredHint();
+            } else {
+              setProgramStatus("Preview updated.");
+            }
+          }
         } else if (state.serial.isConnected() && !state.runner.isRunning() && state.motorsEnabled) {
           scheduleManualSend(servo, angle, token);
         }
 
-        scheduleManualSessionRelease();
+        if (!state.manualControl.pointerActive && !state.manualControl.keyboardActive) {
+          scheduleManualSessionRelease(1000);
+        }
       });
 
       slider.addEventListener("change", (event) => {
@@ -1125,9 +2567,11 @@
           showProgramLockHint();
           return;
         }
+        state.manualControl.pointerActive = false;
+        state.manualControl.keyboardActive = false;
 
         if (!isArduinoActive()) {
-          scheduleManualSessionRelease();
+          commitManualSliderTarget(event.target, servo, jointId);
           return;
         }
 
@@ -1159,9 +2603,215 @@
       });
 
       slider.addEventListener("blur", () => {
+        const interrupted = state.manualControl.pointerActive || state.manualControl.keyboardActive;
+        state.manualControl.pointerActive = false;
+        state.manualControl.keyboardActive = false;
+        if (interrupted && activeRobotId() === "so101_follower") {
+          void clearManualSessionState("focus_lost");
+          setProgramStatus("Live control cancelled because the slider lost focus.");
+          return;
+        }
         scheduleManualSessionRelease();
       });
+
+      slider.addEventListener("pointerup", (event) => {
+        state.manualControl.pointerActive = false;
+        if (isArduinoActive()) {
+          return;
+        }
+        commitManualSliderTarget(event.currentTarget, servo, jointId);
+      });
+
+      slider.addEventListener("pointercancel", () => {
+        if (!state.manualControl.pointerActive) {
+          return;
+        }
+        state.manualControl.pointerActive = false;
+        if (isArduinoActive()) {
+          scheduleManualSessionRelease();
+          return;
+        }
+        void clearManualSessionState("pointer_cancelled");
+        setProgramStatus("Live control cancelled after an interrupted pointer gesture.");
+      });
+
+      slider.addEventListener("keyup", (event) => {
+        if (isArduinoActive()) {
+          return;
+        }
+        const commitKeys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", "Enter", " "];
+        if (commitKeys.includes(event.key)) {
+          state.manualControl.keyboardActive = false;
+          commitManualSliderTarget(event.currentTarget, servo, jointId);
+        }
+      });
+
+      slider.addEventListener("keydown", (event) => {
+        if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
+          showProgramLockHint();
+          return;
+        }
+        const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
+        if (!keys.includes(event.key)) {
+          return;
+        }
+        state.manualControl.keyboardActive = true;
+        event.preventDefault();
+        const limits = getManualSliderLimits(servo);
+        const direction = event.key === "ArrowLeft" || event.key === "ArrowDown" ? -1 : 1;
+        const increment = event.shiftKey ? 5 : 1;
+        let next = Number.parseFloat(event.currentTarget.value);
+        if (event.key === "Home") {
+          next = limits[0];
+        } else if (event.key === "End") {
+          next = limits[1];
+        } else {
+          next += direction * increment;
+        }
+        next = quantizeJointValue(servo, clampAngle(servo, next));
+        event.currentTarget.value = String(next);
+        event.currentTarget.dispatchEvent(new Event("input", { bubbles: true }));
+      });
     });
+
+    if (document.documentElement.dataset.manualVisibilityWired !== "true") {
+      document.documentElement.dataset.manualVisibilityWired = "true";
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "hidden" || activeRobotId() !== "so101_follower") {
+          return;
+        }
+        const interactionActive = state.manualControl.activeServo !== null || state.manualControl.streamPending || state.manualControl.streamInFlight;
+        if (interactionActive) {
+          void clearManualSessionState("page_hidden");
+        }
+      });
+    }
+  }
+
+  function commitManualSliderTarget(target, servo, jointId) {
+    if (!target) {
+      scheduleManualSessionRelease();
+      return;
+    }
+    if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
+      showProgramLockHint();
+      return;
+    }
+
+    startManualSession(servo);
+    cancelPendingManualSendsExcept(servo);
+    const angle = quantizeJointValue(servo, clampAngle(servo, Number.parseFloat(target.value)));
+    state.angles[servo] = angle;
+    target.value = String(angle);
+    updateSliderValue(servo, angle);
+    updateSliderFill(target);
+    syncActivePreviewFromAngles();
+    updateMotorDebugUi();
+
+    const robotId = activeRobotId();
+    const commandJointId = jointId || target.dataset.joint || String(servo);
+    const historyKey = `${robotId}:${commandJointId}`;
+    const commitKey = `${historyKey}:${angle}`;
+    const now = Date.now();
+    const lastCommit = state.manualSliderCommitHistory.get(historyKey);
+    if (lastCommit && lastCommit.key === commitKey && now - lastCommit.at < MANUAL_SLIDER_COMMIT_DEDUPE_MS) {
+      scheduleManualSessionRelease();
+      return;
+    }
+    state.manualSliderCommitHistory.set(historyKey, { key: commitKey, at: now });
+
+    captureTeachReleaseKeyframe();
+    if (robotId === "so101_follower") {
+      if (NS.RobotRuntime && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed()) {
+        setProgramStatus(`Final live target: ${getServoName(servo)} ${formatNumericReadout(angle)}`);
+        queueBridgeManualTarget(servo, commandJointId, angle, true);
+      } else {
+        showArmMotionRequiredHint();
+      }
+      scheduleManualSessionRelease();
+      return;
+    }
+    setProgramStatus(robotId === "so101_follower"
+      ? `Sending SO-101 target: ${getServoName(servo)} ${formatNumericReadout(angle)}`
+      : `${activeManifest().shortName || activeManifest().name}: ${getServoName(servo)} ${formatNumericReadout(angle)}`);
+    void applyManualRobotCommand({ type: "move_joint", robotId, joint: commandJointId, value: angle, speed: MANUAL_SEND_SPEED })
+      .finally(() => {
+        scheduleManualSessionRelease();
+      });
+  }
+
+  function quantizeJointValue(servo, value) {
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const joint = activeJoints()[servo];
+    const limit = runtimeState && runtimeState.jointLimits && joint ? runtimeState.jointLimits[joint.id] : null;
+    const step = Number(limit && limit.step);
+    const min = Number(limit && limit.min);
+    if (!Number.isFinite(step) || step <= 0 || !Number.isFinite(min)) {
+      return Math.round(clampManualSliderValue(servo, value) * 10) / 10;
+    }
+    const quantized = min + Math.round((Number(value) - min) / step) * step;
+    return Math.round(clampManualSliderValue(servo, quantized) * 10000) / 10000;
+  }
+
+  function queueBridgeManualTarget(servo, jointId, value, final) {
+    if (!NS.RobotRuntime || typeof NS.RobotRuntime.sendManualTarget !== "function") {
+      return;
+    }
+    if (!state.manualControl.streamSessionId) {
+      state.manualControl.streamSessionId = `manual-${Date.now()}-${state.manualControl.sessionToken}`;
+      state.manualControl.streamSequence = 0;
+    }
+    state.manualControl.streamSequence += 1;
+    state.manualControl.streamPending = {
+      sessionId: state.manualControl.streamSessionId,
+      sequence: state.manualControl.streamSequence,
+      joint: jointId || String(servo),
+      value,
+      final: Boolean(final),
+      servo
+    };
+    pumpBridgeManualTargets();
+  }
+
+  function pumpBridgeManualTargets() {
+    clearTimeout(state.manualControl.streamTimer);
+    state.manualControl.streamTimer = null;
+    if (state.manualControl.streamInFlight || !state.manualControl.streamPending) {
+      return;
+    }
+    const pending = state.manualControl.streamPending;
+    const elapsed = performance.now() - state.manualControl.streamLastSentAt;
+    const delay = pending.final ? 0 : Math.max(0, (1000 / 30) - elapsed);
+    if (delay > 0) {
+      state.manualControl.streamTimer = window.setTimeout(pumpBridgeManualTargets, delay);
+      return;
+    }
+    state.manualControl.streamPending = null;
+    state.manualControl.streamInFlight = true;
+    state.manualControl.streamLastSentAt = performance.now();
+    const { servo, ...payload } = pending;
+    void NS.RobotRuntime.sendManualTarget(payload)
+      .then((runtimeState) => {
+        updateManualControlTelemetry(runtimeState);
+      })
+      .catch((error) => {
+        if (error && error.code === "BRIDGE_OFFLINE") {
+          blockSo101BridgeCommands(
+            "Bridge connection lost during live control. Hardware commands are blocked; test the bridge before reconnecting.",
+            { lastError: error.message || "Bridge connection unavailable." }
+          );
+        } else {
+          setBridgeStatus(`Live control stopped: ${error.message}`, "error");
+          setProgramStatus(`Live control stopped: ${error.message}`);
+        }
+        state.manualControl.streamPending = null;
+      })
+      .finally(() => {
+        state.manualControl.streamInFlight = false;
+        if (state.manualControl.streamPending) {
+          pumpBridgeManualTargets();
+        }
+      });
   }
 
   function scheduleBlocklyResize() {
@@ -1187,12 +2837,28 @@
   function wireKeyboardShortcuts() {
     document.addEventListener("keydown", async (event) => {
       const key = String(event.key || "").toLowerCase();
-      if (hasOpenDialog()) {
+      const hasCommandModifier = event.ctrlKey || event.metaKey;
+      const isTyping = isTypingTarget(event.target);
+
+      if (event.key === "Escape") {
+        if (event.repeat) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        if (event.robobuddyEmergencyStopHandled) {
+          return;
+        }
+        event.robobuddyEmergencyStopHandled = true;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void triggerEmergencyStop("keyboard");
         return;
       }
 
-      const hasCommandModifier = event.ctrlKey || event.metaKey;
-      const isTyping = isTypingTarget(event.target);
+      if (hasOpenDialog()) {
+        return;
+      }
 
       if (hasCommandModifier && !event.altKey && !event.shiftKey && key === "b" && !isTyping) {
         event.preventDefault();
@@ -1206,15 +2872,6 @@
           return;
         }
         ui.btnHome.click();
-        return;
-      }
-
-      if (event.key === "Escape") {
-        if (event.repeat) {
-          return;
-        }
-        event.preventDefault();
-        ui.btnEmergencyStop.click();
         return;
       }
 
@@ -1256,17 +2913,22 @@
           await runProgram();
         }
       }
-    });
+    }, { capture: true });
   }
 
   async function handleConnectToggle() {
     if (!isArduinoActive()) {
       const manifest = activeManifest();
-      setProgramStatus(
-        manifest && manifest.id === "so101_follower"
-          ? "SO-101 hardware uses the local bridge panel, not Web Serial."
-          : "LeKiwi is simulation-only in Tier 1."
-      );
+      if (manifest && manifest.id === "so101_follower") {
+        openWorkbenchDrawer("bridge", { focus: true });
+        setProgramStatus("Local bridge setup opened. Test the bridge before selecting a port or arming motion.");
+        window.requestAnimationFrame(() => {
+          const target = state.bridgeUi.tested ? ui.bridgePortSelect : ui.btnBridgeHealth;
+          if (target && !target.disabled) target.focus();
+        });
+      } else {
+        setProgramStatus("LeKiwi is simulation-only in Tier 1.");
+      }
       return;
     }
 
@@ -1423,7 +3085,7 @@
     }
 
     clearPendingManualSends();
-    clearManualSessionState();
+    await clearManualSessionState();
     setProgramStatus(`Starting program (${commands.length} steps)...`);
     setProgramControlHint("Starting program...", "active");
 
@@ -1467,6 +3129,11 @@
 
     try {
       await state.runner.stop({ mode: "immediate" });
+      if (!isArduinoActive() && activeRobotId() === "so101_follower" && NS.RobotRuntime && NS.RobotRuntime.stopHardware) {
+        await NS.RobotRuntime.stopHardware();
+        applyAngles(NS.RobotRuntime.getJointArray(), { syncSliders: true, source: "program-stop" });
+        syncBridgeUx();
+      }
       await waitForRunnerIdle(1800);
 
       if (!state.serial.isConnected()) {
@@ -2332,7 +3999,7 @@
     }
 
     clearPendingManualSends();
-    clearManualSessionState();
+    await clearManualSessionState();
 
     state.teach.replayStopRequested = false;
     state.teach.replayToken += 1;
@@ -2545,6 +4212,9 @@
     }
     state.sliderTimers.clear();
     state.manualQueuedTargets.clear();
+    clearTimeout(state.manualControl.streamTimer);
+    state.manualControl.streamTimer = null;
+    state.manualControl.streamPending = null;
   }
 
   function cancelPendingManualSend(servo) {
@@ -2572,13 +4242,24 @@
         state.manualQueuedTargets.delete(servo);
       }
     }
+    if (state.manualControl.streamPending && state.manualControl.streamPending.servo !== activeServo) {
+      state.manualControl.streamPending = null;
+    }
   }
 
   function startManualSession(servo) {
     clearTimeout(state.manualControl.releaseTimer);
     state.manualControl.releaseTimer = null;
+    const startsNewSession = state.manualControl.activeServo !== servo;
+    if (startsNewSession && state.manualControl.activeServo !== null) {
+      state.manualControl.streamPending = null;
+    }
     state.manualControl.activeServo = servo;
-    state.manualControl.sessionToken += 1;
+    if (startsNewSession) {
+      state.manualControl.sessionToken += 1;
+      state.manualControl.streamSessionId = `manual-${Date.now()}-${state.manualControl.sessionToken}`;
+      state.manualControl.streamSequence = 0;
+    }
     if (state.controlOwner !== CONTROL_OWNER.PROGRAM) {
       setControlOwner(CONTROL_OWNER.MANUAL);
     }
@@ -2592,18 +4273,40 @@
       if (state.controlOwner === CONTROL_OWNER.PROGRAM) {
         return;
       }
+      if (state.manualControl.pointerActive || state.manualControl.keyboardActive) {
+        return;
+      }
       state.manualControl.activeServo = null;
+      state.manualControl.streamSessionId = "";
       if (!state.runner.isRunning()) {
         setControlOwner(CONTROL_OWNER.IDLE);
       }
     }, delayMs);
   }
 
-  function clearManualSessionState() {
+  function clearManualSessionState(reason = "cancelled", options = {}) {
+    const cancelledSessionId = state.manualControl.streamSessionId;
+    const cancelledSequence = state.manualControl.streamSequence;
+    const hadBridgeSession = activeRobotId() === "so101_follower" && (
+      state.manualControl.activeServo !== null ||
+      state.manualControl.streamPending ||
+      state.manualControl.streamInFlight
+    );
     clearTimeout(state.manualControl.releaseTimer);
     state.manualControl.releaseTimer = null;
     state.manualControl.activeServo = null;
     state.manualControl.sessionToken += 1;
+    state.manualControl.streamSessionId = "";
+    state.manualControl.streamSequence = 0;
+    state.manualControl.streamPending = null;
+    state.manualControl.pointerActive = false;
+    state.manualControl.keyboardActive = false;
+    clearTimeout(state.manualControl.streamTimer);
+    state.manualControl.streamTimer = null;
+    if (options.sendCancel !== false && hadBridgeSession && NS.RobotRuntime && typeof NS.RobotRuntime.cancelManualTarget === "function") {
+      return NS.RobotRuntime.cancelManualTarget(reason, cancelledSessionId, cancelledSequence).catch(() => {});
+    }
+    return Promise.resolve();
   }
 
   function isManualSessionCurrent(servo, token) {
@@ -2692,9 +4395,21 @@
 
   function updateManualControlLockUi() {
     const locked = state.controlOwner === CONTROL_OWNER.PROGRAM;
+    const bridgeTransition = activeRobotId() === "so101_follower" && (state.bridgeUi.connecting || state.bridgeUi.armPending);
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const homeMoving = Boolean(
+      activeRobotId() === "so101_follower" &&
+      (state.bridgeUi.homePending || (runtimeState && runtimeState.homeControl && runtimeState.homeControl.phase === "moving"))
+    );
+    const interactionLocked = locked || bridgeTransition || homeMoving;
+    const homeBlocked = Boolean(
+      activeRobotId() === "so101_follower" &&
+      runtimeState && runtimeState.connection && runtimeState.connection.connected &&
+      runtimeState.connection.homeCompatible === false
+    );
     const sliders = document.querySelectorAll(".servo-slider");
     sliders.forEach((slider) => {
-      slider.disabled = locked;
+      slider.disabled = interactionLocked;
     });
 
     if (ui.motorsEnabled) {
@@ -2702,12 +4417,24 @@
     }
 
     if (ui.btnResetDefault) {
-      ui.btnResetDefault.disabled = locked;
+      ui.btnResetDefault.disabled = interactionLocked;
+    }
+    if (ui.btnHome) {
+      ui.btnHome.disabled = interactionLocked || homeBlocked;
+      let homeHint;
+      if (homeBlocked) {
+        const errors = runtimeState.connection.homeLimitErrors || [];
+        homeHint = `Arm home unavailable: ${errors.join(", ") || "pose exceeds safe limits"}`;
+      } else {
+        homeHint = "Move arm to home position (Ctrl+H)";
+      }
+      ui.btnHome.title = homeHint;
+      ui.btnHome.dataset.hint = homeHint;
     }
 
     if (ui.manualControlsCard) {
-      ui.manualControlsCard.classList.toggle("is-locked", locked);
-      if (locked) {
+      ui.manualControlsCard.classList.toggle("is-locked", interactionLocked);
+      if (interactionLocked) {
         ui.manualControlsCard.setAttribute("aria-disabled", "true");
       } else {
         ui.manualControlsCard.removeAttribute("aria-disabled");
@@ -2737,16 +4464,23 @@
     updateProgramControlUi();
   }
 
-  function setIndexConsoleExpanded(expanded) {
+  function setIndexConsoleExpanded(expanded, options = {}) {
     if (!ui.indexConsoleToggle || !ui.indexConsolePanel) {
+      return;
+    }
+    if (!expanded && state.drawerPinnedLeader && !options.force) {
+      setProgramStatus("Leader details remain open while the controller requires attention.");
+      openWorkbenchDrawer("leader");
       return;
     }
     const nextExpanded = Boolean(expanded);
     ui.indexConsoleToggle.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
-    ui.indexConsoleToggle.setAttribute("aria-label", nextExpanded ? "Hide Consoles" : "Show Consoles");
-    ui.indexConsoleToggle.title = nextExpanded ? "Hide Consoles" : "Show Consoles";
-    ui.indexConsoleToggle.dataset.hint = nextExpanded ? "Hide Consoles" : "Show Consoles";
+    ui.indexConsoleToggle.setAttribute("aria-label", nextExpanded ? "Hide Bridge and Consoles" : "Show Bridge and Consoles");
+    ui.indexConsoleToggle.title = nextExpanded ? "Hide Bridge and Consoles" : "Show Bridge and Consoles";
+    ui.indexConsoleToggle.dataset.hint = nextExpanded ? "Hide Bridge and Consoles" : "Show Bridge and Consoles";
     ui.indexConsolePanel.hidden = !nextExpanded;
+    document.body.classList.toggle("is-workbench-drawer-open", nextExpanded);
+    scheduleWorkbenchLayoutRefresh();
   }
 
   function syncActivePreviewFromAngles() {
@@ -2981,11 +4715,12 @@
     if (options.syncSliders) {
       for (let servo = 0; servo < state.angles.length; servo += 1) {
         const slider = document.getElementById(`slider${servo}`);
+        const manualAngle = clampManualSliderValue(servo, state.angles[servo]);
         if (slider) {
-          slider.value = String(state.angles[servo]);
+          slider.value = String(manualAngle);
           updateSliderFill(slider);
         }
-        updateSliderValue(servo, state.angles[servo]);
+        updateSliderValue(servo, manualAngle);
       }
     }
 
@@ -3001,13 +4736,17 @@
 
   function syncSliderLimitsFromJointLimits() {
     const limitsList = getActiveJointLimits();
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const runtimeLimits = runtimeState && runtimeState.jointLimits ? runtimeState.jointLimits : {};
     for (let servo = 0; servo < activeJoints().length; servo += 1) {
       const slider = document.getElementById(`slider${servo}`);
       if (!slider) {
         continue;
       }
 
-      const limits = limitsList[servo] || [0, 180];
+      const joint = activeJoints()[servo] || {};
+      const baseLimits = limitsList[servo] || [0, 180];
+      const limits = getManualJointLimits(joint, baseLimits);
       const min = Number(limits[0]);
       const max = Number(limits[1]);
       if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) {
@@ -3016,13 +4755,28 @@
 
       slider.min = String(min);
       slider.max = String(max);
+      const runtimeLimit = runtimeLimits[joint.id];
+      const step = Number(runtimeLimit && runtimeLimit.step);
+      const hasManualOverride = Math.abs(min - Number(baseLimits[0])) > 0.001 || Math.abs(max - Number(baseLimits[1])) > 0.001;
+      slider.step = hasManualOverride
+        ? "any"
+        : String(Number.isFinite(step) && step > 0 ? step : (Number(joint.step) || 1));
       slider.setAttribute("aria-valuemin", String(min));
       slider.setAttribute("aria-valuemax", String(max));
 
-      const nextAngle = clampAngle(servo, Number.parseInt(slider.value, 10));
+      const nextAngle = quantizeJointValue(servo, clampAngle(servo, Number.parseFloat(slider.value)));
       slider.value = String(nextAngle);
       updateSliderValue(servo, nextAngle);
       updateSliderFill(slider);
+      const rangeEl = document.getElementById(`range${servo}`);
+      if (rangeEl) {
+        const minEl = rangeEl.querySelector("[data-range-min]");
+        const maxEl = rangeEl.querySelector("[data-range-max]");
+        const safeGripper = activeRobotId() === "so101_follower" && joint.type === "gripper" && runtimeLimit;
+        if (minEl) minEl.textContent = safeGripper ? `${formatNumericReadout(min)}% · safe open side` : formatJointReadout(joint, min);
+        if (maxEl) maxEl.textContent = safeGripper ? `${formatNumericReadout(max)}% · safe closed side` : formatJointReadout(joint, max);
+        rangeEl.title = `Allowed range: ${formatJointRange(joint, min, max)}`;
+      }
     }
   }
 
@@ -3030,20 +4784,21 @@
     const slider = document.getElementById(`slider${servo}`);
     const valueEl = document.getElementById(`val${servo}`);
     if (valueEl) {
-      const limits = getActiveJointLimits()[servo] || [0, 180];
+      const limits = getManualSliderLimits(servo);
       const joint = activeJoints()[servo] || {};
       const min = Number(limits[0]);
       const max = Number(limits[1]);
+      const displayAngle = clampManualSliderValue(servo, angle);
       let pct = 0;
       if (Number.isFinite(min) && Number.isFinite(max) && max > min) {
-        pct = Math.round(((angle - min) / (max - min)) * 100);
+        pct = Math.round(((displayAngle - min) / (max - min)) * 100);
       }
       pct = Math.min(100, Math.max(0, pct));
-      valueEl.textContent = formatJointReadout(joint, angle);
+      valueEl.textContent = formatJointReadout(joint, displayAngle);
       valueEl.title = `Range ${min}..${max} ${joint.unit || "deg"}`;
       if (slider) {
-        slider.setAttribute("aria-valuenow", String(angle));
-        slider.setAttribute("aria-valuetext", formatJointAriaValue(joint, angle, pct));
+        slider.setAttribute("aria-valuenow", String(displayAngle));
+        slider.setAttribute("aria-valuetext", formatJointAriaValue(joint, displayAngle, pct));
       }
     }
   }
@@ -3057,20 +4812,30 @@
   }
 
   function updateStatusIcon(iconName, isRunning, isError, isWarning = false) {
-    if (!ui.programStatusIcon || !window.lucide) {
+    const currentIcon = document.getElementById("programStatusIcon") || ui.programStatusIcon;
+    if (!currentIcon) {
       return;
     }
-    ui.programStatusIcon.setAttribute("data-lucide", iconName);
-    ui.programStatusIcon.classList.toggle("is-running", Boolean(isRunning));
-    ui.programStatusIcon.classList.toggle("is-error", Boolean(isError));
-    ui.programStatusIcon.classList.toggle("is-warning", Boolean(isWarning));
-    lucide.createIcons({ nodes: [ui.programStatusIcon] });
+    const iconHost = document.createElement("i");
+    iconHost.id = "programStatusIcon";
+    iconHost.className = "bottombar__status-icon";
+    iconHost.setAttribute("data-lucide", iconName);
+    iconHost.classList.toggle("is-running", Boolean(isRunning));
+    iconHost.classList.toggle("is-error", Boolean(isError));
+    iconHost.classList.toggle("is-warning", Boolean(isWarning));
+    currentIcon.replaceWith(iconHost);
+    ui.programStatusIcon = iconHost;
+    if (window.lucide) {
+      lucide.createIcons({ nodes: [ui.programStatusIcon] });
+      ui.programStatusIcon = document.getElementById("programStatusIcon") || ui.programStatusIcon;
+    }
   }
 
   function setConnectionStatus(connected, text) {
     ui.statusDot.classList.toggle("is-connected", connected);
     ui.statusDot.classList.remove("is-connecting");
     ui.statusText.textContent = text || (connected ? "Connected" : "Disconnected");
+    syncExecutionTarget();
   }
 
   function getConnectionTransportLabel() {
@@ -3085,6 +4850,16 @@
   }
 
   function getRunBlockReason() {
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    if (
+      activeRobotId() === "so101_follower" &&
+      (state.bridgeUi.homePending || (runtimeState && runtimeState.homeControl && runtimeState.homeControl.phase === "moving"))
+    ) {
+      return {
+        tone: "warning",
+        text: "Home is moving. Press STOP before starting a program."
+      };
+    }
     if (state.teach.phase === TEACH_PHASE.REPLAYING) {
       return {
         tone: "warning",

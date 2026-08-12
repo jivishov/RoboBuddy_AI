@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SO-101 &amp; LeKiwi Python · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>SO-101 &amp; LeKiwi Python</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>SO-101 &amp; LeKiwi Python</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html">Local Bridge</a>
+            <a href="docs-github-pages-so101.html">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html" aria-current="page">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html">Windows Verification</a>
+            <a href="docs-windows-blockers.html">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#quick-start">Quick start</a>
+            <a href="#what-several-servos-at-once-means">What “several servos at once” means</a>
+            <a href="#shared-robot-api">Shared robot API</a>
+            <a href="#so-101-so101_follower">SO-101: so101_follower</a>
+            <a href="#lekiwi-lekiwi_sim">LeKiwi: lekiwi_sim</a>
+            <a href="#tier-1-support-matrix">Tier 1 support matrix</a>
+            <a href="#execution-and-safety-model">Execution and safety model</a>
+            <a href="#what-is-not-supported">What is not supported</a>
+            <a href="#common-errors-and-corrections">Common errors and corrections</a>
+            <a href="#legacy-arduino-compatibility">Legacy Arduino compatibility</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/robopy-so101-lekiwi.md"
+        data-source-sha256="3bb11a91c03910d83ce64cc51d162c620fef95c9529a5141e5fef5882c8d072d"
+      >
+<h1 id="programming-so-101-and-lekiwi-with-robobuddy-python">Programming SO-101 and LeKiwi with RoboBuddy Python</h1>
+<p>This guide is the maintainable SolU reference for programming the <strong>SO-101 Follower</strong> and the <strong>LeKiwi mobile robot</strong> from RoboBuddy Python. The learner-facing browser version is <a href="python-docs.html"><code>python-docs.html</code></a>.</p>
+<p>RoboBuddy Python uses the robot selected on <code>python.html</code>. A program builds a finite list of validated commands for that one active robot; after Python finishes, RoboBuddy's runner executes the list. Student code does not import LeRobot, open a serial port, call the browser DOM, or access hardware directly.</p>
+<h2 id="quick-start">Quick start</h2>
+<ol>
+<li>Open <code>python.html</code>.</li>
+<li>Select <strong>SO-101 Follower</strong> or <strong>LeKiwi mobile robot</strong> in the Robot selector.</li>
+<li>Leave execution in simulation while learning and validating poses.</li>
+<li>Use the canonical <code>robot.*</code> API and the six manifest joint ids in this guide.</li>
+<li>Use one <code>robot.move_joints({...})</code> call when several joint targets should be sent as one pose command.</li>
+</ol>
+<pre class="python-docs__code"><code class="language-python">robot.move_joints({
+    &quot;shoulder_pan&quot;: 5,
+    &quot;elbow_flex&quot;: 10,
+}, speed=30)
+robot.wait(0.5)
+</code></pre>
+<h2 id="what-several-servos-at-once-means">What “several servos at once” means</h2>
+<p>RoboBuddy supports a <strong>multi-joint pose for one active robot</strong>. Put all intended targets in one dictionary and call <code>robot.move_joints(...)</code> once.</p>
+<ul>
+<li>Every joint number is an <strong>absolute end position</strong> in the active manifest coordinate system, not an amount to add or subtract.</li>
+<li>The included targets are <strong>sent together as one RoboBuddy command</strong>.</li>
+<li>The joints are <strong>not guaranteed to arrive together</strong> or reach their targets at the same time.</li>
+<li>Several sequential <code>robot.move_joint(...)</code> calls remain several commands; dictionary key order is not a timing contract.</li>
+<li><code>robot.wait(...)</code> is an elapsed-time delay, not measured “target reached” feedback.</li>
+<li>A finite Python pose is not equivalent to SolU's separate continuous <strong>Virtual Leader</strong> or <strong>Phone Leader</strong> control sessions.</li>
+<li>One Python run controls one active robot pack. It cannot control <code>so101_follower</code> and <code>lekiwi_sim</code> concurrently, create two robot instances, or switch robots during the run.</li>
+</ul>
+<h3 id="movement-methods-compared">Movement methods compared</h3>
+<div class="python-docs__table-wrap"><table class="python-docs__table">
+<thead>
+<tr>
+<th>Control method</th>
+<th>What it sends</th>
+<th>Timing meaning</th>
+<th>Intended use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>robot.move_joint(joint, value, speed=50)</code></td>
+<td>One target for one joint</td>
+<td>One finite command</td>
+<td>Simple single-joint changes</td>
+</tr>
+<tr>
+<td><code>robot.move_joints({joint: value, ...}, speed=50)</code></td>
+<td>A subset or all six targets in one pose command</td>
+<td>Sent together; synchronized arrival is not guaranteed</td>
+<td>Coordinated one-shot poses</td>
+</tr>
+<tr>
+<td>Virtual Leader</td>
+<td>Continuously refreshed complete pose frames</td>
+<td>Separate live session with ownership, freshness, hold, and feedback rules</td>
+<td>Leader-style continuous control</td>
+</tr>
+<tr>
+<td>Phone Leader</td>
+<td>Continuously refreshed phone-tracked requests resolved by the bridge</td>
+<td>Separate bridge-owned Cartesian session with its own workspace, hold, and fault rules</td>
+<td>Supervised phone-led control, not a Python pose</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="partial-pose">Partial pose</h3>
+<p>Only named joints change. Omitted joints retain their current state or target. Each supplied value is still an absolute target.</p>
+<pre class="python-docs__code"><code class="language-python">robot.move_joints({
+    &quot;shoulder_pan&quot;: 10,
+    &quot;wrist_roll&quot;: 15,
+}, speed=40)
+</code></pre>
+<h3 id="complete-one-shot-pose-frame">Complete one-shot pose frame</h3>
+<p><code>robot.get_joints()</code> returns the interpreter's <strong>planned state</strong>. A connected SO-101 run starts from fresh measured bridge state; simulation starts from the current simulated state. Later calls reflect commands already planned in the same run. It is not a blocking live sensor read.</p>
+<pre class="python-docs__code"><code class="language-python">pose = robot.get_joints()
+pose[&quot;shoulder_pan&quot;] = 10
+pose[&quot;elbow_flex&quot;] = 25
+robot.move_joints(pose, speed=40)
+</code></pre>
+<h2 id="shared-robot-api">Shared <code>robot</code> API</h2>
+<p>RoboBuddy injects <code>robot</code>; do not import it.</p>
+<div class="python-docs__table-wrap"><table class="python-docs__table">
+<thead>
+<tr>
+<th>API</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>robot.home()</code></td>
+<td>Request the active manifest's Home pose. SO-101 hardware still requires a compatible verified Home pose and an armed session.</td>
+</tr>
+<tr>
+<td><code>robot.stop()</code> / <code>robot.emergency_stop()</code></td>
+<td>Add a stop command. The page's red STOP control remains the immediate operator stop path.</td>
+</tr>
+<tr>
+<td><code>robot.wait(seconds)</code></td>
+<td>Add a delay from 0 through 30 seconds. This does not measure joint settling.</td>
+</tr>
+<tr>
+<td><code>robot.move_joint(joint, value, speed=50)</code></td>
+<td>Build one absolute joint-target command using an id or label from the active manifest.</td>
+</tr>
+<tr>
+<td><code>robot.move_joints({joint: value, ...}, speed=50)</code></td>
+<td>Build one absolute multi-joint pose command. The dictionary must contain at least one valid joint.</td>
+</tr>
+<tr>
+<td><code>robot.set_gripper(value, speed=55)</code></td>
+<td>Set the active robot's gripper value.</td>
+</tr>
+<tr>
+<td><code>robot.open_gripper()</code> / <code>robot.close_gripper()</code></td>
+<td>Use the active manifest's semantic gripper endpoints.</td>
+</tr>
+<tr>
+<td><code>robot.smooth_move(joint, start, end, seconds=1.5)</code></td>
+<td>Interpolate one joint between absolute start and end positions. This is not a multi-joint synchronized trajectory or exact hardware-duration guarantee.</td>
+</tr>
+<tr>
+<td><code>robot.get_joints()</code> / <code>robot.get_state()</code></td>
+<td>Return planned interpreter state, not a live blocking hardware read.</td>
+</tr>
+</tbody>
+</table></div>
+<p>LeKiwi additionally supports <code>drive</code>, <code>drive_forward</code>, <code>drive_backward</code>, <code>strafe_left</code>, <code>strafe_right</code>, <code>turn_left</code>, and <code>turn_right</code>.</p>
+<p><code>save_pose</code> / <code>go_to_pose</code> are not documented as SO-101 or LeKiwi support. The current <code>goPose</code> runner branch uses the legacy servo execution path. Use explicit <code>robot.move_joints(...)</code> dictionaries for modern robot packs.</p>
+<h2 id="so-101-so101_follower">SO-101: <code>so101_follower</code></h2>
+<p>The SO-101 pack supports simulation and optional physical execution through the <strong>local bridge</strong>. Start in simulation. The browser never controls SO-101 serial hardware directly.</p>
+<p>All revolute-joint values are absolute positions in the active calibrated joint coordinate. For example, <code>robot.move_joint("elbow_flex", 40)</code> targets position <code>40°</code>; it does not add <code>40°</code> to the current elbow position. Repeating that command after the joint reaches <code>40°</code> requests no further change. Zero and positive direction are joint-specific calibration/manifest coordinates, not world-space or end-effector angles. The gripper value is likewise an absolute percentage in RoboBuddy's semantic open-to-close coordinate.</p>
+<h3 id="joint-reference">Joint reference</h3>
+<p>The listed ranges are the disconnected manifest defaults. A connected hardware session installs verified hardware-derived limits, and those active limits can be narrower.</p>
+<div class="python-docs__table-wrap"><table class="python-docs__table">
+<thead>
+<tr>
+<th>Joint id</th>
+<th>Label</th>
+<th style="text-align: right;">Unit</th>
+<th style="text-align: right;">Manifest range</th>
+<th style="text-align: right;">Home</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shoulder_pan</code></td>
+<td>Shoulder Pan</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>shoulder_lift</code></td>
+<td>Shoulder Lift</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">-90</td>
+</tr>
+<tr>
+<td><code>elbow_flex</code></td>
+<td>Elbow Flex</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-120..120</td>
+<td style="text-align: right;">85</td>
+</tr>
+<tr>
+<td><code>wrist_flex</code></td>
+<td>Wrist Flex</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">72</td>
+</tr>
+<tr>
+<td><code>wrist_roll</code></td>
+<td>Wrist Roll</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-180..180</td>
+<td style="text-align: right;">88</td>
+</tr>
+<tr>
+<td><code>gripper</code></td>
+<td>Gripper</td>
+<td style="text-align: right;">percent</td>
+<td style="text-align: right;">0..100</td>
+<td style="text-align: right;">85</td>
+</tr>
+</tbody>
+</table></div>
+<p>SO-101 gripper semantic endpoints are open <code>20</code> and close <code>85</code>.</p>
+<h3 id="simulation-first-coordinated-pose">Simulation-first coordinated pose</h3>
+<pre class="python-docs__code"><code class="language-python">robot.move_joints({
+    &quot;shoulder_pan&quot;: 5,
+    &quot;shoulder_lift&quot;: -85,
+    &quot;elbow_flex&quot;: 80,
+    &quot;wrist_flex&quot;: 68,
+    &quot;wrist_roll&quot;: 83,
+    &quot;gripper&quot;: 80,
+}, speed=30)
+</code></pre>
+<p>All six targets remain one validated pose command. SO-101 simulation applies the included values together as one immediate state update. It does not turn <code>speed</code> into a duration-synchronized trajectory.</p>
+<h3 id="direct-absolute-targets-on-connected-hardware">Direct absolute targets on connected hardware</h3>
+<p>After the bridge is ready and motion is armed, specify the desired absolute destination directly:</p>
+<pre class="python-docs__code"><code class="language-python">robot.move_joints({
+    &quot;shoulder_pan&quot;: 15,
+    &quot;elbow_flex&quot;: 30,
+}, speed=30)
+robot.wait(0.5)
+</code></pre>
+<p>The bridge reads measured feedback and automatically advances a larger move through bounded look-ahead goals. The user does not calculate those safety steps. The final numbers remain absolute targets, not additions or subtractions.</p>
+<h3 id="hardware-readiness">Hardware readiness</h3>
+<p>Before any SO-101 hardware motion:</p>
+<ol>
+<li>Use the supported Python/LeRobot environment and start RoboBuddy's localhost bridge.</li>
+<li>Select the correct controller port.</li>
+<li>Verify the relevant LeRobot calibration for that arm and port.</li>
+<li>Confirm that hardware-derived joint limits were loaded.</li>
+<li>Connect the browser to the bridge with the current token.</li>
+<li>Explicitly arm motion for the current session.</li>
+<li>Keep the workspace clear and keep STOP/disarm immediately available.</li>
+</ol>
+<p>Use the existing setup references:</p>
+<ul>
+<li><a href="docs-local-bridge.html">Local bridge architecture and operation</a></li>
+<li><a href="docs-github-pages-so101.html">GitHub Pages to localhost SO-101 setup</a></li>
+<li><a href="docs-so101-hardware.html">SO-101 hardware guidance</a></li>
+</ul>
+<h3 id="what-one-hardware-move_joints-command-does">What one hardware <code>move_joints</code> command does</h3>
+<p>For the included motors, one Python pose remains:</p>
+<ol>
+<li>one RoboBuddy program command;</li>
+<li>one localhost-bridge execution request;</li>
+<li>one direct LeRobot action map when the destination is already within every active relative-step guard; or</li>
+<li>multiple measured, bounded action maps when the destination is farther away.</li>
+</ol>
+<p>For each bounded look-ahead goal, the included joints are dispatched together along one straight joint-space progress fraction. This is coordinated <strong>dispatch</strong>, not synchronized <strong>arrival</strong>. The bridge verifies that LeRobot accepted each goal, then advances the goal from fresh measured feedback while motion continues; it requires full settling only at the exact final destination. Joints can still finish at different instants because of travel distance, load, servo tuning, and physical constraints.</p>
+<h3 id="so-101-limitations-that-must-remain-visible">SO-101 limitations that must remain visible</h3>
+<ul>
+<li><code>speed</code> is validated from <code>1..100</code>, but the current SO-101 program bridge ignores it for <code>move_joint</code> and <code>move_joints</code>. It does not set physical velocity, duration, or synchronized arrival.</li>
+<li>LeRobot relative-target protection defaults to <code>max_relative_target = 12.0</code> (or an equivalent per-joint map) unless configured otherwise. The bridge reads fresh measured feedback before every look-ahead update and advances at no more than 90% of each active guard. It treats a changed/clipped returned action or stopped measured progress as a fault, holds measured position when possible, and disarms.</li>
+<li>Verified Home, finite Python poses, manual sliders, and Leader modes have separate ownership paths. Each can use bounded intermediate actions while its requested target remains absolute.</li>
+<li>Hardware programs require bridge API <code>0.5</code> with <code>absolute_program_targets_v1</code> and <code>bounded_absolute_program_motion_v1</code>. Older bridges are rejected before program observation or motion rather than falling back to simulation.</li>
+<li>Hardware position limits do not provide collision avoidance, payload protection, torque/current control, or workspace planning.</li>
+<li>A Python pose uses ordinary <code>program</code> ownership, not Virtual Leader ownership.</li>
+<li>Virtual Leader hardware is separately qualification-gated. Documentation and software tests are not evidence of completed physical qualification.</li>
+<li>Phone Leader is also a separate bridge-owned mode. Its software/fake-evaluation evidence does not authorize physical motion.</li>
+</ul>
+<h2 id="lekiwi-lekiwi_sim">LeKiwi: <code>lekiwi_sim</code></h2>
+<p><code>lekiwi_sim</code> is <strong>simulation-only</strong> in Tier 1. It has an arm, gripper, and simulated holonomic mobile base. There is no physical LeKiwi bridge or hardware adapter in this snapshot.</p>
+<p>LeKiwi arm joint numbers have the same absolute meaning: <code>10</code> means target position <code>10°</code> in that joint's manifest coordinate, not “add 10°” or a world-space angle. Simulation replaces each named joint target immediately; omitted joints keep their previous simulated position. Relative changes must be calculated explicitly from <code>robot.get_joints()</code>.</p>
+<h3 id="joint-reference_1">Joint reference</h3>
+<div class="python-docs__table-wrap"><table class="python-docs__table">
+<thead>
+<tr>
+<th>Joint id</th>
+<th>Label</th>
+<th style="text-align: right;">Unit</th>
+<th style="text-align: right;">Range</th>
+<th style="text-align: right;">Home</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shoulder_pan</code></td>
+<td>Arm Pan</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>shoulder_lift</code></td>
+<td>Shoulder Lift</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>elbow_flex</code></td>
+<td>Elbow Flex</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-120..120</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>wrist_flex</code></td>
+<td>Wrist Flex</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>wrist_roll</code></td>
+<td>Wrist Roll</td>
+<td style="text-align: right;">degrees</td>
+<td style="text-align: right;">-90..90</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td><code>gripper</code></td>
+<td>Gripper</td>
+<td style="text-align: right;">percent</td>
+<td style="text-align: right;">0..100</td>
+<td style="text-align: right;">50</td>
+</tr>
+</tbody>
+</table></div>
+<p>The initial LeKiwi preview uses <code>gripper = 85</code>, while <code>robot.home()</code> restores the manifest Home value <code>50</code>. Semantic open is <code>20</code>; semantic close is <code>85</code>.</p>
+<h3 id="coordinated-arm-pose-in-simulation">Coordinated arm pose in simulation</h3>
+<pre class="python-docs__code"><code class="language-python">robot.move_joints({
+    &quot;shoulder_pan&quot;: 20,
+    &quot;shoulder_lift&quot;: -15,
+    &quot;elbow_flex&quot;: 30,
+    &quot;wrist_flex&quot;: 10,
+    &quot;wrist_roll&quot;: 20,
+    &quot;gripper&quot;: 40,
+}, speed=40)
+</code></pre>
+<p>The included arm and gripper values update as one simulation command. Application is immediate; <code>speed</code> is not a timed trajectory and does not create synchronized arrival behavior.</p>
+<h3 id="base-then-arm-sequential-commands">Base, then arm: sequential commands</h3>
+<pre class="python-docs__code"><code class="language-python">robot.drive_forward(30, seconds=1.0)
+robot.wait(0.2)
+robot.move_joints({
+    &quot;shoulder_pan&quot;: 15,
+    &quot;shoulder_lift&quot;: -20,
+    &quot;elbow_flex&quot;: 35,
+}, speed=40)
+</code></pre>
+<p>The runner completes the drive command's elapsed time, then the explicit wait, then issues the arm pose. This is <strong>sequential</strong>, not simultaneous base-and-arm motion. RoboBuddy currently has no combined command frame that drives the LeKiwi base while changing arm joints.</p>
+<h3 id="mobile-base-api">Mobile-base API</h3>
+<pre class="python-docs__code"><code class="language-python">robot.drive(
+    vx_percent,
+    vy_percent=0,
+    omega=0,
+    seconds=1.0,
+    frame=&quot;robot&quot;,
+)
+</code></pre>
+<p>LeKiwi is modeled as a holonomic three-wheel simulator. Linear percentages are scaled through the manifest maximum of <code>1.0</code> world unit per second. Angular speed is limited to <code>-90..90</code> degrees per second. Convenience helpers provide forward, backward, strafing, and turning commands.</p>
+<h2 id="tier-1-support-matrix">Tier 1 support matrix</h2>
+<div class="python-docs__table-wrap"><table class="python-docs__table">
+<thead>
+<tr>
+<th>Robot</th>
+<th>Simulation</th>
+<th>Hardware</th>
+<th>Arm joints</th>
+<th>Gripper</th>
+<th>Mobile base</th>
+<th>Multi-joint pose</th>
+<th>Continuous Leader</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>arduino_arm</code></td>
+<td>Yes</td>
+<td>Web Serial</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes; runner expands the pose into sequential servo moves</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>so101_follower</code></td>
+<td>Yes</td>
+<td>Optional local bridge</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+<td>Virtual Leader and Phone Leader are separate modes; physical use remains qualification-gated</td>
+</tr>
+<tr>
+<td><code>lekiwi_sim</code></td>
+<td>Yes</td>
+<td>No—simulation-only</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes, simulated</td>
+<td>Yes, arm/gripper</td>
+<td>No</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="execution-and-safety-model">Execution and safety model</h2>
+<p>Student Python runs in Pyodide as a restricted command builder. Variables, loops, lists, dictionaries, functions, math expressions, and <code>print()</code> are available, but direct serial, DOM, file, network, package installation, <code>input()</code>, and ordinary import access are not exposed.</p>
+<p>RoboBuddy validates robot identity, capabilities, joint names, active limits, speed fields, command shape, and timing before executing the command list through the existing runner, ownership, STOP, simulation, or bridge paths.</p>
+<p>Current limits include:</p>
+<ul>
+<li>at most 1000 generated commands;</li>
+<li>an 8-second Python execution budget;</li>
+<li>command <code>speed</code> from 1 through 100;</li>
+<li><code>robot.wait(...)</code> from 0 through 30 seconds; and</li>
+<li><code>smooth_move</code> duration from 0.2 through 10 seconds.</li>
+</ul>
+<h2 id="what-is-not-supported">What is not supported</h2>
+<ul>
+<li>No guarantee that joints sent together arrive together.</li>
+<li>No multi-joint duration-synchronized trajectory in the non-Arduino simulation paths.</li>
+<li>No single Python run that controls SO-101 and LeKiwi concurrently.</li>
+<li>No robot-pack switching or second robot instance inside a run.</li>
+<li>No live blocking joint read from <code>robot.get_joints()</code>.</li>
+<li>No combined LeKiwi base-and-arm command frame.</li>
+<li>No direct browser-to-SO-101 serial control; the local bridge, calibration, verified limits, and armed state are required.</li>
+<li>No LeKiwi hardware control in Tier 1.</li>
+<li>No claim that SO-101 <code>speed</code> controls hardware velocity or synchronized arrival.</li>
+<li>No promise that a large SO-101 request bypasses relative-target clipping.</li>
+<li>No modern SO-101/LeKiwi promise for legacy <code>save_pose</code> / <code>go_to_pose</code> runner behavior.</li>
+<li>No claim that a finite Python pose is interchangeable with SolU's Virtual Leader or Phone Leader sessions.</li>
+</ul>
+<h2 id="common-errors-and-corrections">Common errors and corrections</h2>
+<h3 id="wrong-robot-selected">Wrong robot selected</h3>
+<p><strong>Symptom:</strong> A valid joint or drive helper is rejected.</p>
+<p><strong>Correction:</strong> Select <code>so101_follower</code> or <code>lekiwi_sim</code> before the run. A program cannot switch the active robot internally.</p>
+<h3 id="wrong-joint-name">Wrong joint name</h3>
+<p><strong>Symptom:</strong> Validation reports an unknown joint.</p>
+<p><strong>Correction:</strong> Use exactly <code>shoulder_pan</code>, <code>shoulder_lift</code>, <code>elbow_flex</code>, <code>wrist_flex</code>, <code>wrist_roll</code>, or <code>gripper</code>. Do not use Arduino names such as <code>base</code>, <code>shoulder</code>, <code>elbow</code>, <code>wrist_rot</code>, or <code>wrist_tilt</code> for SO-101 or LeKiwi.</p>
+<h3 id="value-outside-active-limits">Value outside active limits</h3>
+<p><strong>Symptom:</strong> Validation rejects the command before execution.</p>
+<p><strong>Correction:</strong> Keep the target within the active robot limits shown by RoboBuddy. For connected SO-101 hardware, verified limits may be narrower than the disconnected manifest table.</p>
+<h3 id="bridge-offline-not-calibrated-or-not-armed">Bridge offline, not calibrated, or not armed</h3>
+<p><strong>Symptom:</strong> SO-101 hardware execution is blocked.</p>
+<p><strong>Correction:</strong> Restore the localhost bridge connection, select and verify the correct port and calibration, confirm hardware limits, then explicitly arm the current session. Do not bypass the block.</p>
+<h3 id="so-101-program-target-is-not-reached">SO-101 program target is not reached</h3>
+<p><strong>Symptom:</strong> The bridge returns <code>ACTION_CLIPPED</code>, <code>TARGET_NOT_REACHED</code>, <code>FEEDBACK_UNAVAILABLE</code>, or <code>PROGRAM_STAGE_LIMIT</code>.</p>
+<p><strong>Correction:</strong> Users should provide the final absolute destination; the bridge calculates the intermediate safety stages. <code>ACTION_CLIPPED</code>, <code>TARGET_NOT_REACHED</code>, and <code>PROGRAM_STAGE_LIMIT</code> are terminal motion faults: the bridge attempts to hold fresh measured position and disarms. <code>FEEDBACK_UNAVAILABLE</code> disarms without writing cached coordinates as a hold. Inspect the workspace, measured state, physical obstruction, power, and communication before explicitly re-arming. Do not weaken <code>max_relative_target</code> merely to force a move.</p>
+<h3 id="expecting-speed-to-synchronize-motion">Expecting <code>speed</code> to synchronize motion</h3>
+<p><strong>Symptom:</strong> Joints do not arrive together or the SO-101 physical velocity does not reflect the Python number.</p>
+<p><strong>Correction:</strong> Treat <code>speed</code> as a validated command field. LeKiwi and SO-101 simulation apply poses immediately, and the current SO-101 program bridge ignores <code>speed</code> for the physical send path.</p>
+<h3 id="trying-to-control-two-robots">Trying to control two robots</h3>
+<p><strong>Symptom:</strong> A cross-robot queue is rejected or code assumes separate SO-101 and LeKiwi objects.</p>
+<p><strong>Correction:</strong> Run one active robot at a time. Separate tabs are not a RoboBuddy synchronization system.</p>
+<h3 id="expecting-live-feedback-from-get_joints">Expecting live feedback from <code>get_joints()</code></h3>
+<p><strong>Symptom:</strong> Code assumes the returned dictionary confirms measured physical arrival.</p>
+<p><strong>Correction:</strong> Treat the dictionary as planned interpreter state only.</p>
+<h2 id="legacy-arduino-compatibility">Legacy Arduino compatibility</h2>
+<p>The historical <code>arm.*</code> API belongs to the active <code>arduino_arm</code> pack. In particular, <code>arm.move_arm(base=..., shoulder=..., elbow=..., wrist_rot=..., wrist_tilt=..., gripper=...)</code> constructs Arduino-era joint names.</p>
+<p>Do <strong>not</strong> use <code>arm.move_arm(...)</code> for SO-101 or LeKiwi. Their joint manifests do not use those names. Use <code>robot.move_joints(...)</code> plus the six canonical ids instead.</p>
+<p>The browser help retains the full Arduino reference as a clearly secondary legacy section so existing learners and saved materials remain understandable without presenting it as the modern universal API.</p>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

@@ -43,6 +43,13 @@
       { id: "wrist_roll", label: "Wrist Roll", type: "revolute", unit: "deg", min: -90, max: 90, home: 0, speedMin: 1, speedMax: 100 },
       { id: "gripper", label: "Gripper", type: "gripper", unit: "percent", min: 0, max: 100, home: 50, open: 20, close: 85, speedMin: 1, speedMax: 100 }
     ],
+    initialPose: {
+      id: "closed_gripper",
+      label: "Closed Gripper",
+      joints: {
+        gripper: 85
+      }
+    },
     ui: {
       controlLayout: "mobile_manipulator",
       previewType: "mobile_base_grid",

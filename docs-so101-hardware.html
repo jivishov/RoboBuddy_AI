@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SO-101 Hardware · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>SO-101 Hardware</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>SO-101 Hardware</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html">Local Bridge</a>
+            <a href="docs-github-pages-so101.html">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html" aria-current="page">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html">Windows Verification</a>
+            <a href="docs-windows-blockers.html">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#python-multi-joint-programming">Python multi-joint programming</a>
+            <a href="#manual-control">Manual Control</a>
+            <a href="#servo-register-limits">Servo-register limits</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/so101.md"
+        data-source-sha256="2e1fa1af3295b74bf5fdafb6bb0a5f785fbaca479e166f703e988e3e9fc527b9"
+      >
+<h1 id="so-101">SO-101</h1>
+<p>Robot id: <code>so101_follower</code>.</p>
+<p>Tier 1 supports SO-101 simulation and an optional local bridge path. Disconnected preview uses conservative manifest limits. After a verified bridge connection, RoboBuddy reads the Feetech <code>Min_Position_Limit</code> and <code>Max_Position_Limit</code> registers and installs those values as temporary runtime limits for the active robot session.</p>
+<p>Hardware rules:</p>
+<ul>
+<li>use local bridge only</li>
+<li>no direct browser hardware control</li>
+<li>calibration is required before real movement</li>
+<li>motion is rejected by the bridge until the operator explicitly arms the connected session</li>
+<li>STOP remains available</li>
+<li>bridge fails safely if LeRobot is not installed</li>
+</ul>
+<p>The main page owns the real hardware connection. Python and Gemini programs can route through the shared robot runtime only after the SO-101 is connected, calibrated, and armed for the current session.</p>
+<h2 id="python-multi-joint-programming">Python multi-joint programming</h2>
+<p>Select <code>so101_follower</code> on <code>python.html</code> and use the manifest-driven <code>robot</code> API. The canonical joint ids are <code>shoulder_pan</code>, <code>shoulder_lift</code>, <code>elbow_flex</code>, <code>wrist_flex</code>, <code>wrist_roll</code>, and <code>gripper</code>.</p>
+<pre class="python-docs__code"><code class="language-python">robot.move_joints({
+    &quot;shoulder_pan&quot;: 5,
+    &quot;shoulder_lift&quot;: -85,
+    &quot;elbow_flex&quot;: 80,
+    &quot;wrist_flex&quot;: 68,
+    &quot;wrist_roll&quot;: 83,
+    &quot;gripper&quot;: 80,
+}, speed=30)
+</code></pre>
+<p>Every joint number is an absolute end position in the active calibrated joint coordinate. For example, <code>robot.move_joint("elbow_flex", 40)</code> targets position <code>40°</code>; it does not add <code>40°</code>. Zero and positive direction are joint-specific calibration/manifest coordinates, not world-space angles. Relative changes must be calculated explicitly from the planned pose, such as <code>pose["elbow_flex"] -= 5</code>, before sending the resulting absolute target.</p>
+<p>One <code>robot.move_joints({...})</code> call remains one RoboBuddy command and one bridge execution request. If every included joint is already within its relative-step guard, the bridge uses one LeRobot action map and one Feetech bus <code>sync_write</code>. For a larger move, it automatically expands the command into measured, bounded action maps. The included joints advance together along a straight joint-space path, but synchronized physical arrival is not guaranteed. The current program bridge validates <code>speed</code> from <code>1..100</code> but does not use it to set physical velocity, duration, or common arrival time.</p>
+<p>LeRobot's relative-target protection defaults to <code>max_relative_target = 12.0</code> unless configured otherwise. Before each program write, RoboBuddy reads fresh measured feedback and computes the largest common progress fraction that keeps every included joint within 90% of its active guard. While measured motion continues, the bridge refreshes that bounded look-ahead goal on each observation cycle; only the exact final destination must fully settle. The final requested numbers remain absolute destinations; users do not calculate safety increments. A returned action that differs from an accepted bounded goal is a fault rather than a silent partial success; motion that stops making measured progress also faults. In either case, the bridge holds measured position when possible and disarms.</p>
+<p>Verified Home, finite Python poses, manual sliders, and Leader modes all retain their separate motion-ownership paths. Each may use bounded intermediate actions while its requested target remains absolute.</p>
+<p><code>robot.get_joints()</code> returns planned interpreter state, not a live blocking hardware observation. A finite Python pose is also separate from SolU's continuously refreshed Virtual Leader and Phone Leader sessions. One Python run cannot control SO-101 and LeKiwi concurrently.</p>
+<p>See <a href="docs-python-so101-lekiwi.html">Programming SO-101 and LeKiwi with RoboBuddy Python</a> for complete examples, joint tables, and troubleshooting.</p>
+<p>Readiness states:</p>
+<ul>
+<li><code>Bridge</code>: the localhost bridge answered <code>/health</code></li>
+<li><code>Port</code>: the operator selected or entered a COM port</li>
+<li><code>Calibration</code>: LeRobot reports calibration for the selected <code>robotInstanceId</code></li>
+<li><code>Arm Motion</code>: the operator enabled the non-persisted session toggle and the bridge accepted the arm request</li>
+</ul>
+<p>If the bridge returns <code>NEEDS_CALIBRATION</code>, run the displayed command, for example:</p>
+<pre class="python-docs__code"><code class="language-powershell">lerobot-calibrate --robot.type=so101_follower --robot.port=COM24 --robot.id=classroom_so101_01
+</code></pre>
+<p>The bridge disconnects after this status so PowerShell calibration can open the same COM port.</p>
+<p>The bridge never starts LeRobot calibration from a browser request because calibration is interactive and physically manipulates the arm.</p>
+<p>The real adapter imports LeRobot lazily in <code>bridge/robobuddy_bridge/adapters/so101_lerobot.py</code> and maps validated RoboBuddy commands to LeRobot <code>&lt;joint&gt;.pos</code> actions.</p>
+<h2 id="manual-control">Manual Control</h2>
+<p>The slider thumb and large value are the requested target. While motion is armed, dragging sends coalesced targets at up to 30 Hz with one HTTP request and one serial operation in flight at a time. The 3D preview still responds immediately. Releasing the pointer or keyboard key sends a final target that may continue converging through LeRobot's relative-target protection.</p>
+<p>When LeRobot clips a distant target to its configured relative step, RoboBuddy latches that intermediate servo goal and waits for fresh measured progress before issuing the next step. Repeated browser updates that would produce the same clipped goal are coalesced, and they do not reset the 5 Hz observation schedule. A contact-blocked gripper therefore keeps its semantic requested target without repeatedly generating identical all-servo reads and writes.</p>
+<p>The smaller <code>Actual</code> line is measured servo feedback cached by the bridge. Delayed observations never move the active slider thumb. While a joint is moving, the bridge samples at 5 Hz and reports <code>Moving</code>, <code>Reached</code>, <code>Lagging</code>, <code>Cancelled</code>, or <code>Feedback unavailable</code> without adding a serial read for every browser poll.</p>
+<p>LeRobot's bounded-target send performs its own <code>Present_Position</code> read. RoboBuddy serializes that operation and retries transport-level <code>ConnectionError</code> failures up to three total attempts with short backoffs. The same policy protects measured-position and calibration-register reads. One recovered packet miss therefore does not disarm motion or change a requested target; validation errors, semantic calibration mismatches, disconnected-device errors, and motor-reported faults are never retried. Three failed command attempts remain terminal. Manual feedback is considered unavailable only after three consecutive failed observation transactions, with any successful observation resetting that count.</p>
+<p>Connection has a separate, narrowly scoped recovery policy. LeRobot exclusively owns the selected COM port, and RoboBuddy retries only the exact pre-configuration handshake failure where expected motor IDs are missing. It creates a fresh robot instance for each of three attempts and closes a failed bus without sending torque or configuration commands. Wrong-model, port, semantic calibration, configuration, and other connection failures are not retried as whole connections. Transient <code>ConnectionError</code> packet loss while reading calibration registers still uses the normal bounded serial retry. A connection is not reported ready until calibration limits and fresh measured positions have both been read successfully.</p>
+<p>After a terminal communication failure the bridge remains connected when possible but disarms motion. Selecting Arm again clears the failed operation and stale error display without reading, holding, replaying, or otherwise moving the robot. Requested and measured positions remain visible, and a new slider, Home, or program command is required before movement resumes.</p>
+<p>If a non-final drag stream is interrupted for 250 ms, the bridge expires that target and holds the latest measured pose. A newer update from the same still-active drag may resume smoothly; an explicit cancellation retires the session so late requests cannot revive it. Starting another joint or a program transfers motion ownership away from the active manual stream. Disarming, disconnecting, hiding the page, Home, and STOP cancel it as safety operations. STOP and disconnect require explicit re-arming before another movement command is accepted.</p>
+<p>During a continuing takeover, an arm joint is held at its latest measured pose before the next joint moves. The gripper is different: its requested target remains latched while another joint or program moves so contact preload is not replaced with the measured jaw position. A gripper touching an object can therefore remain below its requested target and report <code>Lagging</code> without RoboBuddy reducing that target. If an explicit cancellation or safety operation occurs, any unsent gripper takeover command is discarded and cannot be revived by a late request.</p>
+<p>If an object still slips while the requested gripper target remains unchanged, investigate payload mass, contact geometry, surface friction, power delivery, and the motor's configured protections separately. Do not treat positional limits as permission to increase gripper torque or current.</p>
+<p>Safety holds are issued only from a successful fresh feedback read. If feedback is unavailable, STOP and disarm still cancel motion and clear arming, but the bridge does not write cached joint coordinates back to the motors.</p>
+<p>Targets outside the current verified safe limits, non-finite values, unknown joints, and invalid program batches are rejected in full before manual takeover or serial I/O. Rejection does not disarm the arm, alter requested targets, or cancel a latched gripper preload. Persistent transport or motor feedback failures remain terminal and disarm motion.</p>
+<p>If the bridge reports that no motors responded after three connection attempts, inspect the robot power supply under load, the USB adapter and cable, and every serial-bus connector. Persistent whole-bus packet loss is a hardware or transport fault; do not increase retry counts or disable automatic disarming to conceal it.</p>
+<p>Cached-state polling tolerates two transient failures. After three consecutive missed updates, the browser marks the bridge offline, clears live-control state and hardware-limit overrides, and blocks further hardware commands until the operator tests and reconnects the bridge.</p>
+<p>Keyboard controls use 1 degree or 1 percent steps, Shift for 5-unit steps, and Home/End for the effective minimum/maximum. Targets are quantized to encoder-supported steps before transmission.</p>
+<h2 id="servo-register-limits">Servo-register limits</h2>
+<p>For degree joints, the bridge translates Feetech register ticks with the same 4095-tick midpoint model used by LeRobot. The gripper is translated to 0–100 percent through its calibration range. Exact floating-point limits remain internal; the UI rounds only endpoint labels. Raw ticks, translated ranges, and encoder resolution are available in Diagnostics.</p>
+<p>Values configured with FT SCServo Debug therefore become the Manual Control slider endpoints after a successful connection, provided the active LeRobot calibration matches the connected servos. A mismatch may display the values as <code>Hardware · unverified</code>, but all hardware motion remains blocked until calibration is corrected. RoboBuddy does not edit or silently accept a LeRobot calibration file.</p>
+<p>Hardware register limits are positional bounds only. They do not detect self-collision, protect a payload, or replace supervised operation.</p>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

@@ -28,23 +28,16 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Build minimal Pages artifact
+      - name: Assemble complete SolU runtime
         shell: bash
         run: |
           set -euo pipefail
           rm -rf site
-          mkdir -p site
-          cp index.html python.html gemini.html python-docs.html site/
-          cp -a css js assets robots missions docs site/
-          mkdir -p site/simulator/js site/simulator/css
-          cp simulator/js/arm-rig-config.js site/simulator/js/
-          cp simulator/js/arm-preview-3d.js site/simulator/js/
-          cp simulator/js/arm-preview-mesh-data.js site/simulator/js/
-          cp simulator/js/robot-rig-configs.js site/simulator/js/
-          cp simulator/js/robot-mesh-data-so101.js site/simulator/js/
-          cp simulator/js/robot-mesh-data-lekiwi.js site/simulator/js/
-          cp simulator/css/arm-preview-3d.css site/simulator/css/
-          find site -maxdepth 4 -type f | sort
+          mkdir site
+          cp ./*.html site/
+          cp -a assets css js missions robots simulator site/
+          test "$(find site -maxdepth 1 -type f -name '*.html' | wc -l)" -eq 11
+          find site -type f | sort
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

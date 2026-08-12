@@ -1,14 +1,14 @@
 .arm-preview-container--3d {
   position: relative;
-  background: linear-gradient(180deg, #101820 0%, #121923 56%, #17202b 100%);
+  background: #f7f8fa;
 }
 
 .arm-preview-3d {
   position: absolute;
   inset: 4px;
   overflow: hidden;
-  border-radius: 8px;
-  background: #10161d;
+  border-radius: 6px;
+  background: #f7f8fa;
 }
 
 .arm-preview-3d[hidden] {
@@ -33,6 +33,23 @@
   height: 100%;
 }
 
+.robot-sim-3d__viewport.is-leader-handles-visible canvas,
+.arm-preview-3d__viewport.is-leader-handles-visible canvas {
+  cursor: grab;
+  touch-action: none;
+}
+
+.robot-sim-3d__viewport.is-leader-handle-hover canvas,
+.arm-preview-3d__viewport.is-leader-handle-hover canvas {
+  cursor: grab;
+}
+
+.robot-sim-3d__viewport.is-leader-handle-dragging canvas,
+.arm-preview-3d__viewport.is-leader-handle-dragging canvas {
+  cursor: grabbing;
+  touch-action: none;
+}
+
 .arm-preview-container--3d.is-vertical-panning .arm-preview-3d__viewport,
 .arm-preview-container--3d.is-vertical-panning .arm-preview-3d__viewport canvas {
   cursor: ns-resize;
@@ -54,11 +71,11 @@
 .arm-preview-3d__status,
 .arm-preview-3d__fallback-status {
   min-width: 0;
-  border: 1px solid rgba(212, 224, 238, 0.18);
-  border-radius: 999px;
-  background: rgba(12, 18, 26, 0.78);
-  color: #e8f2ff;
-  box-shadow: 0 10px 28px rgba(7, 12, 19, 0.28);
+  border: 1px solid #dfe4eb;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #263142;
+  box-shadow: none;
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.2;
@@ -70,19 +87,19 @@
 }
 
 .arm-preview-3d__status[data-tone="ready"] {
-  border-color: rgba(113, 211, 154, 0.42);
-  color: #d9ffe8;
+  border-color: #95d1aa;
+  color: #176739;
 }
 
 .arm-preview-3d__status[data-tone="warning"] {
-  border-color: rgba(245, 158, 11, 0.48);
-  color: #fff2d6;
+  border-color: #e7bd75;
+  color: #86520b;
 }
 
 .arm-preview-3d__status[data-tone="error"],
 .arm-preview-3d__fallback-status {
-  border-color: rgba(239, 68, 68, 0.46);
-  color: #ffe1e1;
+  border-color: #e4a4a4;
+  color: #9f2525;
 }
 
 .arm-preview-3d__reset {
@@ -94,17 +111,18 @@
   display: inline-grid;
   place-items: center;
   padding: 0;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 224, 238, 0.2);
-  background: rgba(12, 18, 26, 0.78);
-  color: #e8f2ff;
-  box-shadow: 0 10px 28px rgba(7, 12, 19, 0.28);
+  border-radius: 4px;
+  border: 1px solid #d7dde6;
+  background: rgba(255, 255, 255, 0.96);
+  color: #263142;
+  box-shadow: none;
   line-height: 1;
 }
 
 .arm-preview-3d__reset:hover,
 .arm-preview-3d__reset:focus-visible {
-  border-color: rgba(105, 210, 255, 0.7);
+  border-color: #2f6fe4;
+  color: #1c57bd;
 }
 
 .arm-preview-3d__reset svg {
@@ -164,50 +182,7 @@
   gap: 0;
 }
 
-.index-3d-layout-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid rgba(216, 223, 235, 0.86);
-  border-radius: 10px;
-  background: rgba(245, 247, 255, 0.78);
-}
-
-.index-3d-layout-toggle__label {
-  padding: 0 4px;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.index-3d-layout-toggle__button {
-  min-height: 30px;
-  padding: 5px 8px;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.index-3d-layout-toggle__button svg {
-  width: 14px;
-  height: 14px;
-}
-
-.index-3d-layout-toggle__button.is-active,
-.index-3d-layout-toggle__button[aria-pressed="true"] {
-  background: rgba(11, 122, 117, 0.12);
-  border-color: rgba(11, 122, 117, 0.32);
-  color: var(--brand-strong);
-}
-
 .index-3d-workbench {
-  --index-3d-outer-split: 44%;
-  --index-3d-inner-horizontal-split: 52%;
-  --index-3d-inner-stacked-split: 50%;
-  --index-3d-splitter-size: 12px;
   --index-3d-teach-controls-gap: 8px;
   --index-3d-teach-controls-size: 28px;
   --index-3d-teach-controls-size-min: 26px;
@@ -227,7 +202,7 @@
 }
 
 .index-3d-main-split,
-.index-3d-control-group,
+.index-3d-block-manual-group,
 .index-3d-side-column {
   min-width: 0;
   min-height: 0;
@@ -236,112 +211,19 @@
 
 .index-3d-main-split {
   grid-area: main;
-  grid-template-columns: minmax(360px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-areas:
-    "block outer-split controls";
 }
 
-.index-3d-control-group {
-  grid-area: controls;
-  grid-template-columns: minmax(280px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(320px, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-areas:
-    "manual inner-split side";
-}
-
-.index-3d-page[data-manual-block-layout="stacked"] .index-3d-control-group {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(160px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(240px, 1fr);
-  grid-template-areas:
-    "manual"
-    "inner-split"
-    "side";
+.index-3d-block-manual-group {
+  grid-area: pair;
 }
 
 .index-3d-workbench .sidebar-card,
 .index-3d-workbench .workspace__editor,
 .index-3d-main-split,
-.index-3d-control-group,
+.index-3d-block-manual-group,
 .index-3d-side-column {
   min-width: 0;
   min-height: 0;
-}
-
-.index-3d-splitter {
-  min-width: var(--index-3d-splitter-size);
-  min-height: var(--index-3d-splitter-size);
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  cursor: col-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  position: relative;
-  touch-action: none;
-  z-index: 3;
-}
-
-.index-3d-splitter::before {
-  content: "";
-  display: block;
-  width: 3px;
-  height: min(90px, 42%);
-  border-radius: 999px;
-  background: rgba(90, 101, 120, 0.32);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.46);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
-}
-
-.index-3d-splitter[data-splitter-orientation="horizontal"] {
-  cursor: row-resize;
-}
-
-.index-3d-splitter[data-splitter-orientation="horizontal"]::before {
-  width: min(120px, 42%);
-  height: 3px;
-}
-
-.index-3d-splitter:hover::before,
-.index-3d-splitter:focus-visible::before,
-.index-3d-splitter.is-active::before {
-  background: rgba(11, 122, 117, 0.7);
-  box-shadow: 0 0 0 4px rgba(11, 122, 117, 0.13);
-}
-
-.index-3d-splitter:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: -2px;
-}
-
-.index-3d-splitter.is-active::before {
-  transform: scaleX(1.18);
-}
-
-.index-3d-splitter[data-splitter-orientation="horizontal"].is-active::before {
-  transform: scaleY(1.18);
-}
-
-.index-3d-splitter--outer {
-  grid-area: outer-split;
-}
-
-.index-3d-splitter--inner {
-  grid-area: inner-split;
-}
-
-.index-3d-page.is-resizing-3d-workbench {
-  user-select: none;
-}
-
-.index-3d-page.is-resizing-3d-workbench--vertical {
-  cursor: col-resize;
-}
-
-.index-3d-page.is-resizing-3d-workbench--horizontal {
-  cursor: row-resize;
 }
 
 .index-3d-preview-card {
@@ -373,6 +255,12 @@
   overflow: auto;
 }
 
+.index-3d-manual-card.has-bridge-controls {
+  grid-template-rows: auto auto max-content;
+  grid-auto-rows: max-content;
+  align-content: start;
+}
+
 .index-3d-card-header {
   min-width: 0;
   display: grid;
@@ -384,8 +272,9 @@
   min-width: 0;
 }
 
-.index-3d-card-header .index-3d-layout-toggle {
-  justify-self: start;
+.index-3d-block-card .index-3d-card-header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
 }
 
 .index-3d-manual-card .teach-controls {
@@ -445,14 +334,39 @@
 }
 
 .index-3d-manual-card .servo-sliders {
+  width: 100%;
+  min-width: 0;
   min-height: 0;
   gap: 4px;
   grid-template-rows: repeat(6, minmax(0, 1fr));
 }
 
+.index-3d-manual-card.has-bridge-controls .servo-sliders {
+  height: auto;
+  min-height: 210px;
+  align-content: start;
+  gap: 6px;
+  grid-template-rows: repeat(6, minmax(30px, auto));
+}
+
 .index-3d-manual-card .servo-channel {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   min-height: 0;
   padding: 6px 8px;
+}
+
+.index-3d-manual-card .servo-slider {
+  min-width: 0;
+}
+
+.index-3d-manual-card.has-bridge-controls .servo-channel {
+  min-height: 30px;
+}
+
+.index-3d-manual-card.has-bridge-controls .robot-bridge-panel {
+  margin-top: 2px;
 }
 
 .index-3d-manual-card .servo-channel__label,
@@ -576,56 +490,43 @@
     padding: 0 8px 0;
   }
 
-  .index-3d-main-split {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(300px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
+  .index-3d-manual-card .servo-channel {
+    grid-template-columns: minmax(0, 1fr) max-content;
     grid-template-areas:
-      "block"
-      "outer-split"
-      "controls";
+      "label value"
+      "slider slider";
+    row-gap: 5px;
+    column-gap: 6px;
+    padding-inline: 4px;
   }
 
-  .index-3d-control-group {
-    grid-template-columns: minmax(220px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(280px, 1fr);
+  .index-3d-manual-card .servo-channel__label {
+    grid-area: label;
+    min-width: 0;
   }
 
-  .index-3d-page[data-manual-block-layout="stacked"] .index-3d-control-group {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(180px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(240px, 1fr);
+  .index-3d-manual-card .servo-channel__track {
+    grid-area: slider;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .index-3d-manual-card .servo-slider {
+    grid-area: auto;
+  }
+
+  .index-3d-manual-card .servo-channel__metrics {
+    grid-area: value;
+    justify-self: end;
+  }
+
+  .index-3d-manual-card .servo-channel__value {
+    grid-area: auto;
   }
 
 }
 
 @media (max-width: 980px) {
-  .index-3d-main-split {
-    grid-template-rows: minmax(280px, var(--index-3d-outer-split)) var(--index-3d-splitter-size) minmax(0, 1fr);
-  }
-
-  .index-3d-control-group {
-    grid-template-columns: minmax(210px, var(--index-3d-inner-horizontal-split)) var(--index-3d-splitter-size) minmax(240px, 1fr);
-  }
-
-  .index-3d-page[data-manual-block-layout="stacked"] .index-3d-control-group {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(165px, var(--index-3d-inner-stacked-split)) var(--index-3d-splitter-size) minmax(220px, 1fr);
-  }
-
-  .index-3d-layout-toggle__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .index-3d-layout-toggle__button {
-    padding: 5px 7px;
-  }
-
   .index-3d-block-actionbar {
     flex-wrap: wrap;
   }
@@ -634,6 +535,62 @@
     flex: 1 1 100%;
     margin-left: 0;
     justify-content: flex-start;
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding-inline: 4px;
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-step {
+    gap: 3px;
+    padding-inline: 2px;
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-step::after {
+    font-size: 0.58rem;
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__port-row,
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__session-row,
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__auth-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__port-row .btn,
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__connect-row .btn {
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .index-3d-manual-card.has-bridge-controls .robot-bridge-panel__status {
+    min-width: 0;
+  }
+
+  .index-3d-manual-card.sidebar__controls.has-drive-controls {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+
+  .index-3d-manual-card.sidebar__controls.has-drive-controls .teach-controls {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .index-3d-manual-card.sidebar__controls.has-drive-controls .robot-drive-controls {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: center;
+  }
+
+  .index-3d-manual-card.sidebar__controls.has-drive-controls .servo-sliders {
+    grid-column: 1;
+    grid-row: 4;
   }
 
 }

@@ -1,5 +1,0 @@
-{
-  "scripts": {
-    "test": "node tests/run-tests.js"
-  }
-}

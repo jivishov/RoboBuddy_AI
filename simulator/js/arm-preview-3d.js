@@ -2,12 +2,16 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ARM_PREVIEW_MESH_DATA } from "./arm-preview-mesh-data.js?v=20260611-meshdata";
 import { ARM_RIG_CONFIG } from "./arm-rig-config.js?v=20260611-meshdata";
-import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260703-lekiwi-gripper-facing-camera";
+import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260718-calm-workbench-1";
 
 const NS = (window.RoboAdmin = window.RoboAdmin || {});
 const DEG_TO_RAD = Math.PI / 180;
 const DEFAULT_HOME = [90, 90, 90, 90, 90, 90];
 const MAX_MOBILE_DELTA_SECONDS = 0.05;
+const LEADER_LAYERS = Object.freeze(["input", "target", "measured"]);
+const LEADER_HANDLE_MIN_DIAMETER_PX = 24;
+const LEADER_HANDLE_EDGE_ON_DOT = 0.18;
+const LEADER_FRAME_SAMPLE_LIMIT = 180;
 
 const registry = (window.RoboBuddy3DPreview = window.RoboBuddy3DPreview || {});
 registry.registered = true;
@@ -96,8 +100,8 @@ class ArmPreview3D {
 
   initScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x11161a);
-    this.scene.fog = new THREE.Fog(0x11161a, 900, 1600);
+    this.scene.background = new THREE.Color(0xf7f8fa);
+    this.scene.fog = new THREE.Fog(0xf7f8fa, 900, 1600);
 
     this.camera = new THREE.PerspectiveCamera(46, 1, 1, 1800);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
@@ -128,7 +132,7 @@ class ArmPreview3D {
   }
 
   installSceneLights() {
-    const hemi = new THREE.HemisphereLight(0xdfeeff, 0x1d252d, 1.35);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xd7dce3, 1.55);
     this.scene.add(hemi);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -141,19 +145,19 @@ class ArmPreview3D {
     keyLight.shadow.camera.bottom = -180;
     this.scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x75d6ff, 0.62);
+    const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.58);
     fillLight.position.set(-360, 220, -240);
     this.scene.add(fillLight);
 
-    const grid = new THREE.GridHelper(520, 26, 0x4b5966, 0x27313a);
+    const grid = new THREE.GridHelper(520, 26, 0xc9d2de, 0xe4e8ee);
     grid.position.y = -0.5;
     this.scene.add(grid);
 
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(290, 96),
       new THREE.MeshStandardMaterial({
-        color: 0x151b20,
-        roughness: 0.82,
+        color: 0xf1f3f6,
+        roughness: 0.9,
         metalness: 0
       })
     );
@@ -655,7 +659,10 @@ class ArmPreview3D {
     if (!this.camera || !this.controls) {
       return;
     }
-    if (this.options.cameraPreset === "compact") {
+    if (this.options.cameraPreset === "inspection") {
+      this.camera.position.set(140, 190, 320);
+      this.controls.target.set(0, 215, 0);
+    } else if (this.options.cameraPreset === "compact") {
       this.camera.position.set(360, 255, 660);
       this.controls.target.set(0, 215, 0);
     } else {
@@ -773,6 +780,35 @@ class RobotRigPreview3D {
     this.gripperGroups = null;
     this.meshGripper = null;
     this.meshRigActive = false;
+    this.rigGeometries = new Set();
+    this.disposedGeometries = new Set();
+    this.leaderLayerRoots = {};
+    this.leaderLayerGroups = {};
+    this.leaderLayerGrippers = {};
+    this.leaderMaterials = {};
+    this.leaderHandles = [];
+    this.leaderHandleGeometry = null;
+    this.leaderGripperHandleGeometry = null;
+    this.leaderInteractionCallbacks = {};
+    this.leaderCallbackRegistration = null;
+    this.leaderInteraction = null;
+    this.leaderHoverHandle = null;
+    this.webglContextLost = false;
+    this.leaderPoseState = {
+      active: false,
+      input: null,
+      target: null,
+      measured: null,
+      visibility: { input: true, target: true, measured: true, handles: true }
+    };
+    this.leaderFrameSamplesMs = [];
+    this.skipNextLeaderFrameTimingSample = false;
+    this.debugResourceStats = {
+      geometryDisposeCalls: 0,
+      materialDisposeCalls: 0,
+      listenerCount: 0,
+      rejectedPoseSnapshots: 0
+    };
     this.visualMobilePose = this.cloneMobilePose(this.state && this.state.mobileBase);
     this.activeMobileMotion = null;
     this.lastFrameSeconds = 0;
@@ -788,6 +824,14 @@ class RobotRigPreview3D {
     this.resizeObserver = null;
     this.disposed = false;
     this._boundResize = () => this.resize();
+    this._boundLeaderPointerDown = (event) => this.handleLeaderPointerDown(event);
+    this._boundLeaderPointerMove = (event) => this.handleLeaderPointerMove(event);
+    this._boundLeaderPointerUp = (event) => this.handleLeaderPointerUp(event);
+    this._boundLeaderPointerCancel = (event) => this.handleLeaderPointerCancel(event);
+    this._boundLeaderLostPointerCapture = (event) => this.handleLeaderLostPointerCapture(event);
+    this._boundLeaderWindowBlur = () => this.cancelLeaderInteraction("blur");
+    this._boundWebglContextLost = (event) => this.handleWebglContextLost(event);
+    this._boundWebglContextRestored = () => this.handleWebglContextRestored();
 
     if (!this.viewport || !this.config) {
       throw new Error("Robot 3D preview requires a viewport and a robot rig config.");
@@ -798,6 +842,12 @@ class RobotRigPreview3D {
     this.resize();
     this.updateState(this.state);
     this.emitStatus();
+    this.bindLeaderInteraction();
+    if (!registry.robotRigInstances) {
+      registry.robotRigInstances = new Set();
+    }
+    registry.robotRigInstances.add(this);
+    registry.lastRobotRigInstance = this;
     void this.loadOfficialMeshRig();
     this.animate();
   }
@@ -819,8 +869,8 @@ class RobotRigPreview3D {
 
   initScene() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x10161d);
-    this.scene.fog = new THREE.Fog(0x10161d, 760, 1600);
+    this.scene.background = new THREE.Color(0xf7f8fa);
+    this.scene.fog = new THREE.Fog(0xf7f8fa, 760, 1600);
 
     this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2400);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
@@ -860,8 +910,53 @@ class RobotRigPreview3D {
     return materials;
   }
 
+  createLeaderMaterials() {
+    if (this.leaderMaterials.input && this.leaderMaterials.target && this.leaderMaterials.handle) {
+      return this.leaderMaterials;
+    }
+    this.leaderMaterials.input = new THREE.MeshBasicMaterial({
+      color: 0xe8edf5,
+      transparent: true,
+      opacity: 0.24,
+      wireframe: true,
+      depthWrite: false,
+      toneMapped: false
+    });
+    this.leaderMaterials.input.userData.layerSemantics = "stippled-translucent-input";
+    this.leaderMaterials.input.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <alphatest_fragment>",
+        "#include <alphatest_fragment>\nif (mod(floor(gl_FragCoord.x) + floor(gl_FragCoord.y), 4.0) > 0.5) discard;"
+      );
+    };
+    this.leaderMaterials.input.customProgramCacheKey = () => "robobuddy-leader-input-stipple-v1";
+    this.leaderMaterials.target = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.52,
+      wireframe: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+      toneMapped: false
+    });
+    this.leaderMaterials.target.userData.layerSemantics = "outlined-target";
+    this.leaderMaterials.handle = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.78,
+      depthTest: false,
+      depthWrite: false,
+      toneMapped: false
+    });
+    this.leaderMaterials.handleHover = this.leaderMaterials.handle.clone();
+    this.leaderMaterials.handleHover.opacity = 1;
+    return this.leaderMaterials;
+  }
+
   installSceneLights() {
-    const hemi = new THREE.HemisphereLight(0xe9f3ff, 0x1c252f, 1.35);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xd7dce3, 1.55);
     this.scene.add(hemi);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.35);
@@ -874,19 +969,19 @@ class RobotRigPreview3D {
     keyLight.shadow.camera.bottom = -220;
     this.scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x74d8ff, 0.7);
+    const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.62);
     fillLight.position.set(-360, 230, -260);
     this.scene.add(fillLight);
 
-    const grid = new THREE.GridHelper(620, 31, 0x4c5a67, 0x26313b);
+    const grid = new THREE.GridHelper(620, 31, 0xc9d2de, 0xe4e8ee);
     grid.position.y = -0.5;
     this.scene.add(grid);
 
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(330, 112),
       new THREE.MeshStandardMaterial({
-        color: 0x151c22,
-        roughness: 0.84,
+        color: 0xf1f3f6,
+        roughness: 0.9,
         metalness: 0
       })
     );
@@ -945,6 +1040,11 @@ class RobotRigPreview3D {
       this.setStatus(`${this.manifestShortName()} official STL assembly ready`, "ready");
     } catch (error) {
       console.warn("Official robot mesh assembly failed.", error);
+      this.cancelLeaderInteraction("mesh-load-failed");
+      this.hideLeaderRigArtifacts();
+      if (this.root) {
+        this.root.visible = true;
+      }
       this.meshRigActive = false;
       this.setStatus("3D preview unavailable.", "error");
       if (this.onUnavailable && !this.disposed) {
@@ -1019,13 +1119,15 @@ class RobotRigPreview3D {
     });
 
     const gripper = this.createOfficialGripper(meshData, groups);
-    return { root, groups, jointDefs, meshes, gripper };
+    return { root, groups, jointDefs, meshes, gripper, geometries: new Set(geometryCache.values()) };
   }
 
   replaceRig(rig) {
+    this.cancelLeaderInteraction("rig-replaced");
+    this.clearLeaderRigArtifacts();
     if (this.root) {
       this.scene.remove(this.root);
-      this.disposeObjectTree(this.root);
+      this.disposeGeometries(this.rigGeometries);
     }
     this.root = rig.root;
     this.groups = rig.groups;
@@ -1033,8 +1135,13 @@ class RobotRigPreview3D {
     this.meshes = rig.meshes;
     this.gripperGroups = null;
     this.meshGripper = rig.gripper;
+    this.rigGeometries = rig.geometries || new Set();
     this.scene.add(this.root);
     this.bindMobileWheels();
+    if (this.leaderPoseState.active) {
+      this.ensureLeaderRigArtifacts();
+      this.applyLeaderPoseLayers();
+    }
   }
 
   createOfficialGripper(meshData, groups) {
@@ -1134,14 +1241,774 @@ class RobotRigPreview3D {
     return [Number(value[0]) || 0, Number(value[1]) || 0, Number(value[2]) || 0];
   }
 
-  disposeObjectTree(object) {
-    const disposedGeometries = new Set();
-    object.traverse((child) => {
-      if (child.geometry && !disposedGeometries.has(child.geometry)) {
-        disposedGeometries.add(child.geometry);
-        child.geometry.dispose();
+  disposeGeometries(geometries) {
+    (geometries || []).forEach((geometry) => {
+      if (!geometry || this.disposedGeometries.has(geometry)) {
+        return;
+      }
+      this.disposedGeometries.add(geometry);
+      this.debugResourceStats.geometryDisposeCalls += 1;
+      geometry.dispose();
+    });
+  }
+
+  setLeaderPoseLayers(next = {}) {
+    const wasActive = this.leaderPoseState.active;
+    const active = Object.prototype.hasOwnProperty.call(next, "active") ? Boolean(next.active) : true;
+    const visibility = next.visibility && typeof next.visibility === "object" ? next.visibility : {};
+    this.leaderPoseState.active = active;
+    LEADER_LAYERS.forEach((layer) => {
+      if (Object.prototype.hasOwnProperty.call(next, layer)) {
+        const snapshot = this.normalizeLeaderPose(next[layer]);
+        if (snapshot) {
+          this.leaderPoseState[layer] = snapshot;
+        } else {
+          this.debugResourceStats.rejectedPoseSnapshots += 1;
+        }
+      }
+      if (Object.prototype.hasOwnProperty.call(visibility, layer)) {
+        this.leaderPoseState.visibility[layer] = Boolean(visibility[layer]);
       }
     });
+    if (Object.prototype.hasOwnProperty.call(next, "handlesVisible")) {
+      this.leaderPoseState.visibility.handles = Boolean(next.handlesVisible);
+    }
+    if (Object.prototype.hasOwnProperty.call(visibility, "handles")) {
+      this.leaderPoseState.visibility.handles = Boolean(visibility.handles);
+    }
+
+    if (!active) {
+      this.cancelLeaderInteraction("leader-mode-exit");
+      this.hideLeaderRigArtifacts();
+      if (this.root) {
+        this.root.visible = true;
+      }
+      this.applyJointPose();
+      this.applyGripperPose();
+      return this.getLeaderDebugSnapshot();
+    }
+
+    if (!wasActive) {
+      this.leaderFrameSamplesMs.length = 0;
+    }
+
+    this.ensureLeaderRigArtifacts();
+    this.applyLeaderPoseLayers();
+    return this.getLeaderDebugSnapshot();
+  }
+
+  setLeaderLayerVisibility(layer, visible) {
+    if (![...LEADER_LAYERS, "handles"].includes(layer)) {
+      return false;
+    }
+    this.leaderPoseState.visibility[layer] = Boolean(visible);
+    this.applyLeaderPoseLayers();
+    return true;
+  }
+
+  setLeaderInteractionCallbacks(callbacks = {}) {
+    callbacks = callbacks && typeof callbacks === "object" ? callbacks : {};
+    const registration = {
+      onJointDragStart: typeof callbacks.onJointDragStart === "function" ? callbacks.onJointDragStart : null,
+      onJointDrag: typeof callbacks.onJointDrag === "function" ? callbacks.onJointDrag : null,
+      onJointDragEnd: typeof callbacks.onJointDragEnd === "function" ? callbacks.onJointDragEnd : null,
+      onJointDragCancel: typeof callbacks.onJointDragCancel === "function" ? callbacks.onJointDragCancel : null,
+      onHandleUnavailable: typeof callbacks.onHandleUnavailable === "function" ? callbacks.onHandleUnavailable : null
+    };
+    this.leaderCallbackRegistration = registration;
+    this.leaderInteractionCallbacks = registration;
+    return () => {
+      if (this.leaderCallbackRegistration !== registration) {
+        return;
+      }
+      this.cancelLeaderInteraction("callbacks-cleared");
+      this.leaderCallbackRegistration = null;
+      this.leaderInteractionCallbacks = {};
+    };
+  }
+
+  normalizeLeaderPose(pose) {
+    const source = pose && typeof pose === "object" && pose.joints && typeof pose.joints === "object"
+      ? pose.joints
+      : (pose && typeof pose === "object" ? pose : {});
+    const joints = {};
+    const definitions = this.manifest && Array.isArray(this.manifest.joints) ? this.manifest.joints : [];
+    if (definitions.length === 0) {
+      return null;
+    }
+    for (const joint of definitions) {
+      if (!Object.prototype.hasOwnProperty.call(source, joint.id)) {
+        return null;
+      }
+      const value = Number(source[joint.id]);
+      if (!Number.isFinite(value)) {
+        return null;
+      }
+      joints[joint.id] = value;
+    }
+    return { joints };
+  }
+
+  ensureLeaderRigArtifacts() {
+    if (!this.root || !this.meshRigActive || this.disposed) {
+      return false;
+    }
+    this.createLeaderMaterials();
+    ["input", "target"].forEach((layer) => {
+      if (this.leaderLayerRoots[layer]) {
+        return;
+      }
+      const clone = this.cloneLeaderLayerRoot(layer);
+      this.leaderLayerRoots[layer] = clone.root;
+      this.leaderLayerGroups[layer] = clone.groups;
+      this.leaderLayerGrippers[layer] = clone.gripper;
+      this.scene.add(clone.root);
+    });
+    if (!this.leaderHandleRoot) {
+      this.createLeaderHandleRig();
+    }
+    return true;
+  }
+
+  cloneLeaderLayerRoot(layer) {
+    const root = this.root.clone(true);
+    root.name = `${this.root.name}-${layer}-layer`;
+    const groups = {};
+    root.traverse((object) => {
+      if (object.isGroup && object.name) {
+        groups[object.name] = object;
+      }
+      if (object.isMesh) {
+        object.material = this.leaderMaterials[layer];
+        object.castShadow = false;
+        object.receiveShadow = false;
+        object.renderOrder = layer === "input" ? 1 : 2;
+      }
+    });
+    this.jointDefs.forEach((joint) => {
+      const source = this.groups[joint.id];
+      const group = groups[joint.id];
+      if (source && group && source.userData.baseQuaternion) {
+        group.userData.baseQuaternion = source.userData.baseQuaternion.clone();
+        group.userData.joint = joint;
+      }
+    });
+    const gripper = this.meshGripper && this.meshGripper.definition
+      ? {
+          group: groups[this.meshGripper.definition.node] || null,
+          definition: this.meshGripper.definition,
+          joint: this.meshGripper.joint
+        }
+      : null;
+    return { root, groups, gripper };
+  }
+
+  createLeaderHandleRig() {
+    const root = new THREE.Group();
+    root.name = `${this.root.name}-leader-handles`;
+    root.position.copy(this.root.position);
+    root.quaternion.copy(this.root.quaternion);
+    root.scale.copy(this.root.scale);
+    root.userData.groundOffsetMm = this.root.userData.groundOffsetMm;
+    const groups = { root };
+
+    this.jointDefs.forEach((joint) => {
+      const source = this.groups[joint.id];
+      const parent = groups[joint.parent] || root;
+      if (!source) {
+        return;
+      }
+      const group = new THREE.Group();
+      group.name = joint.id;
+      group.position.copy(source.position);
+      group.quaternion.copy(source.userData.baseQuaternion || source.quaternion);
+      group.userData.baseQuaternion = group.quaternion.clone();
+      group.userData.joint = joint;
+      parent.add(group);
+      groups[joint.id] = group;
+    });
+
+    this.leaderHandleRoot = root;
+    this.leaderHandleGroups = groups;
+    this.scene.add(root);
+    this.buildLeaderHandles();
+  }
+
+  buildLeaderHandles() {
+    if (!this.leaderHandleRoot) {
+      return;
+    }
+    this.leaderHandles = [];
+    this.leaderHandleGeometry = new THREE.TorusGeometry(20, 2.4, 8, 48);
+    this.leaderGripperHandleGeometry = new THREE.TorusGeometry(15, 2.8, 8, 40);
+    const zAxis = new THREE.Vector3(0, 0, 1);
+
+    this.jointDefs.filter((joint) => joint.jointId && joint.sign !== 0).forEach((joint) => {
+      const group = this.leaderHandleGroups[joint.id];
+      if (!group) {
+        return;
+      }
+      const axis = new THREE.Vector3().fromArray(joint.axis || [0, 1, 0]);
+      if (axis.lengthSq() <= 0.000001) {
+        return;
+      }
+      axis.normalize();
+      const sign = Number(joint.sign) || 1;
+      this.addLeaderHandle(group, this.leaderHandleGeometry, axis, {
+        jointId: joint.jointId,
+        label: joint.label || joint.jointId,
+        radius: 20,
+        semanticPerVisualDegree: 1 / sign
+      }, zAxis);
+    });
+
+    if (this.meshGripper && this.meshGripper.definition) {
+      const definition = this.meshGripper.definition;
+      const group = this.leaderHandleGroups[definition.node];
+      const joint = this.meshGripper.joint || (group && group.userData.joint);
+      const axis = new THREE.Vector3().fromArray((joint && joint.axis) || [0, 1, 0]);
+      const open = Number(definition.openValue);
+      const close = Number(definition.closeValue);
+      const openDeg = Number(definition.openDeg);
+      const closedDeg = Number(definition.closedDeg);
+      const angularPerSemantic = (Number(definition.sign) || 1) * (openDeg - closedDeg) * -1 / Math.max(1, Math.abs(close - open));
+      if (group && axis.lengthSq() > 0.000001 && Number.isFinite(angularPerSemantic) && Math.abs(angularPerSemantic) > 0.000001) {
+        axis.normalize();
+        this.addLeaderHandle(group, this.leaderGripperHandleGeometry, axis, {
+          jointId: definition.jointId,
+          label: "Gripper",
+          radius: 15,
+          semanticPerVisualDegree: 1 / angularPerSemantic
+        }, zAxis);
+      }
+    }
+  }
+
+  addLeaderHandle(group, geometry, axis, metadata, zAxis) {
+    const handle = new THREE.Mesh(geometry, this.leaderMaterials.handle);
+    handle.name = `leader-handle-${metadata.jointId}`;
+    handle.quaternion.setFromUnitVectors(zAxis, axis);
+    handle.renderOrder = 10;
+    handle.userData.leaderHandle = true;
+    handle.userData.jointId = metadata.jointId;
+    handle.userData.label = metadata.label;
+    handle.userData.axisLocal = axis.clone();
+    handle.userData.radius = metadata.radius;
+    handle.userData.semanticPerVisualDegree = metadata.semanticPerVisualDegree;
+    group.add(handle);
+    this.leaderHandles.push(handle);
+  }
+
+  clearLeaderRigArtifacts() {
+    ["input", "target"].forEach((layer) => {
+      const root = this.leaderLayerRoots[layer];
+      if (root && root.parent) {
+        root.parent.remove(root);
+      }
+    });
+    if (this.leaderHandleRoot && this.leaderHandleRoot.parent) {
+      this.leaderHandleRoot.parent.remove(this.leaderHandleRoot);
+    }
+    this.disposeGeometries([this.leaderHandleGeometry, this.leaderGripperHandleGeometry]);
+    this.leaderLayerRoots = {};
+    this.leaderLayerGroups = {};
+    this.leaderLayerGrippers = {};
+    this.leaderHandleRoot = null;
+    this.leaderHandleGroups = {};
+    this.leaderHandles = [];
+    this.leaderHandleGeometry = null;
+    this.leaderGripperHandleGeometry = null;
+    this.refreshLeaderHandleClasses();
+  }
+
+  hideLeaderRigArtifacts() {
+    ["input", "target"].forEach((layer) => {
+      if (this.leaderLayerRoots[layer]) {
+        this.leaderLayerRoots[layer].visible = false;
+      }
+    });
+    if (this.leaderHandleRoot) {
+      this.leaderHandleRoot.visible = false;
+    }
+    this.refreshLeaderHandleClasses();
+  }
+
+  applyLeaderPoseLayers() {
+    if (!this.leaderPoseState.active) {
+      return;
+    }
+    if (!this.ensureLeaderRigArtifacts()) {
+      return;
+    }
+    const fallback = this.normalizeLeaderPose(this.state && this.state.joints ? this.state.joints : {});
+    if (!fallback) {
+      return;
+    }
+    const poses = {
+      input: this.leaderPoseState.input || fallback,
+      target: this.leaderPoseState.target || this.leaderPoseState.input || fallback,
+      measured: this.leaderPoseState.measured || fallback
+    };
+
+    ["input", "target"].forEach((layer) => {
+      const root = this.leaderLayerRoots[layer];
+      if (!root) {
+        return;
+      }
+      root.position.copy(this.root.position);
+      root.quaternion.copy(this.root.quaternion);
+      root.scale.copy(this.root.scale);
+      root.visible = Boolean(this.leaderPoseState.visibility[layer]);
+      this.applyJointPoseTo(this.leaderLayerGroups[layer], poses[layer]);
+      this.applyOfficialGripperPoseTo(this.leaderLayerGrippers[layer], poses[layer]);
+    });
+
+    this.root.visible = Boolean(this.leaderPoseState.visibility.measured);
+    this.applyJointPoseTo(this.groups, poses.measured);
+    this.applyOfficialGripperPoseTo(this.meshGripper, poses.measured);
+    if (this.leaderHandleRoot) {
+      this.leaderHandleRoot.position.copy(this.root.position);
+      this.leaderHandleRoot.quaternion.copy(this.root.quaternion);
+      this.leaderHandleRoot.scale.copy(this.root.scale);
+      this.leaderHandleRoot.visible = Boolean(this.leaderPoseState.visibility.handles);
+      this.applyJointPoseTo(this.leaderHandleGroups, poses.target);
+      const handleGripper = this.meshGripper && this.meshGripper.definition
+        ? {
+            group: this.leaderHandleGroups[this.meshGripper.definition.node],
+            definition: this.meshGripper.definition,
+            joint: this.meshGripper.joint
+          }
+        : null;
+      this.applyOfficialGripperPoseTo(handleGripper, poses.target);
+    }
+    this.refreshLeaderHandleClasses();
+  }
+
+  bindLeaderInteraction() {
+    const canvas = this.renderer && this.renderer.domElement;
+    if (!canvas) {
+      return;
+    }
+    canvas.addEventListener("pointerdown", this._boundLeaderPointerDown, true);
+    canvas.addEventListener("pointermove", this._boundLeaderPointerMove, true);
+    canvas.addEventListener("pointerup", this._boundLeaderPointerUp, true);
+    canvas.addEventListener("pointercancel", this._boundLeaderPointerCancel, true);
+    canvas.addEventListener("lostpointercapture", this._boundLeaderLostPointerCapture, true);
+    canvas.addEventListener("webglcontextlost", this._boundWebglContextLost, false);
+    canvas.addEventListener("webglcontextrestored", this._boundWebglContextRestored, false);
+    window.addEventListener("blur", this._boundLeaderWindowBlur);
+    this.debugResourceStats.listenerCount += 8;
+  }
+
+  unbindLeaderInteraction() {
+    const canvas = this.renderer && this.renderer.domElement;
+    if (canvas) {
+      canvas.removeEventListener("pointerdown", this._boundLeaderPointerDown, true);
+      canvas.removeEventListener("pointermove", this._boundLeaderPointerMove, true);
+      canvas.removeEventListener("pointerup", this._boundLeaderPointerUp, true);
+      canvas.removeEventListener("pointercancel", this._boundLeaderPointerCancel, true);
+      canvas.removeEventListener("lostpointercapture", this._boundLeaderLostPointerCapture, true);
+      canvas.removeEventListener("webglcontextlost", this._boundWebglContextLost, false);
+      canvas.removeEventListener("webglcontextrestored", this._boundWebglContextRestored, false);
+    }
+    window.removeEventListener("blur", this._boundLeaderWindowBlur);
+    this.debugResourceStats.listenerCount = 0;
+  }
+
+  handleLeaderPointerDown(event) {
+    if (
+      event.button !== 0 ||
+      !this.leaderPoseState.active ||
+      !this.leaderPoseState.visibility.handles ||
+      this.leaderInteraction ||
+      this.leaderHandles.length === 0 ||
+      this.webglContextLost ||
+      (
+        typeof this.leaderInteractionCallbacks.onJointDragStart !== "function" &&
+        typeof this.leaderInteractionCallbacks.onJointDrag !== "function"
+      )
+    ) {
+      return;
+    }
+    const handle = this.pickLeaderHandle(event);
+    if (!handle) {
+      return;
+    }
+    const metrics = this.getLeaderHandleMetrics(handle);
+    if (!metrics.available) {
+      this.invokeLeaderCallback("onHandleUnavailable", {
+        jointId: handle.userData.jointId,
+        label: handle.userData.label,
+        reason: metrics.reason,
+        projectedDiameterPx: metrics.projectedDiameterPx,
+        guidance: "Use the linked pad or precision control for this joint."
+      });
+      return;
+    }
+
+    const startPayload = {
+      jointId: handle.userData.jointId,
+      label: handle.userData.label,
+      pointerId: event.pointerId,
+      projectedDiameterPx: metrics.projectedDiameterPx
+    };
+    if (this.invokeLeaderCallback("onJointDragStart", startPayload, { failClosed: true }) !== true) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const canvas = this.renderer && this.renderer.domElement;
+    try {
+      if (!canvas || typeof canvas.setPointerCapture !== "function") {
+        throw new Error("Pointer capture is unavailable.");
+      }
+      canvas.setPointerCapture(event.pointerId);
+      if (typeof canvas.hasPointerCapture === "function" && !canvas.hasPointerCapture(event.pointerId)) {
+        throw new Error("Pointer capture was not acquired.");
+      }
+    } catch (error) {
+      this.invokeLeaderCallback("onJointDragCancel", {
+        ...startPayload,
+        totalDelta: 0,
+        reason: "pointercapturefailed"
+      });
+      this.invokeLeaderCallback("onHandleUnavailable", {
+        jointId: handle.userData.jointId,
+        label: handle.userData.label,
+        reason: "pointercapturefailed",
+        projectedDiameterPx: metrics.projectedDiameterPx,
+        guidance: "Use the linked pad or precision control for this joint."
+      });
+      return;
+    }
+    this.leaderInteraction = {
+      handle,
+      pointerId: event.pointerId,
+      lastAngle: this.pointerScreenAngle(event, metrics.centerScreen),
+      totalSemanticDelta: 0,
+      controlsWereEnabled: Boolean(this.controls && this.controls.enabled),
+      axisFacingSign: metrics.axisFacingSign
+    };
+    if (this.controls) {
+      this.controls.enabled = false;
+    }
+    this.setLeaderHoverHandle(handle);
+    this.refreshLeaderHandleClasses();
+  }
+
+  handleLeaderPointerMove(event) {
+    const interaction = this.leaderInteraction;
+    if (!interaction) {
+      if (this.leaderPoseState.active && this.leaderPoseState.visibility.handles) {
+        this.setLeaderHoverHandle(this.pickLeaderHandle(event));
+      }
+      return;
+    }
+    if (event.pointerId !== interaction.pointerId) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const metrics = this.getLeaderHandleMetrics(interaction.handle);
+    if (!metrics.available) {
+      this.invokeLeaderCallback("onHandleUnavailable", {
+        jointId: interaction.handle.userData.jointId,
+        label: interaction.handle.userData.label,
+        reason: metrics.reason,
+        projectedDiameterPx: metrics.projectedDiameterPx,
+        guidance: "Use the linked pad or precision control for this joint."
+      });
+      this.finishLeaderInteraction(true, "handleunavailable");
+      return;
+    }
+    const nextAngle = this.pointerScreenAngle(event, metrics.centerScreen);
+    const angleDelta = Math.atan2(
+      Math.sin(nextAngle - interaction.lastAngle),
+      Math.cos(nextAngle - interaction.lastAngle)
+    );
+    interaction.lastAngle = nextAngle;
+    const visualDeltaDegrees = angleDelta / DEG_TO_RAD * interaction.axisFacingSign;
+    const semanticDelta = visualDeltaDegrees * Number(interaction.handle.userData.semanticPerVisualDegree || 1);
+    if (!Number.isFinite(semanticDelta) || Math.abs(semanticDelta) < 0.00001) {
+      return;
+    }
+    interaction.totalSemanticDelta += semanticDelta;
+    this.invokeLeaderCallback("onJointDrag", {
+      jointId: interaction.handle.userData.jointId,
+      label: interaction.handle.userData.label,
+      pointerId: interaction.pointerId,
+      delta: semanticDelta,
+      totalDelta: interaction.totalSemanticDelta,
+      projectedDiameterPx: metrics.projectedDiameterPx
+    });
+  }
+
+  handleLeaderPointerUp(event) {
+    if (!this.leaderInteraction || event.pointerId !== this.leaderInteraction.pointerId) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    this.finishLeaderInteraction(false, "pointerup");
+  }
+
+  handleLeaderPointerCancel(event) {
+    if (!this.leaderInteraction || event.pointerId !== this.leaderInteraction.pointerId) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    this.finishLeaderInteraction(true, "pointercancel");
+  }
+
+  handleLeaderLostPointerCapture(event) {
+    if (this.leaderInteraction && event.pointerId === this.leaderInteraction.pointerId) {
+      this.finishLeaderInteraction(true, "lostpointercapture");
+    }
+  }
+
+  handleWebglContextLost(event) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
+    this.webglContextLost = true;
+    this.cancelLeaderInteraction("webglcontextlost");
+    this.setStatus("3D context lost. Use the linked pad or precision controls.", "error");
+    this.invokeLeaderCallback("onHandleUnavailable", {
+      jointId: "",
+      label: "3D controls",
+      reason: "webglcontextlost",
+      projectedDiameterPx: 0,
+      guidance: "Use the linked pad or precision control while the preview recovers."
+    });
+  }
+
+  handleWebglContextRestored() {
+    this.webglContextLost = false;
+    this.setStatus(`${this.config && this.config.title ? this.config.title : "Robot"} 3D restored`, "ready");
+    if (this.leaderPoseState.active) {
+      this.applyLeaderPoseLayers();
+    }
+  }
+
+  cancelLeaderInteraction(reason = "cancelled") {
+    if (!this.leaderInteraction) {
+      this.setLeaderHoverHandle(null);
+      return false;
+    }
+    this.finishLeaderInteraction(true, reason);
+    return true;
+  }
+
+  finishLeaderInteraction(cancelled, reason) {
+    const interaction = this.leaderInteraction;
+    if (!interaction) {
+      return;
+    }
+    this.leaderInteraction = null;
+    if (this.controls) {
+      this.controls.enabled = interaction.controlsWereEnabled;
+    }
+    const canvas = this.renderer && this.renderer.domElement;
+    if (canvas) {
+      try {
+        if (canvas.hasPointerCapture(interaction.pointerId)) {
+          canvas.releasePointerCapture(interaction.pointerId);
+        }
+      } catch (error) {
+        // The browser may already have released capture.
+      }
+    }
+    const payload = {
+      jointId: interaction.handle.userData.jointId,
+      label: interaction.handle.userData.label,
+      pointerId: interaction.pointerId,
+      totalDelta: interaction.totalSemanticDelta,
+      reason
+    };
+    this.invokeLeaderCallback(cancelled ? "onJointDragCancel" : "onJointDragEnd", payload);
+    this.setLeaderHoverHandle(null);
+    this.refreshLeaderHandleClasses();
+  }
+
+  pickLeaderHandle(event) {
+    if (!this.camera || !this.renderer || this.leaderHandles.length === 0) {
+      return null;
+    }
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      return null;
+    }
+    const pointer = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    if (!this.leaderRaycaster) {
+      this.leaderRaycaster = new THREE.Raycaster();
+    }
+    this.leaderRaycaster.setFromCamera(pointer, this.camera);
+    const hits = this.leaderRaycaster.intersectObjects(this.leaderHandles.filter((handle) => handle.visible), false);
+    return hits.length > 0 ? hits[0].object : null;
+  }
+
+  getLeaderHandleMetrics(handle) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const centerWorld = new THREE.Vector3();
+    const worldQuaternion = new THREE.Quaternion();
+    handle.getWorldPosition(centerWorld);
+    handle.parent.getWorldQuaternion(worldQuaternion);
+    const axisWorld = handle.userData.axisLocal.clone().applyQuaternion(worldQuaternion).normalize();
+    const toCamera = this.camera.position.clone().sub(centerWorld).normalize();
+    const facing = axisWorld.dot(toCamera);
+    const axisFacingSign = facing >= 0 ? 1 : -1;
+    const centerNdc = centerWorld.clone().project(this.camera);
+    const tangent = new THREE.Vector3().crossVectors(axisWorld, toCamera);
+    if (tangent.lengthSq() <= 0.000001) {
+      tangent.set(1, 0, 0).applyQuaternion(worldQuaternion);
+    }
+    tangent.normalize().multiplyScalar(Number(handle.userData.radius) || 20);
+    const edgeNdc = centerWorld.clone().add(tangent).project(this.camera);
+    const centerScreen = {
+      x: rect.left + (centerNdc.x + 1) * 0.5 * rect.width,
+      y: rect.top + (1 - centerNdc.y) * 0.5 * rect.height
+    };
+    const edgeScreen = {
+      x: rect.left + (edgeNdc.x + 1) * 0.5 * rect.width,
+      y: rect.top + (1 - edgeNdc.y) * 0.5 * rect.height
+    };
+    const projectedDiameterPx = 2 * Math.hypot(edgeScreen.x - centerScreen.x, edgeScreen.y - centerScreen.y);
+    const edgeOn = Math.abs(facing) < LEADER_HANDLE_EDGE_ON_DOT;
+    const tooSmall = projectedDiameterPx < LEADER_HANDLE_MIN_DIAMETER_PX;
+    return {
+      available: !edgeOn && !tooSmall,
+      reason: edgeOn ? "edge_on" : (tooSmall ? "projected_too_small" : "available"),
+      axisFacingSign,
+      centerScreen,
+      projectedDiameterPx
+    };
+  }
+
+  pointerScreenAngle(event, centerScreen) {
+    return Math.atan2(-(event.clientY - centerScreen.y), event.clientX - centerScreen.x);
+  }
+
+  setLeaderHoverHandle(handle) {
+    if (this.leaderHoverHandle === handle) {
+      return;
+    }
+    if (this.leaderHoverHandle) {
+      this.leaderHoverHandle.material = this.leaderMaterials.handle;
+    }
+    this.leaderHoverHandle = handle || null;
+    if (this.leaderHoverHandle) {
+      this.leaderHoverHandle.material = this.leaderMaterials.handleHover;
+    }
+    this.refreshLeaderHandleClasses();
+  }
+
+  refreshLeaderHandleClasses() {
+    if (!this.viewport) {
+      return;
+    }
+    const visible = Boolean(
+      this.leaderPoseState.active &&
+      this.leaderPoseState.visibility.handles &&
+      this.leaderHandleRoot &&
+      this.leaderHandleRoot.visible
+    );
+    this.viewport.classList.toggle("is-leader-handles-visible", visible);
+    this.viewport.classList.toggle("is-leader-handle-hover", visible && Boolean(this.leaderHoverHandle));
+    this.viewport.classList.toggle("is-leader-handle-dragging", visible && Boolean(this.leaderInteraction));
+  }
+
+  invokeLeaderCallback(name, payload, options = {}) {
+    const callback = this.leaderInteractionCallbacks && this.leaderInteractionCallbacks[name];
+    if (typeof callback !== "function") {
+      return options.failClosed ? false : undefined;
+    }
+    try {
+      const result = callback(payload);
+      if (options.failClosed && result && typeof result.then === "function") {
+        console.error(`Robot Leader interaction callback ${name} must complete synchronously.`);
+        return false;
+      }
+      return result;
+    } catch (error) {
+      console.error(`Robot Leader interaction callback ${name} failed.`, error);
+      return options.failClosed ? false : undefined;
+    }
+  }
+
+  getLeaderDebugSnapshot() {
+    const geometries = new Set();
+    const materials = new Set();
+    let objectCount = 0;
+    const layerMeshCounts = { input: 0, target: 0, measured: 0 };
+    let sharedGeometryViolations = 0;
+    if (this.scene) {
+      this.scene.traverse((object) => {
+        objectCount += 1;
+        if (object.geometry) {
+          geometries.add(object.geometry);
+        }
+        const objectMaterials = Array.isArray(object.material) ? object.material : [object.material];
+        objectMaterials.filter(Boolean).forEach((material) => materials.add(material));
+      });
+    }
+    const sortedFrames = this.leaderFrameSamplesMs.slice().sort((a, b) => a - b);
+    const p95Index = sortedFrames.length > 0 ? Math.min(sortedFrames.length - 1, Math.floor(sortedFrames.length * 0.95)) : -1;
+    ["input", "target"].forEach((layer) => {
+      const root = this.leaderLayerRoots[layer];
+      if (!root) {
+        return;
+      }
+      root.traverse((object) => {
+        if (!object.isMesh) {
+          return;
+        }
+        layerMeshCounts[layer] += 1;
+        if (object.geometry && !this.rigGeometries.has(object.geometry)) {
+          sharedGeometryViolations += 1;
+        }
+      });
+    });
+    if (this.root) {
+      this.root.traverse((object) => {
+        if (object.isMesh) {
+          layerMeshCounts.measured += 1;
+        }
+      });
+    }
+    return {
+      active: this.leaderPoseState.active,
+      layers: {
+        input: Boolean(this.leaderLayerRoots.input),
+        target: Boolean(this.leaderLayerRoots.target),
+        measured: Boolean(this.root)
+      },
+      visibility: { ...this.leaderPoseState.visibility },
+      handles: this.leaderHandles.length,
+      layerMeshCounts,
+      sharedGeometryViolations,
+      activeInteraction: this.leaderInteraction ? this.leaderInteraction.handle.userData.jointId : null,
+      objectCount,
+      uniqueGeometryCount: geometries.size,
+      sharedRigGeometryCount: this.rigGeometries.size,
+      uniqueMaterialCount: materials.size,
+      listenerCount: this.debugResourceStats.listenerCount,
+      geometryDisposeCalls: this.debugResourceStats.geometryDisposeCalls,
+      materialDisposeCalls: this.debugResourceStats.materialDisposeCalls,
+      frameSampleCount: sortedFrames.length,
+      frameP95Ms: p95Index >= 0 ? sortedFrames[p95Index] : 0,
+      disposed: this.disposed
+    };
+  }
+
+  resetLeaderFrameTimingSamples() {
+    this.leaderFrameSamplesMs.length = 0;
+    this.skipNextLeaderFrameTimingSample = true;
+    return this.getLeaderDebugSnapshot();
   }
 
   manifestShortName() {
@@ -1154,6 +2021,10 @@ class RobotRigPreview3D {
       this.visualMobilePose = this.cloneMobilePose(this.state.mobileBase);
     }
     this.applyMobilePose(this.visualMobilePose);
+    if (this.leaderPoseState.active) {
+      this.applyLeaderPoseLayers();
+      return;
+    }
     this.applyJointPose();
     this.applyGripperPose();
   }
@@ -1374,17 +2245,21 @@ class RobotRigPreview3D {
   }
 
   applyJointPose() {
+    this.applyJointPoseTo(this.groups, this.state);
+  }
+
+  applyJointPoseTo(groups, pose) {
     this.jointDefs.forEach((joint) => {
       if (!joint.jointId || joint.sign === 0) {
         return;
       }
-      const group = this.groups[joint.id];
+      const group = groups && groups[joint.id];
       if (!group) {
         return;
       }
-      const value = this.getJointValue(joint.jointId);
-      const home = this.getJointHome(joint.jointId);
-      const degrees = (joint.sign ?? 1) * (value - home) + (joint.offsetDeg || 0);
+      const value = this.getJointValueFromPose(pose, joint.jointId);
+      const visualZero = this.getJointVisualZero(joint.jointId);
+      const degrees = (joint.sign ?? 1) * (value - visualZero) + (joint.offsetDeg || 0);
       const axis = new THREE.Vector3().fromArray(joint.axis || [0, 1, 0]);
       if (axis.lengthSq() <= 0.000001) {
         return;
@@ -1420,11 +2295,18 @@ class RobotRigPreview3D {
   }
 
   applyOfficialGripperPose() {
-    const { group, definition, joint } = this.meshGripper;
+    this.applyOfficialGripperPoseTo(this.meshGripper, this.state);
+  }
+
+  applyOfficialGripperPoseTo(meshGripper, pose) {
+    if (!meshGripper) {
+      return;
+    }
+    const { group, definition, joint } = meshGripper;
     if (!group || !definition) {
       return;
     }
-    const value = this.getJointValue(definition.jointId);
+    const value = this.getJointValueFromPose(pose, definition.jointId);
     const open = Number(definition.openValue);
     const close = Number(definition.closeValue);
     const denominator = Math.max(1, Math.abs(close - open));
@@ -1447,9 +2329,14 @@ class RobotRigPreview3D {
   }
 
   getJointValue(jointId) {
+    return this.getJointValueFromPose(this.state, jointId);
+  }
+
+  getJointValueFromPose(pose, jointId) {
     const joint = this.getManifestJoint(jointId);
     const fallback = joint ? this.getJointHome(jointId) : 0;
-    const raw = this.state && this.state.joints ? this.state.joints[jointId] : fallback;
+    const source = pose && pose.joints && typeof pose.joints === "object" ? pose.joints : pose;
+    const raw = source && typeof source === "object" ? source[jointId] : fallback;
     const numeric = Number(raw);
     return Number.isFinite(numeric) ? numeric : fallback;
   }
@@ -1458,6 +2345,14 @@ class RobotRigPreview3D {
     const joint = this.getManifestJoint(jointId);
     const home = joint ? Number(joint.home) : 0;
     return Number.isFinite(home) ? home : 0;
+  }
+
+  getJointVisualZero(jointId) {
+    const visualZeroJoints = this.config && this.config.visualZeroJoints && typeof this.config.visualZeroJoints === "object"
+      ? this.config.visualZeroJoints
+      : {};
+    const visualZero = Number(visualZeroJoints[jointId]);
+    return Number.isFinite(visualZero) ? visualZero : this.getJointHome(jointId);
   }
 
   getManifestJoint(jointId) {
@@ -1495,12 +2390,27 @@ class RobotRigPreview3D {
       : Date.now() / 1000;
     const rawDeltaSeconds = this.lastFrameSeconds ? nowSeconds - this.lastFrameSeconds : 0;
     this.lastFrameSeconds = nowSeconds;
+    if (this.skipNextLeaderFrameTimingSample) {
+      this.skipNextLeaderFrameTimingSample = false;
+    } else if (rawDeltaSeconds > 0) {
+      this.leaderFrameSamplesMs.push(rawDeltaSeconds * 1000);
+      if (this.leaderFrameSamplesMs.length > LEADER_FRAME_SAMPLE_LIMIT) {
+        this.leaderFrameSamplesMs.shift();
+      }
+    }
     this.updateMobileAnimation(Math.min(MAX_MOBILE_DELTA_SECONDS, Math.max(0, rawDeltaSeconds)));
     this.controls.update();
-    this.renderer.render(this.scene, this.camera);
+    if (!this.webglContextLost) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   dispose() {
+    if (this.disposed) {
+      return;
+    }
+    this.cancelLeaderInteraction("disposed");
+    this.unbindLeaderInteraction();
     this.disposed = true;
     if (this.animationFrame) {
       window.cancelAnimationFrame(this.animationFrame);
@@ -1509,23 +2419,43 @@ class RobotRigPreview3D {
       this.resizeObserver.disconnect();
     }
     window.removeEventListener("resize", this._boundResize);
+    this.clearLeaderRigArtifacts();
+    const geometries = new Set();
+    const materials = new Set();
     if (this.scene) {
       this.scene.traverse((object) => {
         if (object.geometry) {
-          object.geometry.dispose();
+          geometries.add(object.geometry);
         }
+        const objectMaterials = Array.isArray(object.material) ? object.material : [object.material];
+        objectMaterials.filter(Boolean).forEach((material) => materials.add(material));
       });
     }
-    Object.values(this.materials || {}).forEach((material) => {
-      if (material && typeof material.dispose === "function") {
+    this.disposeGeometries(geometries);
+    Object.values(this.materials || {}).filter(Boolean).forEach((material) => materials.add(material));
+    Object.values(this.leaderMaterials || {}).filter(Boolean).forEach((material) => materials.add(material));
+    materials.forEach((material) => {
+      if (typeof material.dispose === "function") {
+        this.debugResourceStats.materialDisposeCalls += 1;
         material.dispose();
       }
     });
+    if (this.controls && typeof this.controls.dispose === "function") {
+      this.controls.dispose();
+    }
     if (this.renderer) {
       this.renderer.dispose();
       if (this.renderer.domElement && this.renderer.domElement.parentElement) {
         this.renderer.domElement.parentElement.removeChild(this.renderer.domElement);
       }
+    }
+    this.leaderInteractionCallbacks = {};
+    this.leaderCallbackRegistration = null;
+    if (registry.robotRigInstances) {
+      registry.robotRigInstances.delete(this);
+    }
+    if (registry.lastRobotRigInstance === this) {
+      registry.lastRobotRigInstance = null;
     }
   }
 }
@@ -1543,5 +2473,9 @@ registry.ArmPreview3D = ArmPreview3D;
 registry.RobotRigPreview3D = RobotRigPreview3D;
 registry.config = ARM_RIG_CONFIG;
 registry.robotRigPreviewConfigs = ROBOT_RIG_PREVIEW_CONFIGS;
+registry.getLeaderDebugSnapshots = () => Array.from(registry.robotRigInstances || [])
+  .map((instance) => instance.getLeaderDebugSnapshot());
+registry.resetLeaderFrameTimingSamples = () => Array.from(registry.robotRigInstances || [])
+  .map((instance) => instance.resetLeaderFrameTimingSamples());
 
 window.dispatchEvent(new CustomEvent("robobuddy:robot-preview-3d-ready"));

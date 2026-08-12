@@ -11,16 +11,17 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-R8K8CD1Y8S');
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="css/style.css?v=20260703-bottom-area">
-  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260703-preview-console">
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260719-remediation-1">
+  <link rel="stylesheet" href="css/workbench-python.css?v=20260729-efficient-errors-2">
   <script type="importmap">
     {
       "imports": {
@@ -30,297 +31,247 @@
     }
   </script>
 </head>
-<body class="python-draft-page">
+<body class="workbench-page workbench-page--operational python-draft-page" data-page="python" data-workbench-mode="python">
+  <a class="workbench-skip" href="#main-content">Skip to Python workbench</a>
+
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" id="btnMainPage" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html" aria-current="page"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+
   <header class="topbar">
     <div class="topbar__brand">
       <div class="topbar__logo topbar__logo--image" aria-hidden="true">
         <img src="assets/logo.png" alt="" width="52" height="52">
       </div>
       <div>
-        <h1 class="topbar__title"><i class="topbar__title-icon" data-lucide="braces" aria-hidden="true"></i> RoboBuddy Python</h1>
+        <h1 class="topbar__title">RoboBuddy Python</h1>
         <p class="topbar__subtitle">Blockly to Python Lab</p>
       </div>
     </div>
 
     <div class="topbar__controls">
-      <nav class="topbar__page-nav" aria-label="Pages">
-        <a class="btn btn--load btn--page" id="btnMainPage" href="index.html" title="Open Main Page" data-hint="Open Main Page">
-          <i data-lucide="layout-dashboard"></i>
-          <span>Main</span>
-        </a>
-        <a class="btn btn--load btn--page" href="python.html" aria-current="page" title="Open Python Page" data-hint="Open Python Page">
-          <i data-lucide="braces"></i>
-          <span>Python</span>
-        </a>
-        <a class="btn btn--load btn--page" href="gemini.html" title="Open Gemini Page" data-hint="Open Gemini Page">
-          <i data-lucide="sparkles"></i>
-          <span>Gemini</span>
-        </a>
-        <a class="btn btn--load btn--page btn--docs" href="python-docs.html" title="Open Python interpreter documentation" data-hint="Open Python interpreter documentation">
-          <i data-lucide="book-open"></i>
-          <span>Docs</span>
-        </a>
-      </nav>
-      <div class="topbar__status" aria-live="polite">
-        <span class="status-dot" id="statusDot"></span>
-        <span class="status-text" id="statusText">Disconnected</span>
-      </div>
       <label class="topbar__robot-select" for="pythonRobotChooser">
         <span class="visually-hidden">Robot</span>
         <select id="pythonRobotChooser" aria-label="Robot"></select>
       </label>
-      <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth)" data-hint="Connect Serial (USB/Bluetooth)">
-        <i data-lucide="plug"></i>
-        <span>Connect</span>
+      <div class="workbench-target" data-execution-target="simulation" aria-label="Execution target: Simulation">
+        <i data-lucide="monitor" aria-hidden="true"></i><span>Simulation</span>
+      </div>
+      <button class="btn btn--connect" id="btnConnect" type="button" title="Connect Serial (USB/Bluetooth)" data-hint="Connect Serial (USB/Bluetooth)">
+        <i data-lucide="plug" aria-hidden="true"></i><span>Connect</span>
       </button>
-      <button class="btn btn--home" id="btnHome" title="Home Position" data-hint="Home Position">
-        <i data-lucide="home"></i>
-        <span>Home</span>
+      <button class="btn btn--home" id="btnHome" type="button" title="Move arm to home position" aria-label="Move arm to home position" aria-keyshortcuts="Control+H" data-hint="Move arm to home position">
+        <svg class="btn__robot-arm-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M159-120v-120h124L181-574q-27-15-44.5-44T119-680q0-50 35-85t85-35q39 0 69.5 22.5T351-720h128v-40q0-17 11.5-28.5T519-800q9 0 17.5 4t14.5 12l68-64q9-9 21.5-11.5T665-856l156 72q12 6 16.5 17.5T837-744q-6 12-17.5 15.5T797-730l-144-66-94 88v56l94 86 144-66q11-5 23-1t17 15q6 12 1 23t-17 17l-156 74q-12 6-24.5 3.5T619-512l-68-64q-6 6-14.5 11t-17.5 5q-17 0-28.5-11.5T479-600v-40H351q-3 8-6.5 15t-9.5 15l200 370h144v120H159Zm80-520q17 0 28.5-11.5T279-680q0-17-11.5-28.5T239-720q-17 0-28.5 11.5T199-680q0 17 11.5 28.5T239-640Zm126 400h78L271-560h-4l98 320Zm78 0Z"/>
+        </svg>
+        <span>Move Arm Home</span>
       </button>
-      <button class="btn btn--stop-big" id="btnEmergencyStop" title="Emergency Stop (Esc)" data-hint="Emergency Stop (Esc)">
-        <i data-lucide="octagon-alert"></i>
-        <span>STOP</span>
+      <button class="btn btn--stop-big" id="btnEmergencyStop" type="button" title="Emergency Stop (Esc)" aria-keyshortcuts="Escape" data-hint="Emergency Stop (Esc)">
+        <i data-lucide="octagon-alert" aria-hidden="true"></i><span>Emergency Stop</span>
       </button>
     </div>
   </header>
 
-  <main class="python-draft">
-    <section class="python-draft__panel python-draft__panel--blocks" aria-label="Blockly workspace">
-      <div class="python-draft__panel-header">
-        <div class="panel-label"><i data-lucide="puzzle"></i> Blockly</div>
-      </div>
-      <div id="pythonBlocklyDiv"></div>
-      <div class="python-draft__runbar python-draft__actionbar">
-        <label class="motors-toggle motors-toggle--block" for="pythonMotorsEnabled">
-          <i data-lucide="power"></i>
-          <span>Motors Enabled</span>
-          <input type="checkbox" id="pythonMotorsEnabled">
-        </label>
-        <span class="python-draft__action-divider" aria-hidden="true"></span>
-        <div class="python-draft__actions python-draft__actions--run">
-          <span class="python-draft__tool" data-hint="Run Blockly program">
-            <button class="btn btn--run python-draft__icon-btn python-draft__action-btn" id="btnRunBlocks" aria-label="Run Blockly program" type="button" title="Run Blockly program" data-hint="Run Blockly program">
-              <i data-lucide="play"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Convert blocks to Python">
-            <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnConvertPython" aria-label="Convert blocks to Python" type="button" title="Convert blocks to Python" data-hint="Convert blocks to Python">
-              <i data-lucide="wand-sparkles"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Convert and run Python">
-            <button class="btn btn--run python-draft__icon-btn python-draft__action-btn" id="btnConvertRunPython" aria-label="Convert and run Python" type="button" title="Convert and run Python" data-hint="Convert and run Python">
-              <i data-lucide="square-play"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Load example blocks">
-            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadExample" aria-label="Load example blocks" type="button" title="Load example blocks" data-hint="Load example blocks">
-              <i data-lucide="folder-open"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Save blocks">
-            <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnSaveBlocks" aria-label="Save blocks" type="button" title="Save blocks" data-hint="Save blocks">
-              <i data-lucide="save"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Load user blocks">
-            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadUserBlocks" aria-label="Load user blocks" type="button" title="Load user blocks" data-hint="Load user blocks">
-              <i data-lucide="upload"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Clear blocks">
-            <button class="btn btn--clear python-draft__icon-btn python-draft__action-btn" id="btnClearWorkspace" aria-label="Clear blocks" type="button" title="Clear blocks" data-hint="Clear blocks">
-              <i data-lucide="trash-2"></i>
-            </button>
-          </span>
+  <main class="python-workbench" id="main-content" tabindex="-1"
+    data-split-layout data-split-id="python" data-split-version="2"
+    data-split-storage-key="robobuddy:layout:python:v2"
+    data-split-names="left,right" data-split-labels="Python workspace,Preview rail"
+    data-split-defaults="0.72,0.28" data-split-mins="620,300">
+    <section class="python-workbench__program" id="pythonWorkspacePane" data-split-pane="left" aria-label="Robot program workbench">
+      <header class="python-workbench__program-header">
+        <div class="python-mode-tabs" role="tablist" aria-label="Program language">
+          <button class="python-mode-tab" id="pythonBlocklyTab" type="button" role="tab" aria-selected="false" aria-controls="pythonBlocklyPanel" tabindex="-1" data-python-mode="blockly">Blockly</button>
+          <button class="python-mode-tab" id="pythonPythonTab" type="button" role="tab" aria-selected="true" aria-controls="pythonPythonPanel" tabindex="0" data-python-mode="python">Python</button>
         </div>
-      </div>
-      <xml id="pythonToolbox" style="display: none"></xml>
-    </section>
 
-    <div
-      class="python-draft__splitter"
-      data-python-splitter="left"
-      role="separator"
-      tabindex="0"
-      aria-orientation="vertical"
-      aria-label="Resize Blockly and Python panels"
-      aria-valuemin="18"
-      aria-valuemax="58"
-      aria-valuenow="40.7"
-      aria-valuetext="Blockly 40.7 percent"
-      title="Resize Blockly and Python panels"
-      data-hint="Resize Blockly and Python panels"
-    ></div>
-
-    <section class="python-draft__panel python-draft__panel--python" aria-label="Python editor">
-      <div class="python-draft__panel-header">
-        <div class="panel-label"><i data-lucide="file-code-2"></i> Python</div>
-        <div class="python-draft__header-actions">
-          <p class="python-draft__runtime" id="pythonRuntimeStatus" data-tone="warning" aria-live="polite">Loading Python runtime...</p>
+        <div class="python-file-state" id="pythonFileBadge" data-state="saved">
+          <span class="python-file-state__name">robot_program.py</span>
+          <span class="python-file-state__dot" aria-hidden="true"></span>
+          <span class="visually-hidden" id="pythonFileState" aria-live="polite">Saved</span>
         </div>
-      </div>
-      <textarea
-        id="pythonEditor"
-        class="python-draft__editor"
-        spellcheck="false"
-        aria-label="Python code editor"
-      ># Convert blocks or write Python here.
-arm.home()
-arm.wait(0.5)
-arm.move_joint("base", 110, speed=50)
-print("Python command list ready")</textarea>
-      <div class="python-draft__actionbar python-draft__actionbar--python">
-        <div class="python-draft__actions python-draft__actions--python" aria-label="Python actions">
-          <span class="python-draft__tool" data-hint="Run Python program">
-            <button class="btn btn--run python-draft__icon-btn python-draft__action-btn" id="btnRunPython" aria-label="Run Python program" type="button" title="Run Python program" data-hint="Run Python program">
-              <i data-lucide="play"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Pause active program">
-            <button class="btn btn--home python-draft__icon-btn python-draft__action-btn" id="btnDraftPause" aria-label="Pause active program" type="button" title="Pause active program" data-hint="Pause active program">
-              <i data-lucide="pause"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Stop active program">
-            <button class="btn btn--stop python-draft__icon-btn python-draft__action-btn" id="btnDraftStop" aria-label="Stop active program" type="button" title="Stop active program" data-hint="Stop active program">
-              <i data-lucide="square"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Load example code">
-            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadCodeExample" aria-label="Load example code" aria-haspopup="menu" aria-expanded="false" aria-controls="pythonCodeExampleMenu" type="button" title="Load example code" data-hint="Load example code">
-              <i data-lucide="file-code-2"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Save Python">
-            <button class="btn btn--save python-draft__icon-btn python-draft__action-btn" id="btnSavePython" aria-label="Save Python" type="button" title="Save Python" data-hint="Save Python">
-              <i data-lucide="save"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Load Python">
-            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnLoadPython" aria-label="Load Python" type="button" title="Load Python" data-hint="Load Python">
-              <i data-lucide="file-up"></i>
-            </button>
-          </span>
-          <span class="python-draft__tool" data-hint="Copy Python">
-            <button class="btn btn--load python-draft__icon-btn python-draft__action-btn" id="btnCopyPython" aria-label="Copy Python" type="button" title="Copy Python" data-hint="Copy Python">
-              <i data-lucide="copy"></i>
-            </button>
-          </span>
-        </div>
-        <div class="python-draft__example-menu" id="pythonCodeExampleMenu" role="menu" aria-label="Example Python code" hidden></div>
-      </div>
-      <div class="python-draft__effect">
-        <p class="blockly-controls__status" id="pythonEffectStatus" data-tone="ready" aria-live="polite">Build blocks, then convert to Python.</p>
-        <p class="python-draft__summary"><span>Commands</span><strong id="pythonCommandSummary">-</strong></p>
-      </div>
-    </section>
 
-    <div
-      class="python-draft__splitter"
-      data-python-splitter="right"
-      role="separator"
-      tabindex="0"
-      aria-orientation="vertical"
-      aria-label="Resize Python and Robot Preview panels"
-      aria-valuemin="58.7"
-      aria-valuemax="82"
-      aria-valuenow="77.5"
-      aria-valuetext="Python 36.8 percent"
-      title="Resize Python and Robot Preview panels"
-      data-hint="Resize Python and Robot Preview panels"
-    ></div>
-
-    <aside class="python-draft__panel python-draft__panel--side" aria-label="Preview and output">
-      <section class="python-draft__preview">
-        <div class="python-draft__preview-header">
-          <div class="panel-label"><i data-lucide="eye"></i> Robot Preview</div>
-        </div>
-        <div class="gemini-draft__preview-body">
-          <div class="python-draft__preview-panel" id="pythonPreviewSketchPanel">
-            <div class="arm-preview-container arm-preview-container--3d python-draft__arm-stage">
-              <svg id="pythonArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="3D robot preview fallback"></svg>
-              <div class="arm-preview-3d" data-arm-preview-3d hidden>
-                <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot preview"></div>
-                <div class="arm-preview-3d__toolbar">
-                  <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D robot...</span>
-                  <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
-                    <i data-lucide="rotate-ccw" aria-hidden="true"></i>
-                    <span>Camera</span>
-                  </button>
-                </div>
-              </div>
-              <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
+        <div class="python-toolbar-menus" aria-label="Program menus">
+          <div class="python-menu">
+            <button class="python-menu__trigger" id="btnLoadCodeExample" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pythonCodeExampleMenu">
+              <span>Examples</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="python-menu__popover" id="pythonCodeExampleMenu" role="menu" aria-label="Examples" hidden>
+              <button class="python-menu__item" id="btnLoadExample" type="button" role="menuitem" data-mode-only="blockly">
+                <i data-lucide="puzzle" aria-hidden="true"></i><span><strong>Load example blocks</strong><small>Open the Arduino Wave Hello workspace</small></span>
+              </button>
+              <div class="python-menu__items" data-code-example-items data-mode-only="python"></div>
             </div>
           </div>
-          <div id="pythonRobotSimPreview" class="robot-sim-preview python-draft__robot-sim" hidden></div>
-          <div class="python-draft__joints" aria-label="Current joint values">
-            <div><span>Base</span><strong id="pythonJointValue0">90 deg</strong></div>
-            <div><span>Shoulder</span><strong id="pythonJointValue1">90 deg</strong></div>
-            <div><span>Elbow</span><strong id="pythonJointValue2">90 deg</strong></div>
-            <div><span>Wrist Rot</span><strong id="pythonJointValue3">90 deg</strong></div>
-            <div><span>Wrist Tilt</span><strong id="pythonJointValue4">90 deg</strong></div>
-            <div><span>Gripper</span><strong id="pythonJointValue5">90 deg</strong></div>
+
+          <div class="python-menu">
+            <button class="python-menu__trigger" id="btnPythonFileMenu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pythonFileMenu">
+              <i data-lucide="folder" aria-hidden="true"></i><span>File</span><i data-lucide="chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="python-menu__popover python-menu__popover--file" id="pythonFileMenu" role="menu" aria-label="File" hidden>
+              <button class="python-menu__item" id="btnSavePython" type="button" role="menuitem" data-mode-only="python"><i data-lucide="save" aria-hidden="true"></i><span>Save Python</span></button>
+              <button class="python-menu__item" id="btnLoadPython" type="button" role="menuitem" data-mode-only="python"><i data-lucide="file-up" aria-hidden="true"></i><span>Load Python</span></button>
+              <button class="python-menu__item" id="btnCopyPython" type="button" role="menuitem" data-mode-only="python"><i data-lucide="copy" aria-hidden="true"></i><span>Copy Python</span></button>
+              <button class="python-menu__item" id="btnSaveBlocks" type="button" role="menuitem" data-mode-only="blockly" hidden><i data-lucide="save" aria-hidden="true"></i><span>Save Blocks</span></button>
+              <button class="python-menu__item" id="btnLoadUserBlocks" type="button" role="menuitem" data-mode-only="blockly" hidden><i data-lucide="upload" aria-hidden="true"></i><span>Load Blocks</span></button>
+              <button class="python-menu__item python-menu__item--danger" id="btnClearWorkspace" type="button" role="menuitem" data-mode-only="blockly" hidden><i data-lucide="trash-2" aria-hidden="true"></i><span>Clear Blocks</span></button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="python-command-bar">
+        <label class="python-motors" for="pythonMotorsEnabled">
+          <input type="checkbox" id="pythonMotorsEnabled">
+          <i data-lucide="power" aria-hidden="true"></i>
+          <span id="pythonMotorsLabel">Motors Off</span>
+        </label>
+
+        <div class="python-command-group" data-mode-only="python" aria-label="Python commands">
+          <button class="python-command python-command--primary" id="btnRunPython" type="button"><i data-lucide="play" aria-hidden="true"></i><span>Validate &amp; Run</span></button>
+          <button class="python-command" id="btnDraftPause" type="button" disabled><i data-lucide="pause" aria-hidden="true"></i><span>Pause</span></button>
+          <button class="python-command" id="btnDraftStop" type="button" disabled><i data-lucide="square" aria-hidden="true"></i><span>Stop</span></button>
+        </div>
+
+        <div class="python-command-group" data-mode-only="blockly" aria-label="Blockly commands" hidden>
+          <button class="python-command python-command--primary" id="btnRunBlocks" type="button"><i data-lucide="play" aria-hidden="true"></i><span>Run Blocks</span></button>
+          <button class="python-command" id="btnConvertPython" type="button"><i data-lucide="wand-sparkles" aria-hidden="true"></i><span>Convert</span></button>
+          <button class="python-command" id="btnConvertRunPython" type="button"><i data-lucide="square-play" aria-hidden="true"></i><span>Convert &amp; Run</span></button>
+        </div>
+      </div>
+
+      <section class="python-program-panel python-program-panel--blockly" id="pythonBlocklyPanel" role="tabpanel" aria-labelledby="pythonBlocklyTab" tabindex="0" hidden>
+        <h2 class="visually-hidden">Blockly workspace</h2>
+        <div id="pythonBlocklyDiv" aria-label="Blockly workspace"></div>
+        <xml id="pythonToolbox" style="display: none"></xml>
+      </section>
+
+      <section class="python-program-panel python-program-panel--python" id="pythonPythonPanel" role="tabpanel" aria-labelledby="pythonPythonTab" tabindex="0">
+        <h2 class="visually-hidden">Python editor</h2>
+        <textarea id="pythonEditor" class="python-draft__editor" spellcheck="false" aria-label="Python code editor">robot.home()
+robot.move_joint("base", 100, speed=50)
+robot.wait(0.5)
+print(robot.get_joints())</textarea>
+      </section>
+
+      <section class="python-output-drawer workbench-collapsible" aria-label="Output and serial">
+        <button class="python-output-drawer__summary workbench-collapsible__toggle" id="btnOutputPanelToggle" type="button" aria-expanded="false" aria-controls="pythonOutputPanelBody" title="Show Output &amp; Serial" data-hint="Show Output &amp; Serial">
+          <span class="python-output-drawer__title">Output &amp; Serial</span>
+          <span class="python-output-drawer__status python-output-drawer__connection-status">
+            <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+            <span class="status-text" id="statusText">Disconnected</span>
+          </span>
+          <span class="python-output-drawer__status">
+            <i data-lucide="circle" id="programStatusIcon" class="bottombar__status-icon" aria-hidden="true"></i>
+            <span id="programStatus" aria-live="polite">Ready to validate</span>
+          </span>
+          <i class="python-output-drawer__chevron workbench-collapsible__chevron" data-drawer-chevron data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+
+        <div class="python-output-drawer__body workbench-collapsible__body" id="pythonOutputPanelBody" hidden>
+          <div class="python-output-drawer__diagnostics">
+            <p class="python-draft__runtime" id="pythonRuntimeStatus" data-tone="warning" aria-live="polite">Loading Python runtime...</p>
+            <div class="python-output-drawer__effect" id="pythonEffectCard" data-tone="ready">
+              <p class="blockly-controls__status" id="pythonEffectStatus" data-tone="ready" aria-live="polite">Ready to validate the Python command list.</p>
+              <button class="python-output-drawer__copy-status" id="btnCopyProgramStatus" type="button"
+                aria-label="Copy error details" title="Copy error details" data-hint="Copy error details" hidden>
+                <i data-lucide="copy" aria-hidden="true"></i>
+              </button>
+            </div>
+            <p class="python-draft__summary"><span>Commands</span><strong id="pythonCommandSummary">-</strong></p>
+          </div>
+          <div class="python-output-drawer__consoles">
+            <section class="python-draft__console" aria-label="Python output">
+              <header class="python-draft__panel-header">
+                <h3><i data-lucide="terminal" aria-hidden="true"></i> Python Output</h3>
+                <button class="python-output-clear" id="btnClearOutput" type="button" aria-label="Clear Python output" title="Clear Python output" data-hint="Clear Python output"><i data-lucide="eraser" aria-hidden="true"></i></button>
+              </header>
+              <div class="serial-console python-draft__log" id="pythonOutputLog" aria-live="polite"></div>
+            </section>
+            <section class="python-draft__console" aria-label="Serial log">
+              <header class="python-draft__panel-header"><h3><i data-lucide="radio" aria-hidden="true"></i> Serial</h3></header>
+              <div class="serial-console python-draft__log" id="pythonSerialLog" aria-live="polite"></div>
+            </section>
           </div>
         </div>
       </section>
+    </section>
 
-      <section class="python-draft__output-panel">
-        <button class="gemini-draft__console-toggle python-draft__output-toggle" id="btnOutputPanelToggle" type="button" aria-expanded="false" aria-controls="pythonOutputPanelBody" title="Show Output & Serial" data-hint="Show Output & Serial">
-          <span><i data-lucide="chevron-right" aria-hidden="true"></i> Output &amp; Serial</span>
-          <i data-lucide="terminal" aria-hidden="true"></i>
-        </button>
-        <div class="python-draft__output-body" id="pythonOutputPanelBody" hidden>
-          <section class="python-draft__console">
-            <div class="python-draft__panel-header">
-              <div class="panel-label"><i data-lucide="terminal"></i> Python Output</div>
-              <span class="python-draft__tool" data-hint="Clear Python output">
-                <button class="btn btn--clear python-draft__icon-btn python-draft__output-btn" id="btnClearOutput" aria-label="Clear Python output" type="button" title="Clear Python output" data-hint="Clear Python output">
-                  <i data-lucide="eraser"></i>
+    <div class="workbench-splitter" id="pythonWorkbenchSplitter" data-splitter-index="0"
+      role="separator" aria-orientation="vertical" aria-label="Resize Python workspace and Preview rail"
+      aria-controls="pythonWorkspacePane pythonPreviewPane" tabindex="0"
+      title="Resize Python workspace and Preview rail. Arrow keys resize; Enter resets."></div>
+
+    <aside class="python-preview" id="pythonPreviewPane" data-split-pane="right" aria-label="Robot preview and joint state">
+      <header class="python-preview__header"><h2>3D Preview</h2></header>
+      <div class="python-preview__stage">
+        <div class="python-draft__preview-panel" id="pythonPreviewSketchPanel">
+          <div class="arm-preview-container arm-preview-container--3d python-draft__arm-stage">
+            <svg id="pythonArm3dFallbackSvg" viewBox="0 0 310 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="3D robot preview fallback"></svg>
+            <div class="arm-preview-3d" data-arm-preview-3d hidden>
+              <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport role="img" aria-label="3D robot preview"></div>
+              <div class="arm-preview-3d__toolbar">
+                <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D robot...</span>
+                <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
+                  <i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Camera</span>
                 </button>
-              </span>
+              </div>
             </div>
-            <div class="serial-console python-draft__log" id="pythonOutputLog" aria-live="polite"></div>
-          </section>
+            <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
+          </div>
+        </div>
+        <div id="pythonRobotSimPreview" class="robot-sim-preview python-draft__robot-sim" hidden></div>
+      </div>
 
-          <section class="python-draft__console">
-            <div class="panel-label"><i data-lucide="radio"></i> Serial</div>
-            <div class="serial-console python-draft__log" id="pythonSerialLog" aria-live="polite"></div>
-          </section>
+      <section class="python-preview__joints workbench-collapsible workbench-joint-state" id="pythonJointStatePanel" aria-labelledby="pythonJointValuesTitle">
+        <button class="workbench-joint-state__toggle workbench-collapsible__toggle" id="pythonJointStateToggle" type="button"
+          aria-expanded="true" aria-controls="pythonJointStateBody">
+          <span class="workbench-joint-state__title" id="pythonJointValuesTitle">Joint State</span>
+          <span class="workbench-joint-state__count" id="pythonJointStateCount">6 joints</span>
+          <i class="workbench-collapsible__chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="python-draft__joints workbench-joint-state__body workbench-collapsible__body" id="pythonJointStateBody" role="region" aria-label="Current joint state" tabindex="0" data-readout>
+          <div data-joint-row data-python-joint-row><span>Joint 1</span><strong id="pythonJointValue0">—</strong></div>
+          <div data-joint-row data-python-joint-row><span>Joint 2</span><strong id="pythonJointValue1">—</strong></div>
+          <div data-joint-row data-python-joint-row><span>Joint 3</span><strong id="pythonJointValue2">—</strong></div>
+          <div data-joint-row data-python-joint-row><span>Joint 4</span><strong id="pythonJointValue3">—</strong></div>
+          <div data-joint-row data-python-joint-row><span>Joint 5</span><strong id="pythonJointValue4">—</strong></div>
+          <div data-joint-row data-python-joint-row><span>Joint 6</span><strong id="pythonJointValue5">—</strong></div>
         </div>
       </section>
     </aside>
   </main>
 
-  <footer class="bottombar">
-    <div class="bottombar__status">
-      <i data-lucide="circle-check" id="programStatusIcon" class="bottombar__status-icon"></i>
-      <span id="programStatus">Ready</span>
-    </div>
-  </footer>
-
   <script src="https://unpkg.com/blockly@12.5.1/blockly.min.js" integrity="sha384-SxxR8fpocVLJMl6kYyBm33uuy9U1yy0gMrMavfyCd3lQRer3qaBMlcVb0VSAfzop" crossorigin="anonymous"></script>
   <script src="robots/registry.js"></script>
   <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
-  <script src="robots/packs/so101_follower/manifest.js?v=20260702-robot-labels-3"></script>
-  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260702-robot-labels-3"></script>
-  <script src="robots/safety.js"></script>
-  <script src="robots/commandSchema.js"></script>
-  <script src="robots/adapters/simulation/simulation.js?v=20260702-lekiwi-rolling-motion"></script>
-  <script src="robots/adapters/hardware/hardware.js"></script>
-  <script src="robots/runtime.js"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260713-xbox-gamepad-4"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260707-closed-initial-pose"></script>
+  <script src="robots/safety.js?v=20260713-xbox-gamepad-2"></script>
+  <script src="robots/commandSchema.js?v=20260712-manual-live-control-6"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260713-virtual-leader-1"></script>
+  <script src="robots/adapters/hardware/hardware.js?v=20260729-bridge-session-1"></script>
+  <script src="robots/runtime.js?v=20260729-bounded-program-motion-1"></script>
   <script src="js/serial.js"></script>
   <script src="js/blocks.js"></script>
   <script src="js/generators.js"></script>
   <script src="js/runner.js?v=20260702-lekiwi-rolling-motion"></script>
-  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260703-lekiwi-gripper-facing-camera"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260718-calm-workbench-1"></script>
   <script src="js/storage.js?v=20260701-robot-preview"></script>
   <script src="js/file-workflows.js"></script>
   <script src="js/python-emitter.js?v=20260529-no-uh"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js" integrity="sha384-ZYmwuq4n2gOcNxMSiJ6jyTj+BbIrilr7p6dlq6q5nmSWKmsH9UU4K1qqjycMkfmR" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js" integrity="sha384-Xy+2exU6lBoT4OpUOtnQb+cUpn+nlJQEHvRobWVtwz6wIsw4oNoO7xyd/l8rYgMy" crossorigin="anonymous"></script>
   <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
-  <script src="js/python-draft.js?v=20260702-code-examples-menu"></script>
+  <script src="js/workbench-layout.js?v=20260719-remediation-1"></script>
+  <script src="js/python-draft.js?v=20260729-efficient-errors-2"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();

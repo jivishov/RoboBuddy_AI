@@ -69,14 +69,15 @@
     if (!manifest || !Array.isArray(manifest.joints)) {
       return null;
     }
+    const joints = safety && typeof safety.getJointMap === "function"
+      ? Object.values(safety.getJointMap(manifest))
+      : manifest.joints.map((joint, index) => ({ ...joint, index }));
     if (typeof jointValue === "number" || /^[0-9]+$/.test(String(jointValue))) {
       const index = Math.round(Number(jointValue));
-      return manifest.joints[index] ? { ...manifest.joints[index], index } : null;
+      return joints[index] || null;
     }
     const key = normalizeJointKey(jointValue);
-    return manifest.joints
-      .map((joint, index) => ({ ...joint, index }))
-      .find((joint) => (
+    return joints.find((joint) => (
         normalizeJointKey(joint.id) === key ||
         normalizeJointKey(joint.label) === key ||
         (manifest.id === "arduino_arm" && LEGACY_SERVO_JOINTS[joint.servoIndex] === key)

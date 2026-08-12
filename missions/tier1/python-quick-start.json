@@ -1,0 +1,15 @@
+{
+  "id": "python-quick-start",
+  "title": "Python Quick Start",
+  "robotIds": ["arduino_arm"],
+  "difficulty": "beginner",
+  "skills": ["sequence", "joint_control", "wait", "inspection"],
+  "brief": "Home the Arduino arm, move the base safely, wait, and inspect joint values.",
+  "starterPython": "robot.home()\nrobot.move_joint(\"base\", 100, speed=50)\nrobot.wait(0.5)\nprint(robot.get_joints())",
+  "successCriteria": [
+    "starts from the home pose",
+    "moves the base within its verified range",
+    "uses a wait between commands",
+    "prints the planned joint values"
+  ]
+}

@@ -72,12 +72,26 @@
       return this._request("/robots", { method: "GET" });
     }
 
+    async listPorts() {
+      return this._request("/ports", { method: "GET" });
+    }
+
     async connect(robotId, options = {}) {
       const result = await this._request(`/robots/${encodeURIComponent(robotId)}/connect`, {
         method: "POST",
         body: options
       });
-      this.connected = Boolean(result && result.status === "CONNECTED");
+      this.connected = Boolean(result && result.connected);
+      this.status = result.status || (this.connected ? "CONNECTED" : "DISCONNECTED");
+      return result;
+    }
+
+    async reattach(robotId) {
+      const result = await this._request(`/robots/${encodeURIComponent(robotId)}/reattach`, {
+        method: "POST",
+        body: {}
+      });
+      this.connected = Boolean(result && result.connected);
       this.status = result.status || (this.connected ? "CONNECTED" : "DISCONNECTED");
       return result;
     }
@@ -89,8 +103,8 @@
       return result;
     }
 
-    async getState(robotId) {
-      return this._request(`/robots/${encodeURIComponent(robotId)}/state`, { method: "GET" });
+    async getState(robotId, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/state`, { method: "GET", signal: options.signal });
     }
 
     async execute(robotId, commands) {
@@ -106,6 +120,89 @@
 
     async stop(robotId) {
       return this._request(`/robots/${encodeURIComponent(robotId)}/stop`, { method: "POST" });
+    }
+
+    async arm(robotId) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/arm`, { method: "POST" });
+    }
+
+    async disarm(robotId, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/disarm`, {
+        method: "POST",
+        keepalive: Boolean(options.keepalive)
+      });
+    }
+
+    async sendManualTarget(robotId, target) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/manual-target`, {
+        method: "POST",
+        body: target
+      });
+    }
+
+    async cancelManualTarget(robotId, reason = "cancelled", sessionId = "", sequence = -1) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/manual-cancel`, {
+        method: "POST",
+        body: { reason, sessionId, sequence }
+      });
+    }
+
+    async observe(robotId, purpose = "leader_ready", options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/observe`, {
+        method: "POST",
+        body: { schema: "robobuddy.observe.v1", purpose },
+        signal: options.signal
+      });
+    }
+
+    async leaderStart(robotId, payload, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/leader-start`, {
+        method: "POST",
+        body: payload,
+        signal: options.signal
+      });
+    }
+
+    async leaderFrame(robotId, payload, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/leader-frame`, {
+        method: "POST",
+        body: payload,
+        signal: options.signal
+      });
+    }
+
+    async leaderCancel(robotId, payload, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/leader-cancel`, {
+        method: "POST",
+        body: payload,
+        signal: options.signal,
+        keepalive: Boolean(options.keepalive)
+      });
+    }
+
+    async rangeRecoveryStart(robotId, payload, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/range-recovery-start`, {
+        method: "POST",
+        body: payload,
+        signal: options.signal
+      });
+    }
+
+    async rangeRecoveryStep(robotId, payload, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/range-recovery-step`, {
+        method: "POST",
+        body: payload,
+        signal: options.signal
+      });
+    }
+
+    async rangeRecoveryCancel(robotId, payload, options = {}) {
+      return this._request(`/robots/${encodeURIComponent(robotId)}/range-recovery-cancel`, {
+        method: "POST",
+        body: payload,
+        signal: options.signal,
+        keepalive: Boolean(options.keepalive)
+      });
     }
 
     subscribeTelemetry(robotId, callback) {
@@ -135,16 +232,25 @@
       if (this.token) {
         headers.Authorization = `Bearer ${this.token}`;
       }
+      const requestOptions = {
+        method: options.method || "GET",
+        headers,
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        signal: options.signal,
+        keepalive: Boolean(options.keepalive)
+      };
+      const targetAddressSpace = getBridgeTargetAddressSpace(this.baseUrl);
+      if (targetAddressSpace) {
+        requestOptions.targetAddressSpace = targetAddressSpace;
+      }
       let response;
       try {
-        response = await fetch(`${this.baseUrl}${path}`, {
-          method: options.method || "GET",
-          headers,
-          body: options.body === undefined ? undefined : JSON.stringify(options.body)
-        });
+        response = await fetch(`${this.baseUrl}${path}`, requestOptions);
       } catch (error) {
-        const offline = new Error(`BRIDGE_OFFLINE: ${error.message}`);
+        const offline = new Error(`Local bridge is not reachable at ${this.baseUrl}. Start the RoboBuddy bridge, allow local network access if the browser prompts, then click Test Bridge.`);
         offline.code = "BRIDGE_OFFLINE";
+        offline.detail = error && error.message ? error.message : String(error || "");
+        offline.bridgeUrl = this.baseUrl;
         throw offline;
       }
       let payload = null;
@@ -154,14 +260,42 @@
         payload = { ok: response.ok };
       }
       if (!response.ok) {
-        const message = payload && payload.error ? payload.error : `Bridge request failed (${response.status})`;
+        const errorBody = payload && payload.error;
+        const errorCode = typeof errorBody === "object" && errorBody ? errorBody.code : "";
+        const errorMessage = typeof errorBody === "object" && errorBody ? errorBody.message : errorBody;
+        const message = response.status === 401
+          ? "Bridge token required. Enter the token printed or configured for the local bridge, then retry."
+          : (errorMessage || `Bridge request failed (${response.status})`);
         const err = new Error(message);
-        err.code = payload && payload.status ? payload.status : "ERROR";
+        err.code = errorCode || (payload && (payload.code || payload.status)) || "ERROR";
+        err.status = response.status;
+        err.details = (typeof errorBody === "object" && errorBody && errorBody.details) || (payload && payload.details) || {};
         err.payload = payload;
         throw err;
       }
       return payload;
     }
+  }
+
+  function getBridgeTargetAddressSpace(value) {
+    try {
+      const url = new URL(value, window.location && window.location.href ? window.location.href : undefined);
+      const hostname = url.hostname.toLowerCase();
+      if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]") {
+        return "loopback";
+      }
+      if (
+        hostname.endsWith(".local") ||
+        /^10\./.test(hostname) ||
+        /^192\.168\./.test(hostname) ||
+        /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+      ) {
+        return "local";
+      }
+    } catch (error) {
+      return "";
+    }
+    return "";
   }
 
   NS.RobotHardware = {

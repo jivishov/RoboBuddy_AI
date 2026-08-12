@@ -1,9 +1,0 @@
-[project]
-name = "robobuddy-bridge"
-version = "0.1.0"
-description = "Optional localhost bridge for RoboBuddy robot hardware adapters"
-requires-python = ">=3.10"
-dependencies = []
-
-[project.scripts]
-robobuddy-bridge = "robobuddy_bridge.__main__:main"

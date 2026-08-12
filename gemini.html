@@ -11,16 +11,17 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-R8K8CD1Y8S');
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="css/style.css?v=20260703-gemini-robot-preview">
-  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260703-preview-console">
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260719-remediation-1">
+  <link rel="stylesheet" href="css/workbench-gemini.css?v=20260719-remediation-1">
   <script type="importmap">
     {
       "imports": {
@@ -30,161 +31,104 @@
     }
   </script>
 </head>
-<body class="python-draft-page gemini-draft-page">
+<body class="workbench-page workbench-page--operational python-draft-page gemini-draft-page" data-page="gemini" data-workbench-mode="request">
+  <a class="workbench-skip" href="#main-content">Skip to Gemini workbench</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html" aria-current="page"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+
   <header class="topbar">
     <div class="topbar__brand">
-      <div class="topbar__logo topbar__logo--image" aria-hidden="true">
-        <img src="assets/logo.png" alt="" width="52" height="52">
-      </div>
-      <div>
-        <h1 class="topbar__title"><i class="topbar__title-icon" data-lucide="sparkles" aria-hidden="true"></i> RoboBuddy Gemini</h1>
-        <p class="topbar__subtitle">Google LLM Robot Lab</p>
-      </div>
+      <h1 class="topbar__title">RoboBuddy Gemini</h1>
     </div>
-
     <div class="topbar__controls">
-      <nav class="topbar__page-nav" aria-label="Pages">
-        <a class="btn btn--load btn--page" href="index.html" title="Open Main Page" data-hint="Open Main Page">
-          <i data-lucide="layout-dashboard"></i>
-          <span>Main</span>
-        </a>
-        <a class="btn btn--load btn--page" href="python.html" title="Open Python Page" data-hint="Open Python Page">
-          <i data-lucide="braces"></i>
-          <span>Python</span>
-        </a>
-        <a class="btn btn--load btn--page" href="gemini.html" aria-current="page" title="Open Gemini Page" data-hint="Open Gemini Page">
-          <i data-lucide="sparkles"></i>
-          <span>Gemini</span>
-        </a>
-        <a class="btn btn--load btn--page btn--docs" href="python-docs.html" title="Open Python interpreter documentation" data-hint="Open Python interpreter documentation">
-          <i data-lucide="book-open"></i>
-          <span>Docs</span>
-        </a>
-      </nav>
-      <div class="topbar__status" aria-live="polite">
-        <span class="status-dot" id="statusDot"></span>
-        <span class="status-text" id="statusText">Disconnected</span>
-      </div>
       <label class="topbar__robot-select" for="geminiRobotChooser">
         <span class="visually-hidden">Robot</span>
         <select id="geminiRobotChooser" aria-label="Robot"></select>
       </label>
+      <div class="workbench-target" data-execution-target="simulation" aria-label="Execution target: Simulation">
+        <i data-lucide="monitor" aria-hidden="true"></i><span>Simulation</span>
+      </div>
+      <a class="gemini-workbench__hardware-link" id="geminiHardwareSetupLink" href="index.html#robotBridgePanel" aria-label="Hardware setup on Main">
+        <i data-lucide="info" aria-hidden="true"></i><span>Hardware setup on Main</span>
+      </a>
       <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth)" data-hint="Connect Serial (USB/Bluetooth)">
-        <i data-lucide="plug"></i>
-        <span>Connect</span>
+        <i data-lucide="plug" aria-hidden="true"></i><span>Connect</span>
       </button>
-      <button class="btn btn--home" id="btnHome" title="Home Position" data-hint="Home Position">
-        <i data-lucide="home"></i>
-        <span>Home</span>
+      <button class="btn btn--home" id="btnHome" title="Move arm to home position" aria-label="Move arm to home position" aria-keyshortcuts="Control+H" data-hint="Move arm to home position">
+        <svg class="btn__robot-arm-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M159-120v-120h124L181-574q-27-15-44.5-44T119-680q0-50 35-85t85-35q39 0 69.5 22.5T351-720h128v-40q0-17 11.5-28.5T519-800q9 0 17.5 4t14.5 12l68-64q9-9 21.5-11.5T665-856l156 72q12 6 16.5 17.5T837-744q-6 12-17.5 15.5T797-730l-144-66-94 88v56l94 86 144-66q11-5 23-1t17 15q6 12 1 23t-17 17l-156 74q-12 6-24.5 3.5T619-512l-68-64q-6 6-14.5 11t-17.5 5q-17 0-28.5-11.5T479-600v-40H351q-3 8-6.5 15t-9.5 15l200 370h144v120H159Zm80-520q17 0 28.5-11.5T279-680q0-17-11.5-28.5T239-720q-17 0-28.5 11.5T199-680q0 17 11.5 28.5T239-640Zm126 400h78L271-560h-4l98 320Zm78 0Z"/>
+        </svg>
+        <span>Move Arm Home</span>
       </button>
-      <button class="btn btn--stop-big" id="btnEmergencyStop" title="Emergency Stop (Esc)" data-hint="Emergency Stop (Esc)">
-        <i data-lucide="octagon-alert"></i>
-        <span>STOP</span>
+      <button class="btn btn--stop-big" id="btnEmergencyStop" title="Emergency Stop (Esc)" aria-keyshortcuts="Escape" data-hint="Emergency Stop (Esc)">
+        <i data-lucide="octagon-alert" aria-hidden="true"></i><span>Emergency Stop</span>
       </button>
     </div>
   </header>
 
-  <main class="gemini-draft">
-    <section class="python-draft__panel gemini-draft__panel gemini-draft__panel--sdk" aria-label="Gemini Python editor">
-      <div class="python-draft__panel-header">
-        <div class="panel-label"><i data-lucide="sparkles"></i> Gemini Control Center</div>
+  <main class="gemini-draft gemini-workbench" id="main-content" tabindex="-1"
+    data-split-layout data-split-id="gemini" data-split-version="2"
+    data-split-storage-key="robobuddy:layout:gemini:v2"
+    data-split-names="left,right" data-split-labels="Gemini workflow,Preview rail"
+    data-split-defaults="0.71,0.29" data-split-mins="600,300">
+    <section class="gemini-workbench__primary" id="geminiWorkflowPane" data-split-pane="left" aria-label="Gemini request workflow">
+      <div class="gemini-workbench__workflow-tabs" role="tablist" aria-label="Gemini workflow">
+        <button id="btnGeminiWorkflowRequest" type="button" role="tab" aria-selected="true" aria-controls="geminiRequestWorkflow" data-workflow-tab="request">
+          <span class="gemini-workbench__step-number">1</span><span>Request</span>
+        </button>
+        <button id="btnGeminiWorkflowReview" type="button" role="tab" aria-selected="false" aria-controls="geminiReviewWorkflow" aria-disabled="true" tabindex="-1" data-workflow-tab="review">
+          <span class="gemini-workbench__step-number">2</span><span>Review</span>
+        </button>
+        <button id="btnGeminiWorkflowExecute" type="button" role="tab" aria-selected="false" aria-controls="geminiExecuteWorkflow" aria-disabled="true" tabindex="-1" data-workflow-tab="execute">
+          <span class="gemini-workbench__step-number">3</span><span>Execute</span>
+        </button>
       </div>
 
-      <div class="gemini-draft__controls" aria-label="Gemini request controls">
-        <label>
-          <span>Session API Key</span>
-          <input id="geminiApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza...">
-        </label>
-        <label>
-          <span>Model</span>
-          <select id="geminiModelSelect">
-            <option value="gemini-robotics-er-1.6-preview">gemini-robotics-er-1.6-preview</option>
-            <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
-            <option value="gemma-4-26b-a4b-it">gemma-4-26b-a4b-it</option>
-            <option value="gemma-4-31b-it">gemma-4-31b-it</option>
-            <option value="gemini-3.5-flash">gemini-3.5-flash</option>
-          </select>
-        </label>
-      </div>
+      <section class="gemini-workbench__workflow-panel gemini-workbench__workflow-panel--request" id="geminiRequestWorkflow" role="tabpanel" aria-labelledby="btnGeminiWorkflowRequest" data-workflow-panel="request">
+        <div class="gemini-workbench__request-heading">
+          <div>
+            <p class="gemini-workbench__eyebrow">Gemini request</p>
+            <h2>Describe, provide context, then request a response</h2>
+          </div>
+          <span class="gemini-workbench__privacy-note"><i data-lucide="key-round" aria-hidden="true"></i> Session key stays in this page</span>
+        </div>
 
-      <div class="gemini-draft__camera-source" aria-label="Image Source">
-        <div class="gemini-draft__image-source-heading">
-          <span class="gemini-draft__camera-label">Image Source</span>
+        <div class="gemini-draft__controls" aria-label="Gemini request controls">
+          <label>
+            <span>Session API Key</span>
+            <input id="geminiApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza...">
+          </label>
+          <label>
+            <span>Model</span>
+            <select id="geminiModelSelect" aria-describedby="geminiModelCatalogStatus"></select>
+            <span class="visually-hidden" id="geminiModelCatalogStatus">Models are provided by the shared RoboBuddy model catalog.</span>
+          </label>
         </div>
-        <div class="gemini-draft__image-source-tabs" role="tablist" aria-label="Image Source">
-          <button class="gemini-draft__image-source-tab is-active" id="btnGeminiImageInputTab" type="button" role="tab" aria-selected="true" aria-controls="geminiImageInputPanel">
-            <i data-lucide="image-plus"></i>
-            <span>Image Input</span>
-          </button>
-          <button class="gemini-draft__image-source-tab" id="btnGeminiImageCameraTab" type="button" role="tab" aria-selected="false" aria-controls="geminiImageCameraPanel" tabindex="-1">
-            <i data-lucide="camera"></i>
-            <span>Camera Controls</span>
-          </button>
-        </div>
-        <div class="gemini-draft__image-source-panels">
-          <section class="gemini-draft__image-source-panel" id="geminiImageInputPanel" role="tabpanel" aria-labelledby="btnGeminiImageInputTab">
-            <div class="gemini-draft__image-input-row">
-              <label class="gemini-draft__image-input">
-                <span>Image Input</span>
-                <input id="geminiImageInput" type="file" accept="image/*">
-              </label>
-              <span class="gemini-draft__tool" data-hint="Clear image">
-                <button class="btn btn--clear gemini-draft__icon-btn" id="btnClearImage" data-gemini-clear-image aria-label="Clear image" type="button" title="Clear image" data-hint="Clear image">
-                  <i data-lucide="image-off"></i>
-                </button>
-              </span>
-            </div>
-          </section>
-          <section class="gemini-draft__image-source-panel" id="geminiImageCameraPanel" role="tabpanel" aria-labelledby="btnGeminiImageCameraTab" hidden>
-            <label class="gemini-draft__camera-picker">
-              <span>Camera</span>
-              <select id="geminiCameraSelect" disabled>
-                <option value="">Default camera</option>
-              </select>
-            </label>
-            <div class="gemini-draft__camera-toolbar" aria-label="Image and camera controls">
-              <span class="gemini-draft__tool" data-hint="Open camera">
-                <button class="btn btn--load gemini-draft__icon-btn" id="btnOpenCamera" aria-label="Open camera" type="button" title="Open camera" data-hint="Open camera">
-                  <i data-lucide="camera"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Capture camera snapshot">
-                <button class="btn btn--save gemini-draft__icon-btn" id="btnCaptureCamera" aria-label="Capture camera snapshot" type="button" disabled title="Capture camera snapshot" data-hint="Capture camera snapshot">
-                  <i data-lucide="aperture"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Clear image">
-                <button class="btn btn--clear gemini-draft__icon-btn" id="btnClearCameraImage" data-gemini-clear-image aria-label="Clear image" type="button" title="Clear image" data-hint="Clear image">
-                  <i data-lucide="image-off"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Stop camera">
-                <button class="btn btn--clear gemini-draft__icon-btn" id="btnStopCamera" aria-label="Stop camera" type="button" disabled title="Stop camera" data-hint="Stop camera">
-                  <i data-lucide="video-off"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__zoom-group" aria-label="Camera zoom controls">
-                <span class="gemini-draft__tool" data-hint="Zoom camera out">
-                  <button class="btn btn--clear gemini-draft__icon-btn" id="btnCameraZoomOut" aria-label="Zoom camera out" type="button" disabled title="Zoom camera out" data-hint="Zoom camera out">
-                    <i data-lucide="zoom-out"></i>
-                  </button>
-                </span>
-                <span class="gemini-draft__camera-zoom-value" id="geminiCameraZoomValue">1.00x</span>
-                <span class="gemini-draft__tool" data-hint="Zoom camera in">
-                  <button class="btn btn--load gemini-draft__icon-btn" id="btnCameraZoomIn" aria-label="Zoom camera in" type="button" disabled title="Zoom camera in" data-hint="Zoom camera in">
-                    <i data-lucide="zoom-in"></i>
-                  </button>
-                </span>
-              </span>
-            </div>
-            <div id="geminiCameraPreviewFrame" class="gemini-draft__camera-preview-frame" hidden>
-              <video id="geminiCameraPreview" class="gemini-draft__camera-preview" autoplay playsinline muted></video>
-            </div>
-          </section>
-        </div>
-      </div>
 
-      <textarea id="geminiPythonEditor" class="python-draft__editor gemini-draft__editor" spellcheck="false" aria-label="Gemini Python code editor">from google import genai
+        <div class="gemini-workbench__request-editor">
+          <div class="gemini-workbench__section-heading">
+            <div>
+              <span>Request Python</span>
+              <small>The request summary extracts the prompt from <code>contents</code>.</small>
+            </div>
+            <details class="gemini-workbench__file-menu gemini-workbench__file-menu--request">
+              <summary><i data-lucide="folder" aria-hidden="true"></i> Request File <i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+              <div>
+                <button id="btnSaveGeminiPython" type="button"><i data-lucide="save" aria-hidden="true"></i> Save request</button>
+                <button id="btnLoadGeminiPython" type="button"><i data-lucide="folder-open" aria-hidden="true"></i> Load request</button>
+              </div>
+            </details>
+          </div>
+          <textarea id="geminiPythonEditor" class="python-draft__editor gemini-draft__editor" spellcheck="false" aria-label="Gemini Python request editor">from google import genai
 
 client = genai.Client()
 response = client.models.generate_content(
@@ -193,194 +137,178 @@ response = client.models.generate_content(
 )
 print(response.text)
 roboadmin.use_response(response.text)</textarea>
+        </div>
 
-      <div class="gemini-draft__actions" aria-label="Gemini request actions">
-        <span class="gemini-draft__run-spinner" id="geminiRunSpinner" aria-live="polite" hidden>
-          <span class="gemini-draft__run-spinner-dot" aria-hidden="true"></span>
-          <span>Waiting for Gemini</span>
-        </span>
-        <span class="gemini-draft__tool" data-hint="Save Gemini Python to local file">
-          <button class="btn btn--save gemini-draft__icon-btn gemini-draft__action-btn" id="btnSaveGeminiPython" aria-label="Save Gemini Python to local file" title="Save Gemini Python to local file" type="button" data-hint="Save Gemini Python to local file">
-            <i data-lucide="save"></i>
-          </button>
-        </span>
-        <span class="gemini-draft__tool" data-hint="Load Gemini Python from local file">
-          <button class="btn btn--load gemini-draft__icon-btn gemini-draft__action-btn" id="btnLoadGeminiPython" aria-label="Load Gemini Python from local file" title="Load Gemini Python from local file" type="button" data-hint="Load Gemini Python from local file">
-            <i data-lucide="folder-open"></i>
-          </button>
-        </span>
-        <span class="gemini-draft__tool" data-hint="Run Gemini request">
-          <button class="btn btn--run gemini-draft__icon-btn gemini-draft__action-btn" id="btnRunGemini" aria-label="Run Gemini request" title="Run Gemini request" type="button" data-hint="Run Gemini request">
-            <i data-lucide="play"></i>
-          </button>
-        </span>
-        <span class="gemini-draft__tool" data-hint="Generate reviewed RoboBuddy Python">
-          <button class="btn btn--save gemini-draft__icon-btn gemini-draft__action-btn" id="btnGenerateRobotPython" aria-label="Generate reviewed RoboBuddy Python" title="Generate reviewed RoboBuddy Python" type="button" data-hint="Generate reviewed RoboBuddy Python">
-            <i data-lucide="bot"></i>
-          </button>
-        </span>
-        <span class="gemini-draft__tool" data-hint="Detect objects from editor prompt">
-          <button class="btn btn--run gemini-draft__icon-btn gemini-draft__action-btn" id="btnDetectObjects" aria-label="Detect objects from editor prompt" title="Detect objects from editor prompt" type="button" data-hint="Detect objects from editor prompt" disabled>
-            <i data-lucide="scan-search"></i>
-          </button>
-        </span>
-        <span class="gemini-draft__tool" data-hint="Cancel active Gemini request">
-          <button class="btn btn--stop gemini-draft__icon-btn gemini-draft__action-btn" id="btnCancelGemini" aria-label="Cancel active Gemini request" title="Cancel active Gemini request" type="button" data-hint="Cancel active Gemini request">
-            <i data-lucide="ban"></i>
-          </button>
-        </span>
-      </div>
-    </section>
+        <details class="gemini-workbench__context" open>
+          <summary><span><i data-lucide="image" aria-hidden="true"></i> Image context <small id="geminiImageStatus" data-tone="ready" aria-live="polite">No image selected. Robotics-ER works best with relevant visual context.</small></span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+          <div class="gemini-draft__camera-source" aria-label="Image source">
+            <div class="gemini-draft__image-source-tabs" role="tablist" aria-label="Image source">
+              <button class="gemini-draft__image-source-tab is-active" id="btnGeminiImageInputTab" type="button" role="tab" aria-selected="true" aria-controls="geminiImageInputPanel">
+                <i data-lucide="image-plus" aria-hidden="true"></i><span>Upload</span>
+              </button>
+              <button class="gemini-draft__image-source-tab" id="btnGeminiImageCameraTab" type="button" role="tab" aria-selected="false" aria-controls="geminiImageCameraPanel" tabindex="-1">
+                <i data-lucide="camera" aria-hidden="true"></i><span>Camera</span>
+              </button>
+            </div>
+            <div class="gemini-draft__image-source-panels">
+              <section class="gemini-draft__image-source-panel" id="geminiImageInputPanel" role="tabpanel" aria-labelledby="btnGeminiImageInputTab">
+                <div class="gemini-draft__image-input-row">
+                  <label class="gemini-draft__image-input"><span>Choose image</span><input id="geminiImageInput" type="file" accept="image/*"></label>
+                  <button class="btn btn--clear gemini-draft__icon-btn" id="btnClearImage" data-gemini-clear-image aria-label="Clear image" type="button" title="Clear image" data-hint="Clear image"><i data-lucide="image-off" aria-hidden="true"></i></button>
+                </div>
+              </section>
+              <section class="gemini-draft__image-source-panel" id="geminiImageCameraPanel" role="tabpanel" aria-labelledby="btnGeminiImageCameraTab" hidden>
+                <label class="gemini-draft__camera-picker"><span>Camera</span><select id="geminiCameraSelect" disabled><option value="">Default camera</option></select></label>
+                <div class="gemini-draft__camera-toolbar" aria-label="Camera controls">
+                  <button class="btn btn--load gemini-draft__icon-btn" id="btnOpenCamera" aria-label="Open camera" type="button" title="Open camera"><i data-lucide="camera" aria-hidden="true"></i></button>
+                  <button class="btn btn--save gemini-draft__icon-btn" id="btnCaptureCamera" aria-label="Capture camera snapshot" type="button" disabled title="Capture camera snapshot"><i data-lucide="aperture" aria-hidden="true"></i></button>
+                  <button class="btn btn--clear gemini-draft__icon-btn" id="btnClearCameraImage" data-gemini-clear-image aria-label="Clear image" type="button" title="Clear image"><i data-lucide="image-off" aria-hidden="true"></i></button>
+                  <button class="btn btn--clear gemini-draft__icon-btn" id="btnStopCamera" aria-label="Stop camera" type="button" disabled title="Stop camera"><i data-lucide="video-off" aria-hidden="true"></i></button>
+                  <span class="gemini-draft__zoom-group" aria-label="Camera zoom controls">
+                    <button class="btn btn--clear gemini-draft__icon-btn" id="btnCameraZoomOut" aria-label="Zoom camera out" type="button" disabled title="Zoom camera out"><i data-lucide="zoom-out" aria-hidden="true"></i></button>
+                    <span class="gemini-draft__camera-zoom-value" id="geminiCameraZoomValue">1.00x</span>
+                    <button class="btn btn--load gemini-draft__icon-btn" id="btnCameraZoomIn" aria-label="Zoom camera in" type="button" disabled title="Zoom camera in"><i data-lucide="zoom-in" aria-hidden="true"></i></button>
+                  </span>
+                </div>
+                <div id="geminiCameraPreviewFrame" class="gemini-draft__camera-preview-frame" hidden>
+                  <video id="geminiCameraPreview" class="gemini-draft__camera-preview" autoplay playsinline muted></video>
+                </div>
+              </section>
+            </div>
+          </div>
+        </details>
 
-    <div
-      class="gemini-draft__splitter"
-      id="geminiSplitSdkRobot"
-      data-gemini-splitter="left"
-      role="separator"
-      tabindex="0"
-      aria-label="Resize Gemini control and review cards"
-      aria-orientation="vertical"
-      aria-valuemin="18"
-      aria-valuemax="55"
-      aria-valuenow="38"
-      aria-valuetext="Gemini control 38 percent"
-      title="Resize Gemini control and review cards"
-      data-hint="Resize Gemini control and review cards"
-    ></div>
+        <div class="gemini-workbench__request-actions" aria-label="Gemini request actions">
+          <button class="btn btn--run" id="btnRunGemini" type="button"><i data-lucide="send" aria-hidden="true"></i><span>Run Request</span></button>
+          <button class="btn btn--save" id="btnGenerateRobotPython" type="button"><i data-lucide="bot" aria-hidden="true"></i><span>Generate Robot Python</span></button>
+          <button class="btn btn--load" id="btnDetectObjects" type="button" disabled><i data-lucide="scan-search" aria-hidden="true"></i><span>Detect Objects</span></button>
+          <button class="btn btn--clear" id="btnCancelGemini" type="button"><i data-lucide="ban" aria-hidden="true"></i><span>Cancel</span></button>
+          <span class="gemini-draft__run-spinner" id="geminiRunSpinner" role="status" aria-live="polite" hidden><span class="gemini-draft__run-spinner-dot" aria-hidden="true"></span><span>Waiting for Gemini</span></span>
+        </div>
+      </section>
 
-    <section class="python-draft__panel gemini-draft__panel gemini-draft__panel--robot" aria-label="Robot Python and vision results">
-      <div class="python-draft__panel-header gemini-draft__review-header">
+      <section class="gemini-workbench__workflow-panel gemini-workbench__workflow-panel--review" id="geminiReviewWorkflow" role="tabpanel" aria-labelledby="btnGeminiWorkflowReview" data-workflow-panel="review" hidden>
+        <section class="gemini-workbench__request-summary" id="geminiRequestSummary" aria-labelledby="geminiRequestSummaryTitle">
+          <img id="geminiRequestThumbnail" alt="Selected request image" hidden>
+          <div class="gemini-workbench__summary-model"><span>Model</span><strong id="geminiSummaryModel">Not available</strong></div>
+          <div class="gemini-workbench__summary-prompt"><span>Prompt</span><strong id="geminiSummaryPrompt">No completed request yet.</strong></div>
+          <div class="gemini-workbench__summary-meta"><span class="visually-hidden" id="geminiRequestSummaryTitle">Request summary</span><strong id="geminiSummaryType">Request</strong><time id="geminiSummaryTime">Not completed</time></div>
+          <button class="btn btn--load" id="btnEditGeminiRequest" type="button"><i data-lucide="pencil" aria-hidden="true"></i><span>Edit Request</span></button>
+        </section>
+
         <div class="gemini-draft__review-tabs" role="tablist" aria-label="Gemini review panels">
           <button class="gemini-draft__review-tab is-active" id="btnGeminiReviewRobotTab" type="button" role="tab" aria-selected="true" aria-controls="geminiReviewRobotPanel">
-            <i data-lucide="shield-check"></i>
             <span>Robot Python</span>
           </button>
           <button class="gemini-draft__review-tab" id="btnGeminiReviewVisionTab" type="button" role="tab" aria-selected="false" aria-controls="geminiReviewVisionPanel" tabindex="-1">
-            <i data-lucide="scan-search"></i>
             <span>Vision Results</span>
           </button>
         </div>
-      </div>
 
-      <div class="gemini-draft__review-panels">
-        <section class="gemini-draft__review-panel gemini-draft__review-panel--robot" id="geminiReviewRobotPanel" role="tabpanel" aria-labelledby="btnGeminiReviewRobotTab">
-          <textarea id="geminiRobotPython" class="python-draft__editor gemini-draft__robot-editor" spellcheck="false" aria-label="Generated RoboBuddy Python editor" placeholder="Generated robot.* Python appears here for review before validation."></textarea>
+        <div class="gemini-draft__review-panels">
+          <section class="gemini-draft__review-panel gemini-draft__review-panel--robot" id="geminiReviewRobotPanel" role="tabpanel" aria-labelledby="btnGeminiReviewRobotTab">
+            <textarea id="geminiRobotPython" class="python-draft__editor gemini-draft__robot-editor" spellcheck="false" aria-label="Generated RoboBuddy Python editor" placeholder="Generated robot.* Python appears here for review before validation."></textarea>
+            <div class="gemini-workbench__review-actionbar">
+              <button class="btn btn--run gemini-workbench__validate" id="btnValidateRobotPython" type="button"><i data-lucide="shield-check" aria-hidden="true"></i><span>Validate Generated Python</span></button>
+              <details class="gemini-workbench__file-menu">
+                <summary><i data-lucide="folder" aria-hidden="true"></i> File <i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+                <div>
+                  <button id="btnSaveRobotPython" type="button"><i data-lucide="save" aria-hidden="true"></i> Save</button>
+                  <button id="btnLoadRobotPython" type="button"><i data-lucide="folder-open" aria-hidden="true"></i> Load</button>
+                  <button id="btnCopyRobotPython" type="button"><i data-lucide="copy" aria-hidden="true"></i> Copy</button>
+                </div>
+              </details>
+              <span class="gemini-workbench__validation-state" id="geminiValidationStatus" data-state="not-validated" role="status" aria-live="polite">Not Validated</span>
+            </div>
+          </section>
 
-          <div class="gemini-draft__robot-actionbar">
-            <label class="motors-toggle motors-toggle--block" for="geminiMotorsEnabled">
-              <i data-lucide="power"></i>
-              <span>Motors Enabled</span>
-              <input type="checkbox" id="geminiMotorsEnabled">
-            </label>
-            <span class="gemini-draft__action-divider" aria-hidden="true"></span>
-            <div class="gemini-draft__actions" aria-label="Reviewed robot Python actions">
-              <span class="gemini-draft__tool" data-hint="Save reviewed Python to local file">
-                <button class="btn btn--save gemini-draft__icon-btn gemini-draft__action-btn" id="btnSaveRobotPython" aria-label="Save reviewed Python to local file" title="Save reviewed Python to local file" type="button" data-hint="Save reviewed Python to local file">
-                  <i data-lucide="save"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Load reviewed Python from local file">
-                <button class="btn btn--load gemini-draft__icon-btn gemini-draft__action-btn" id="btnLoadRobotPython" aria-label="Load reviewed Python from local file" title="Load reviewed Python from local file" type="button" data-hint="Load reviewed Python from local file">
-                  <i data-lucide="folder-open"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Validate generated Python commands">
-                <button class="btn btn--save gemini-draft__icon-btn gemini-draft__action-btn" id="btnValidateRobotPython" aria-label="Validate generated Python commands" title="Validate generated Python commands" type="button" data-hint="Validate generated Python commands">
-                  <i data-lucide="check-check"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Run reviewed Python through RoboBuddy runner">
-                <button class="btn btn--run gemini-draft__icon-btn gemini-draft__action-btn" id="btnRunRobotPython" aria-label="Run reviewed Python through RoboBuddy runner" title="Run reviewed Python through RoboBuddy runner" type="button" data-hint="Run reviewed Python through RoboBuddy runner">
-                  <i data-lucide="square-play"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Pause active program">
-                <button class="btn btn--home gemini-draft__icon-btn gemini-draft__action-btn" id="btnGeminiPause" aria-label="Pause active program" title="Pause active program" type="button" data-hint="Pause active program">
-                  <i data-lucide="pause"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Stop active program">
-                <button class="btn btn--stop gemini-draft__icon-btn gemini-draft__action-btn" id="btnGeminiStop" aria-label="Stop active program" title="Stop active program" type="button" data-hint="Stop active program">
-                  <i data-lucide="square"></i>
-                </button>
-              </span>
-              <span class="gemini-draft__tool" data-hint="Copy reviewed Python">
-                <button class="btn btn--load gemini-draft__icon-btn gemini-draft__action-btn" id="btnCopyRobotPython" aria-label="Copy reviewed Python" title="Copy reviewed Python" type="button" data-hint="Copy reviewed Python">
-                  <i data-lucide="copy"></i>
-                </button>
-              </span>
+          <section class="gemini-draft__review-panel gemini-draft__review-panel--vision" id="geminiReviewVisionPanel" role="tabpanel" aria-labelledby="btnGeminiReviewVisionTab" hidden>
+            <div class="gemini-draft__vision-actionbar">
+              <button class="btn btn--load" id="btnDownloadAnnotatedImage" type="button" disabled><i data-lucide="download" aria-hidden="true"></i><span>Download annotated image</span></button>
             </div>
-          </div>
-        </section>
-
-        <section class="gemini-draft__review-panel gemini-draft__review-panel--vision" id="geminiReviewVisionPanel" role="tabpanel" aria-labelledby="btnGeminiReviewVisionTab" hidden>
-          <div class="gemini-draft__vision-actionbar">
-            <div class="gemini-draft__actions" aria-label="Vision result actions">
-              <span class="gemini-draft__tool" data-hint="Download annotated image">
-                <button class="btn btn--load gemini-draft__icon-btn gemini-draft__action-btn" id="btnDownloadAnnotatedImage" aria-label="Download annotated image" title="Download annotated image" type="button" data-hint="Download annotated image" disabled>
-                  <i data-lucide="download"></i>
-                </button>
-              </span>
+            <div class="gemini-draft__detection-result" id="geminiDetectionResult" hidden>
+              <div class="gemini-draft__annotated-image-frame"><canvas class="gemini-draft__annotated-image" id="geminiDetectionCanvas" aria-label="Annotated image with object detections"></canvas></div>
+              <div class="gemini-draft__detection-details">
+                <p class="gemini-draft__detection-summary" id="geminiDetectionSummary"></p>
+                <div class="gemini-draft__detection-list" id="geminiDetectionDetails"></div>
+              </div>
             </div>
-          </div>
-          <div class="gemini-draft__detection-result" id="geminiDetectionResult" hidden>
-            <div class="gemini-draft__annotated-image-frame">
-              <canvas class="gemini-draft__annotated-image" id="geminiDetectionCanvas" aria-label="Annotated image with object detections"></canvas>
-            </div>
-            <div class="gemini-draft__detection-details">
-              <p class="gemini-draft__detection-summary" id="geminiDetectionSummary"></p>
-              <div class="gemini-draft__detection-list" id="geminiDetectionDetails"></div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <section class="python-draft__console gemini-draft__raw-output">
-        <div class="python-draft__panel-header gemini-draft__output-header">
-          <div class="panel-label"><i data-lucide="message-square-text"></i> Raw Gemini Output</div>
-          <div class="gemini-draft__output-actions" aria-label="Raw Gemini output actions">
-            <span class="gemini-draft__tool" data-hint="Open full Gemini output">
-              <button class="btn btn--load gemini-draft__icon-btn gemini-draft__output-btn" id="btnOpenGeminiOutput" aria-label="Open full Gemini output" title="Open full Gemini output" type="button" data-hint="Open full Gemini output">
-                <i data-lucide="maximize-2"></i>
-              </button>
-            </span>
-            <span class="gemini-draft__tool" data-hint="Copy Gemini output">
-              <button class="btn btn--load gemini-draft__icon-btn gemini-draft__output-btn" id="btnCopyGeminiOutput" aria-label="Copy Gemini output" title="Copy Gemini output" type="button" data-hint="Copy Gemini output">
-                <i data-lucide="copy"></i>
-              </button>
-            </span>
-            <span class="gemini-draft__tool" data-hint="Clear Gemini output">
-              <button class="btn btn--clear gemini-draft__icon-btn gemini-draft__output-btn" id="btnClearGeminiOutput" aria-label="Clear Gemini output" title="Clear Gemini output" type="button" data-hint="Clear Gemini output">
-                <i data-lucide="eraser"></i>
-              </button>
-            </span>
-          </div>
+          </section>
         </div>
-        <div class="serial-console python-draft__log" id="geminiOutputLog" aria-live="polite"></div>
+      </section>
+
+      <section class="gemini-workbench__workflow-panel gemini-workbench__workflow-panel--execute" id="geminiExecuteWorkflow" role="tabpanel" aria-labelledby="btnGeminiWorkflowExecute" data-workflow-panel="execute" hidden>
+        <div class="gemini-workbench__execute-heading">
+          <div><p class="gemini-workbench__eyebrow">Validated command package</p><h2>Review the exact commands before execution</h2></div>
+          <span class="gemini-workbench__validation-state" data-validation-mirror data-state="validated">Validated</span>
+        </div>
+        <section class="gemini-workbench__command-card" aria-labelledby="geminiCommandPreviewTitle">
+          <div class="gemini-workbench__section-heading"><span id="geminiCommandPreviewTitle">Command Preview</span><strong id="geminiCommandSummary">-</strong></div>
+          <pre class="serial-console python-draft__log" id="geminiCommandPreview" aria-live="polite"></pre>
+        </section>
+        <div class="gemini-workbench__execute-grid">
+          <section class="gemini-workbench__safety-card" aria-labelledby="geminiSafetyTitle">
+            <h3 id="geminiSafetyTitle"><i data-lucide="shield-alert" aria-hidden="true"></i> Operator review</h3>
+            <p id="geminiHumanReviewStatus">Human review is required before physical motion.</p>
+            <ul id="geminiSafetyNotes"><li>Keep the robot workspace clear and remain ready to use Emergency Stop.</li></ul>
+          </section>
+          <section class="gemini-workbench__execution-context" aria-label="Execution context">
+            <strong id="geminiExecutionContext">Simulation preview</strong>
+            <span>Only the validated code and selected robot are authorized.</span>
+          </section>
+        </div>
+        <div class="gemini-workbench__execute-actions">
+          <label class="motors-toggle motors-toggle--block" id="geminiMotorsControl" for="geminiMotorsEnabled">
+            <i data-lucide="power" aria-hidden="true"></i><span>Motors Off</span><input type="checkbox" id="geminiMotorsEnabled">
+          </label>
+          <button class="btn btn--run" id="btnRunRobotPython" type="button"><i data-lucide="square-play" aria-hidden="true"></i><span>Run Validated Python</span></button>
+          <button class="btn btn--home" id="btnGeminiPause" type="button"><i data-lucide="pause" aria-hidden="true"></i><span>Pause</span></button>
+          <button class="btn btn--stop" id="btnGeminiStop" type="button"><i data-lucide="square" aria-hidden="true"></i><span>Stop</span></button>
+        </div>
+      </section>
+
+      <section class="gemini-draft__arm-console gemini-workbench__diagnostics workbench-collapsible" aria-label="Output and diagnostics">
+        <button class="gemini-draft__console-toggle workbench-collapsible__toggle" id="btnGeminiArmConsoleToggle" type="button" aria-expanded="false" aria-controls="geminiArmConsolePanel">
+          <span class="panel-label">Output &amp; Diagnostics</span><i class="workbench-collapsible__chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="gemini-workbench__diagnostic-summary" aria-label="Live workbench status">
+          <span class="topbar__status" aria-live="polite"><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">Disconnected</span></span>
+          <span id="geminiEffectStatus" data-tone="ready" aria-live="polite">Run Gemini or generate reviewed robot Python.</span>
+          <span class="gemini-workbench__program-status"><i data-lucide="circle-check" id="programStatusIcon" aria-hidden="true"></i><span id="programStatus">Ready</span></span>
+        </div>
+        <div class="gemini-draft__arm-console-content workbench-collapsible__body" id="geminiArmConsolePanel" hidden>
+          <div class="gemini-workbench__runtime-grid">
+            <p id="geminiRuntimeStatus" data-tone="warning" aria-live="polite">Loading Gemini Python runtime...</p>
+            <p id="robotRuntimeStatus" data-tone="warning" aria-live="polite">Loading robot Python runtime...</p>
+            <p id="geminiDetectionStatus" data-tone="ready" aria-live="polite">No detections yet.</p>
+          </div>
+          <section class="gemini-workbench__log-panel">
+            <div class="gemini-workbench__log-heading">
+              <span>Raw Gemini Output</span>
+              <div>
+                <button id="btnOpenGeminiOutput" type="button" aria-label="Open full Gemini output" title="Open full Gemini output"><i data-lucide="maximize-2" aria-hidden="true"></i></button>
+                <button id="btnCopyGeminiOutput" type="button" aria-label="Copy Gemini output" title="Copy Gemini output"><i data-lucide="copy" aria-hidden="true"></i></button>
+                <button id="btnClearGeminiOutput" type="button" aria-label="Clear Gemini output" title="Clear Gemini output"><i data-lucide="eraser" aria-hidden="true"></i></button>
+              </div>
+            </div>
+            <pre class="serial-console python-draft__log" id="geminiOutputLog" aria-live="polite"></pre>
+          </section>
+          <section class="gemini-workbench__log-panel">
+            <div class="gemini-workbench__log-heading"><span>Serial</span></div>
+            <pre class="serial-console python-draft__log" id="geminiSerialLog" aria-live="polite"></pre>
+          </section>
+        </div>
       </section>
     </section>
 
-    <div
-      class="gemini-draft__splitter"
-      id="geminiSplitRobotSide"
-      data-gemini-splitter="right"
-      role="separator"
-      tabindex="0"
-      aria-label="Resize review and preview cards"
-      aria-orientation="vertical"
-      aria-valuemin="56"
-      aria-valuemax="82"
-      aria-valuenow="78"
-      aria-valuetext="Gemini review 40 percent"
-      title="Resize review and preview cards"
-      data-hint="Resize review and preview cards"
-    ></div>
+    <div class="workbench-splitter" id="geminiWorkbenchSplitter" data-splitter-index="0"
+      role="separator" aria-orientation="vertical" aria-label="Resize Gemini workflow and Preview rail"
+      aria-controls="geminiWorkflowPane geminiPreviewPane" tabindex="0"
+      title="Resize Gemini workflow and Preview rail. Arrow keys resize; Enter resets."></div>
 
-    <aside class="python-draft__panel python-draft__panel--side gemini-draft__panel gemini-draft__panel--side" aria-label="Preview and logs">
+    <aside class="gemini-workbench__inspector" id="geminiPreviewPane" data-split-pane="right" aria-label="Robot preview and validation context">
       <section class="python-draft__preview gemini-draft__preview">
-        <div class="python-draft__panel-header gemini-draft__preview-header">
-          <div class="panel-label"><i data-lucide="eye"></i> Robot Preview</div>
-        </div>
+        <div class="gemini-workbench__inspector-heading"><h2>3D Preview</h2></div>
         <div class="gemini-draft__preview-body">
           <div class="gemini-draft__preview-stack">
             <div class="arm-preview-container arm-preview-container--3d gemini-draft__arm-stage" id="geminiPreviewSketchPanel">
@@ -389,79 +317,55 @@ roboadmin.use_response(response.text)</textarea>
                 <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot preview"></div>
                 <div class="arm-preview-3d__toolbar">
                   <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
-                  <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
-                    <i data-lucide="rotate-ccw" aria-hidden="true"></i>
-                    <span>Camera</span>
-                  </button>
+                  <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Camera</span></button>
                 </div>
               </div>
               <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
             </div>
-            <div id="geminiRobotSimPreview" class="robot-sim-preview gemini-draft__robot-sim" hidden></div>
+          <div id="geminiRobotSimPreview" class="robot-sim-preview gemini-draft__robot-sim" data-robot-camera-preset="inspection" hidden></div>
           </div>
-          <div class="python-draft__joints" aria-label="Current joint values">
-            <div><span>Base</span><strong id="geminiJointValue0">90 deg</strong></div>
-            <div><span>Shoulder</span><strong id="geminiJointValue1">90 deg</strong></div>
-            <div><span>Elbow</span><strong id="geminiJointValue2">90 deg</strong></div>
-            <div><span>Wrist Rot</span><strong id="geminiJointValue3">90 deg</strong></div>
-            <div><span>Wrist Tilt</span><strong id="geminiJointValue4">90 deg</strong></div>
-            <div><span>Gripper</span><strong id="geminiJointValue5">90 deg</strong></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="gemini-draft__arm-console" aria-label="Robot Console">
-        <button class="gemini-draft__console-toggle" id="btnGeminiArmConsoleToggle" type="button" aria-expanded="false" aria-controls="geminiArmConsolePanel" aria-label="Show Robot Console" title="Show Robot Console" data-hint="Show Robot Console">
-          <span class="panel-label"><i data-lucide="terminal"></i> Robot Console</span>
-          <span class="gemini-draft__console-toggle-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
-        </button>
-        <div class="gemini-draft__arm-console-content" id="geminiArmConsolePanel" hidden>
-          <section class="python-draft__console">
-            <div class="panel-label"><i data-lucide="list-checks"></i> Command Preview</div>
-            <div class="serial-console python-draft__log" id="geminiCommandPreview" aria-live="polite"></div>
+          <section class="gemini-workbench__joint-section workbench-collapsible workbench-joint-state" id="geminiJointStatePanel" aria-labelledby="geminiJointHeading">
+            <button class="workbench-joint-state__toggle workbench-collapsible__toggle" id="geminiJointStateToggle" type="button"
+              aria-expanded="false" aria-controls="geminiJointStateBody">
+              <span class="workbench-joint-state__title" id="geminiJointHeading">Joint State</span>
+              <span class="workbench-joint-state__count" id="geminiJointStateCount">6 joints</span>
+              <i class="workbench-collapsible__chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="python-draft__joints workbench-joint-state__body workbench-collapsible__body" id="geminiJointStateBody" aria-label="Current joint state" hidden>
+              <div data-joint-row data-joint-index="0"><span>Joint 1</span><strong id="geminiJointValue0">—</strong></div>
+              <div data-joint-row data-joint-index="1"><span>Joint 2</span><strong id="geminiJointValue1">—</strong></div>
+              <div data-joint-row data-joint-index="2"><span>Joint 3</span><strong id="geminiJointValue2">—</strong></div>
+              <div data-joint-row data-joint-index="3"><span>Joint 4</span><strong id="geminiJointValue3">—</strong></div>
+              <div data-joint-row data-joint-index="4"><span>Joint 5</span><strong id="geminiJointValue4">—</strong></div>
+              <div data-joint-row data-joint-index="5"><span>Joint 6</span><strong id="geminiJointValue5">—</strong></div>
+            </div>
           </section>
-
-          <section class="python-draft__console">
-            <div class="panel-label"><i data-lucide="radio"></i> Serial</div>
-            <div class="serial-console python-draft__log" id="geminiSerialLog" aria-live="polite"></div>
-          </section>
+          <p class="gemini-workbench__inspector-summary" id="geminiInspectorCommandStatus">No validated command package.</p>
+          <details class="gemini-workbench__validation-checks">
+            <summary><span>What validation checks</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+            <ul>
+              <li>Robot Python runs in the sandbox with an 8 second limit.</li>
+              <li>Programs are limited to 1000 commands.</li>
+              <li>Joint IDs, units, and ranges come from the active robot manifest.</li>
+              <li>Speed, wait, and smooth-move limits are checked.</li>
+              <li>Cross-robot commands and invalid command schemas are rejected.</li>
+            </ul>
+          </details>
         </div>
       </section>
     </aside>
   </main>
 
-  <footer class="bottombar bottombar--gemini">
-    <div class="bottombar__messages" aria-label="Gemini page status">
-      <p class="python-draft__runtime" id="geminiRuntimeStatus" data-tone="warning" aria-live="polite">Loading Gemini Python runtime...</p>
-      <p class="gemini-draft__image-status" id="geminiImageStatus" data-tone="ready" aria-live="polite">No image selected. Robotics-ER works best with relevant visual context.</p>
-      <p class="python-draft__runtime" id="robotRuntimeStatus" data-tone="warning" aria-live="polite">Loading robot Python runtime...</p>
-      <p class="blockly-controls__status" id="geminiEffectStatus" data-tone="ready" aria-live="polite">Run Gemini or generate reviewed robot Python.</p>
-      <p class="gemini-draft__detection-status" id="geminiDetectionStatus" data-tone="ready" aria-live="polite">No detections yet.</p>
-      <p class="python-draft__summary"><span>Commands</span><strong id="geminiCommandSummary">-</strong></p>
-    </div>
-    <div class="bottombar__status">
-      <i data-lucide="circle-check" id="programStatusIcon" class="bottombar__status-icon"></i>
-      <span id="programStatus">Ready</span>
-    </div>
-  </footer>
-
   <dialog id="geminiOutputDialog" class="modal modal--gemini-output" aria-labelledby="geminiOutputDialogTitle">
     <div class="modal__content modal__content--gemini-output">
       <div class="gemini-output-dialog__header">
-        <h2 class="modal__title" id="geminiOutputDialogTitle"><i data-lucide="message-square-text"></i> Raw Gemini Output</h2>
-        <button class="btn btn--clear gemini-draft__icon-btn" id="btnCloseGeminiOutput" aria-label="Close full Gemini output" title="Close full Gemini output" type="button" data-hint="Close full Gemini output">
-          <i data-lucide="x"></i>
-        </button>
+        <h2 class="modal__title" id="geminiOutputDialogTitle"><i data-lucide="message-square-text" aria-hidden="true"></i> Raw Gemini Output</h2>
+        <button class="btn btn--clear gemini-draft__icon-btn" id="btnCloseGeminiOutput" aria-label="Close full Gemini output" title="Close full Gemini output" type="button"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
       <pre class="gemini-output-dialog__body" id="geminiOutputDialogContent" tabindex="0"></pre>
       <div class="modal__actions">
-        <button class="btn btn--load" id="btnCopyGeminiOutputDialog" type="button" title="Copy" data-hint="Copy">
-          <i data-lucide="copy"></i>
-          <span>Copy</span>
-        </button>
-        <button class="btn btn--clear" id="btnCloseGeminiOutputFooter" type="button" title="Close" data-hint="Close">
-          <span>Close</span>
-        </button>
+        <button class="btn btn--load" id="btnCopyGeminiOutputDialog" type="button"><i data-lucide="copy" aria-hidden="true"></i><span>Copy</span></button>
+        <button class="btn btn--clear" id="btnCloseGeminiOutputFooter" type="button"><span>Close</span></button>
       </div>
     </div>
   </dialog>
@@ -470,20 +374,22 @@ roboadmin.use_response(response.text)</textarea>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js" integrity="sha384-Xy+2exU6lBoT4OpUOtnQb+cUpn+nlJQEHvRobWVtwz6wIsw4oNoO7xyd/l8rYgMy" crossorigin="anonymous"></script>
   <script src="robots/registry.js"></script>
   <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
-  <script src="robots/packs/so101_follower/manifest.js?v=20260702-robot-labels-3"></script>
-  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260702-robot-labels-3"></script>
-  <script src="robots/safety.js"></script>
-  <script src="robots/commandSchema.js"></script>
-  <script src="robots/adapters/simulation/simulation.js?v=20260702-lekiwi-rolling-motion"></script>
-  <script src="robots/adapters/hardware/hardware.js"></script>
-  <script src="robots/runtime.js"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260713-xbox-gamepad-4"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260707-closed-initial-pose"></script>
+  <script src="robots/safety.js?v=20260713-xbox-gamepad-2"></script>
+  <script src="robots/commandSchema.js?v=20260712-manual-live-control-6"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260713-virtual-leader-1"></script>
+  <script src="robots/adapters/hardware/hardware.js?v=20260729-bridge-session-1"></script>
+  <script src="robots/runtime.js?v=20260729-bounded-program-motion-1"></script>
   <script src="js/serial.js"></script>
   <script src="js/generators.js"></script>
   <script src="js/runner.js?v=20260702-lekiwi-rolling-motion"></script>
   <script src="js/file-workflows.js"></script>
-  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260703-lekiwi-gripper-facing-camera"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260718-calm-workbench-1"></script>
   <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
-  <script src="js/gemini-draft.js?v=20260703-gemini-robot-preview"></script>
+  <script src="js/model-catalog.js?v=20260718-foundation-1"></script>
+  <script src="js/workbench-layout.js?v=20260719-remediation-1"></script>
+  <script src="js/gemini-draft.js?v=20260729-absolute-targets-2"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       if (window.lucide) lucide.createIcons();

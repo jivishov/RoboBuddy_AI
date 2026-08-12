@@ -11,6 +11,8 @@
       this.preview3dContainer = null;
       this.preview3dRobotId = "";
       this.preview3dStatus = null;
+      this.leaderInteractionCallbacks = null;
+      this.appliedLeaderInteractionCallbacks = null;
     }
 
     reset() {
@@ -38,6 +40,52 @@
     applyCommands(commands) {
       (Array.isArray(commands) ? commands : []).forEach((command) => this.applyCommand(command));
       return this.getState();
+    }
+
+    applyLeaderFrame(joints, options = {}) {
+      const next = {};
+      this.manifest.joints.forEach((joint) => {
+        const effectiveJoint = safety.getJointById(this.manifest, joint.id) || joint;
+        next[joint.id] = safety.clampJointValue(effectiveJoint, joints && joints[joint.id]);
+      });
+      this.state.joints = { ...next };
+      this.state.measuredJoints = { ...next };
+      this.state.controlOwner = options.final ? "idle" : "virtual_leader";
+      this.state.stopped = false;
+      this.state.leaderControl = {
+        ...(this.state.leaderControl || {}),
+        mode: "leader",
+        phase: options.final ? "ready" : "live",
+        aligned: true,
+        inputPose: { ...next },
+        acceptedTargetPose: { ...next },
+        measuredPose: { ...next },
+        latestAcceptedSequence: Number(options.sequence) || 0,
+        requestInFlight: false
+      };
+      this.state.lastCommand = { type: "virtual_leader_frame", final: Boolean(options.final) };
+      this.render(this.container, this.state);
+      return this.getState();
+    }
+
+    setLeaderInteractionCallbacks(callbacks) {
+      this.leaderInteractionCallbacks = callbacks || null;
+      if (this.preview3d && typeof this.preview3d.setLeaderInteractionCallbacks === "function") {
+        this.preview3d.setLeaderInteractionCallbacks(this.leaderInteractionCallbacks);
+        this.appliedLeaderInteractionCallbacks = this.leaderInteractionCallbacks;
+      }
+    }
+
+    cancelLeaderInteraction(reason = "mode_switch") {
+      if (this.preview3d && typeof this.preview3d.cancelLeaderInteraction === "function") {
+        this.preview3d.cancelLeaderInteraction(reason);
+      }
+    }
+
+    getLeaderDebugSnapshot() {
+      return this.preview3d && typeof this.preview3d.getLeaderDebugSnapshot === "function"
+        ? this.preview3d.getLeaderDebugSnapshot()
+        : null;
     }
 
     applyCommand(command) {
@@ -193,10 +241,11 @@
         disposeThreePreview(adapter);
         container.innerHTML = createThreePreviewMarkup(adapter.manifest, config);
         const viewport = container.querySelector("[data-robot-sim-3d-viewport]");
+        const previewConfig = inspectionCameraConfig(config, container.dataset.robotCameraPreset);
         adapter.preview3d = new Preview3D(viewport, {
           manifest: adapter.manifest,
           state,
-          config,
+          config: previewConfig,
           onStatus(status) {
             adapter.preview3dStatus = status;
           },
@@ -220,6 +269,24 @@
         }
       }
       adapter.preview3d.updateState(state);
+      const leader = state && state.leaderControl;
+      if (leader && typeof adapter.preview3d.setLeaderPoseLayers === "function") {
+        adapter.preview3d.setLeaderPoseLayers({
+          active: leader.mode === "leader",
+          input: leader.inputPose || state.joints,
+          target: leader.acceptedTargetPose || state.joints,
+          measured: leader.measuredPose || state.measuredJoints || state.joints,
+          visibility: leader.layerVisibility || { input: true, target: true, measured: true },
+          handlesVisible: leader.mode === "leader"
+        });
+      }
+      if (
+        typeof adapter.preview3d.setLeaderInteractionCallbacks === "function" &&
+        adapter.appliedLeaderInteractionCallbacks !== adapter.leaderInteractionCallbacks
+      ) {
+        adapter.preview3d.setLeaderInteractionCallbacks(adapter.leaderInteractionCallbacks || null);
+        adapter.appliedLeaderInteractionCallbacks = adapter.leaderInteractionCallbacks;
+      }
 
       if (
         adapter.pendingVisualMotion &&
@@ -236,6 +303,26 @@
       renderThreePreviewUnavailable(adapter, container);
       return true;
     }
+  }
+
+  function inspectionCameraConfig(config, preset) {
+    if (preset !== "inspection" || !config || !config.camera) {
+      return config;
+    }
+    const position = Array.isArray(config.camera.position) ? config.camera.position : [360, 260, 500];
+    const target = Array.isArray(config.camera.target) ? config.camera.target : [0, 90, 0];
+    const inspectionPosition = position.map((value, index) => {
+      const targetValue = Number(target[index]) || 0;
+      return targetValue + ((Number(value) || 0) - targetValue) * 0.62;
+    });
+    return {
+      ...config,
+      camera: {
+        ...config.camera,
+        position: inspectionPosition,
+        target: target.slice()
+      }
+    };
   }
 
   function renderThreePreviewUnavailable(adapter, container) {
@@ -274,6 +361,7 @@
     adapter.preview3dRobotId = "";
     adapter.preview3dStatus = null;
     adapter.pendingVisualMotion = null;
+    adapter.appliedLeaderInteractionCallbacks = null;
   }
 
   function createSimulationAdapter(manifest) {

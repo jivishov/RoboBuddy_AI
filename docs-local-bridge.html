@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Bridge · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>Local Bridge</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>Local Bridge</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html" aria-current="page">Local Bridge</a>
+            <a href="docs-github-pages-so101.html">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html">Windows Verification</a>
+            <a href="docs-windows-blockers.html">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#native-windows-setup">Native-Windows setup</a>
+            <a href="#default-disabled-bridge">Default-disabled bridge</a>
+            <a href="#android-private-lan-https">Android private-LAN HTTPS</a>
+            <a href="#authentication-notes">Authentication notes</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/local-bridge.md"
+        data-source-sha256="69b5d45959f067d75dddf4f8d6363dba5e67ce920f1a722ba7aebdd97bddbdec"
+      >
+<h1 id="local-bridge">Local Bridge</h1>
+<p>SO-101 hardware is never controlled directly by the browser. The frontend talks to a local bridge bound to <code>127.0.0.1:8765</code> by default.</p>
+<p>For the GitHub Pages flow, see <a href="docs-github-pages-so101.html">GitHub Pages to localhost guide</a>. For the authoritative native-Windows matrix and end-to-end procedure, see:</p>
+<ul>
+<li><a href="docs-windows-support.html">Windows support matrix</a></li>
+<li><a href="docs-windows-verification.html">Windows verification procedure</a></li>
+<li><a href="docs-windows-blockers.html">Unresolved Windows blockers</a></li>
+</ul>
+<h2 id="native-windows-setup">Native-Windows setup</h2>
+<p>Use native 64-bit Windows with CPython <strong>3.12.10 x64</strong> and Git for Windows. Do not reuse a parent-project environment. The setup script resolves from its own path and owns only <code>SolU\.venv-so101</code>.</p>
+<pre class="python-docs__code"><code class="language-powershell">Set-Location E:\Projects\RoboBuddy_AI\SolU
+Set-ExecutionPolicy -Scope Process Bypass
+.\tools\setup-so101-windows.ps1
+</code></pre>
+<p>For a suspect or partial local environment:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\setup-so101-windows.ps1 -ForceRepair
+</code></pre>
+<p>The setup installs the exact dependency boundary from <code>bridge\pyproject.toml</code>, verifies editable bridge provenance, imports the SO-101 adapter without serial access, runs the phone protocol probe, and constructs the selected NumPy kinematics backend. It does not enumerate/open serial ports, start listeners, or send motion.</p>
+<p>Find and configure/calibrate the actual SO-101 only under the existing hardware procedure:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\.venv-so101\Scripts\lerobot-find-port.exe
+.\.venv-so101\Scripts\lerobot-setup-motors.exe --robot.type=so101_follower --robot.port=COM24
+.\.venv-so101\Scripts\lerobot-calibrate.exe --robot.type=so101_follower --robot.port=COM24 --robot.id=classroom_so101_01
+</code></pre>
+<p>These commands can change hardware state. Do not run them as part of unattended software verification.</p>
+<h2 id="default-disabled-bridge">Default-disabled bridge</h2>
+<p>Start or restart the token-protected loopback bridge with all hardware Leader features disabled:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -Restart
+</code></pre>
+<p>The helper prints a local bridge token. Enter it only in the main-page Diagnostics panel. Do not store it in source, screenshots, or support exports.</p>
+<p>Stop only the exactly matched SolU bridge process:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -Stop
+</code></pre>
+<p>The launcher refuses non-loopback bridge API binding, an external Python/bridge path, unrelated listener ownership, feature changes without <code>-Restart</code>, or hardware Leader enablement with <code>-NoToken</code>. <code>run-app.bat</code> remains a safe development launcher and does not enable physical control.</p>
+<p>A read-only connection-path check is available only when a real intended robot is present and the operator has authorized opening its COM port:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\start-so101-bridge.ps1 -ConnectCheck -PortName COM24 -RobotInstanceId classroom_so101_01
+</code></pre>
+<h2 id="android-private-lan-https">Android private-LAN HTTPS</h2>
+<p>Select an assigned/up RFC1918 address, install mkcert 1.4.4 explicitly, and create runtime-only material:</p>
+<pre class="python-docs__code"><code class="language-powershell">$PrivateIPv4 = '192.168.1.25' # replace with the intended assigned address
+.\tools\setup-phone-leader-tls.ps1 `
+  -PrivateIPv4 $PrivateIPv4 `
+  -Port 8443 `
+  -AddPrivateFirewallRule
+</code></pre>
+<p>The generated certificate/key files remain under ignored <code>.runtime-private\phone-leader-tls</code>. Transfer only <code>android-rootCA.pem</code> to Android and install it as a CA certificate. Never transfer <code>phone-leader-key.pem</code> or mkcert's <code>rootCA-key.pem</code>. Before QR pairing, Android Chrome must open <code>https://&lt;private-ip&gt;:8443/</code> without a certificate warning and expose a secure context/WebXR capability.</p>
+<p>The checked-in Phone Leader configuration is intentionally provisional, disabled, and unqualified. Therefore this enablement shape must fail closed until reviewed physical evidence supplies non-provisional limits and qualification:</p>
+<p>The intended qualified launcher begins <code>.\tools\start-so101-bridge.ps1 -Restart -EnablePhoneLeader</code> and must still reject startup unless <code>/health</code> confirms <code>phoneLeaderQualified: true</code>.</p>
+<pre class="python-docs__code"><code class="language-powershell">$TlsRoot = Join-Path $PWD '.runtime-private\phone-leader-tls'
+.\tools\start-so101-bridge.ps1 `
+  -Restart `
+  -EnablePhoneLeader `
+  -PhoneHttpsHost $PrivateIPv4 `
+  -PhoneHttpsPort 8443 `
+  -PhoneHttpsCertificate (Join-Path $TlsRoot 'phone-leader-cert.pem') `
+  -PhoneHttpsPrivateKey (Join-Path $TlsRoot 'phone-leader-key.pem')
+</code></pre>
+<p>Do not edit the gates merely to make the command start. Follow <a href="docs-windows-verification.html">Windows verification procedure</a> and the existing Phone Leader qualification documents.</p>
+<p>Rollback to the default-disabled mode with <code>.\tools\start-so101-bridge.ps1 -Restart -DisablePhoneLeader</code>.</p>
+<p>Cleanup:</p>
+<pre class="python-docs__code"><code class="language-powershell">.\tools\remove-phone-leader-tls.ps1 -Port 8443
+</code></pre>
+<h2 id="authentication-notes">Authentication notes</h2>
+<p>Generic startup from the selected environment is possible with <code>python -m robobuddy_bridge</code>, but the PowerShell helper is the authoritative Windows launcher because it verifies provenance, listener ownership, mode postconditions, and failure cleanup.</p>
+<p>For local development only, <code>--no-token</code>/<code>-NoToken</code> may be used while all hardware Leader features are disabled. Never reuse cloud/API secrets as a bridge token.</p>
+<p>The browser's <code>No-token local</code> checkbox only stops the page from sending an Authorization token; it cannot override a bridge process that is still requiring one. Restart the bridge with <code>--no-token</code>/<code>-NoToken</code>, or uncheck the box and enter the bridge's printed local token.</p>
+<p>Endpoints:</p>
+<ul>
+<li><code>GET /health</code></li>
+<li><code>GET /ports</code></li>
+<li><code>GET /robots</code></li>
+<li><code>GET /robots/{robot_id}/state</code></li>
+<li><code>POST /robots/{robot_id}/connect</code></li>
+<li><code>POST /robots/{robot_id}/disconnect</code></li>
+<li><code>POST /robots/{robot_id}/arm</code></li>
+<li><code>POST /robots/{robot_id}/disarm</code></li>
+<li><code>POST /robots/{robot_id}/home</code></li>
+<li><code>POST /robots/{robot_id}/stop</code></li>
+<li><code>POST /robots/{robot_id}/execute</code></li>
+<li><code>POST /robots/{robot_id}/manual-target</code></li>
+<li><code>POST /robots/{robot_id}/manual-cancel</code></li>
+</ul>
+<p>The bridge accepts only validated RoboBuddy command JSON. It does not accept arbitrary Python from the frontend and does not launch interactive calibration from HTTP requests.</p>
+<p>Statuses include <code>READY</code>, <code>DISCONNECTED</code>, <code>CONNECTED</code>, <code>NEEDS_CALIBRATION</code>, <code>EXECUTING</code>, <code>STOPPED</code>, <code>ERROR</code>, and <code>LEROBOT_NOT_INSTALLED</code>.</p>
+<p><code>NEEDS_CALIBRATION</code> includes the exact <code>lerobot-calibrate</code> command shape to run in PowerShell. The bridge releases the serial port in this state, and browser motion remains blocked until LeRobot reports calibration.</p>
+<p>Every connection starts disarmed. <code>POST /arm</code> succeeds only while connected with matching calibration and verified Feetech position-limit registers. Home, program execution, and manual targets are rejected while disarmed. STOP, disconnect, calibration loss, and terminal bridge errors clear pending targets and require an explicit new arm request. A successful re-arm is state-only: it clears stale failed-operation state but performs no serial read, hold, target replay, or motor write.</p>
+<p><code>POST /manual-target</code> accepts a session id, monotonically increasing sequence, joint, target value, and <code>final</code> flag. The bridge keeps only the latest target, schedules no more than one serial operation at a time, and caps scheduling at 30 Hz. A non-final target expires after 250 ms without an update; a higher sequence in the same active drag can resume after that watchdog hold. A final target remains eligible to converge. <code>POST /manual-cancel</code> identifies and retires the exact session, cancels it if active, and holds the latest measured pose. A late request from that retired session is ignored, while a late cancellation cannot stop a newer session.</p>
+<p>Clipped manual convergence is feedback-paced. After an intermediate relative goal is accepted, the bridge does not resend an equivalent goal until a fresh observation shows enough movement to advance it. Same-joint browser updates preserve this observation schedule, so a slow or contact-blocked joint does not turn a 30 Hz input stream into redundant 30 Hz all-servo transactions.</p>
+<p><code>GET /robots/{robot_id}/state</code> returns cached control state, including authoritative <code>armed</code>, requested <code>targetJoints</code>, measured <code>joints</code>, translated <code>jointLimits</code>, <code>limitStatus</code>, <code>manualControl</code>, and Home compatibility. Browser polling therefore does not cause a new serial observation. The bridge samples measured positions at a controlled 5 Hz while moving and once after cancellation or final settlement.</p>
+<p>SO-101 serial operations are single-flight and retry only transport-level <code>ConnectionError</code> failures. Each logical action or observation receives at most three attempts, separated by 20 ms and 50 ms backoffs. STOP, disarm, disconnect, and operation invalidation cancel any remaining ordinary-motion attempts; the explicit measured-position safety hold remains allowed. Other exception classes are not retried. One or two failed manual observation transactions do not disarm, while three consecutive failures report <code>feedback_unavailable</code> and require explicit re-arming.</p>
+<p>The connect handshake is separate from motion retries. LeRobot is the only owner of the selected COM port. RoboBuddy retries only an exact missing-motor-ID handshake, using at most three fresh robot instances and closing each failed bus without torque-disable or configuration traffic. It does not retry wrong-model, port, semantic calibration, configuration, or disconnected-device errors as whole connections. A transport-level <code>ConnectionError</code> while reading calibration registers still receives the normal bounded serial retry. Connected status requires both verified limits and one successful fresh feedback read.</p>
+<p>Measured-position holds are sent only after a fresh feedback read succeeds. If feedback is unavailable, cancellation still stops and disarms the operation without writing stale cached coordinates.</p>
+<p>Manual targets and complete program batches are validated again at the adapter boundary. Out-of-range or non-finite values, unknown joints, and empty actions are rejected before operation ownership, targets, or serial traffic change. Validation rejection leaves arming intact; exhausted communication retries and motor/feedback faults still disarm.</p>
+<p>An error saying no SO-101 motors responded after three connection attempts indicates persistent whole-bus packet loss. Check supply voltage and current under load, the USB adapter/cable, and serial-bus wiring and connectors. Keep retry limits and automatic disarming intact rather than masking a hardware fault.</p>
+<p>The live joint limits are derived from Feetech <code>Min_Position_Limit</code> and <code>Max_Position_Limit</code> register values using the connected LeRobot calibration. They are runtime overrides only and are cleared when the port, bridge session, robot instance, or active robot changes. These bounds are applied to Manual Control, Home, saved poses, smooth/multi-joint commands, Blockly, and Python. They are servo position limits, not collision detection.</p>
+<p>Explicit token value:</p>
+<pre class="python-docs__code"><code class="language-powershell">$env:ROBOBUDDY_BRIDGE_TOKEN=&quot;choose-a-local-token&quot;
+python -m robobuddy_bridge
+</code></pre>
+<p>Do not reuse cloud/API secrets.</p>
+<p>Known limitation: the standard-library bridge returns HTTP <code>426</code> for the telemetry WebSocket placeholder. Manual streaming and telemetry use backpressured HTTP requests plus cached state polling; no WebSocket or fixed-cadence guarantee is required.</p>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

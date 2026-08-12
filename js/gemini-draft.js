@@ -2,10 +2,8 @@
   const NS = (window.RoboAdmin = window.RoboAdmin || {});
 
   const HOME_ANGLES = [90, 90, 90, 90, 90, 90];
-  const JOINT_LIMITS = NS.Generator ? NS.Generator.JOINT_LIMITS : [[20, 130], [15, 165], [0, 180], [0, 180], [0, 180], [25, 130]];
   const MOTORS_STORAGE_KEY = "roboadmin.motorsEnabled.v1";
-  const GEMINI_SPLIT_LEFT_STORAGE_KEY = "roboadmin.geminiDraftSplitLeftPercent.v1";
-  const GEMINI_SPLIT_RIGHT_STORAGE_KEY = "roboadmin.geminiDraftSplitRightPercent.v1";
+  const GEMINI_OUTPUT_COLLAPSED_STORAGE_KEY = "roboadmin.geminiOutputCollapsed.v1";
   const GEMINI_IMAGE_SOURCE_TAB_STORAGE_KEY = "roboadmin.geminiDraftImageSourceTab.v1";
   const EXPECTED_FIRMWARE_PROFILE_ID = "RA1";
   const MAX_PYTHON_COMMANDS = 1000;
@@ -15,16 +13,11 @@
   const PYTHON_FILE_ACCEPT = ".py,.txt";
   const PYTHON_IMPORT_MAX_BYTES = 1024 * 1024;
   const MAX_INLINE_IMAGE_BYTES = 18 * 1024 * 1024;
-  const OBJECT_DETECTION_MODEL = "gemini-robotics-er-1.6-preview";
   const CAMERA_CAPTURE_MIME = "image/jpeg";
   const CAMERA_CAPTURE_QUALITY = 0.86;
   const DIGITAL_CAMERA_ZOOM_MIN = 1;
   const DIGITAL_CAMERA_ZOOM_MAX = 3;
   const DIGITAL_CAMERA_ZOOM_STEP = 0.25;
-  const GEMINI_SPLIT_PANEL_MIN_PERCENT = 18;
-  const GEMINI_SPLIT_PANEL_MAX_PERCENT = 55;
-  const GEMINI_SPLIT_DEFAULT_LEFT = 38;
-  const GEMINI_SPLIT_DEFAULT_RIGHT_SPLIT = 78;
   const DISCONNECT_PARK_SPEED = 50;
   const CONTROL_OWNER = {
     IDLE: "idle",
@@ -192,10 +185,13 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     activeReviewTab: "robot",
     activeImageSourceTab: "image",
     armConsoleCollapsed: true,
-    geminiSplitLeftPercent: GEMINI_SPLIT_DEFAULT_LEFT,
-    geminiSplitRightPercent: GEMINI_SPLIT_DEFAULT_RIGHT_SPLIT,
-    activeSplitter: null,
-    splitResizeRefreshQueued: false,
+    outputPanel: null,
+    jointState: null,
+    workflowMode: "request",
+    reviewUnlocked: false,
+    requestSummary: null,
+    safetyNotes: [],
+    requiresHumanReview: true,
     cameraStream: null,
     cameraActive: false,
     cameraDevices: [],
@@ -211,7 +207,12 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     editor: null,
     robotEditor: null,
     validatedCommands: null,
-    validatedCode: ""
+    validatedCode: "",
+    validatedRobotId: "",
+    validationState: "not-validated",
+    validationEpoch: 0,
+    bridgeSessionStatus: "none",
+    bridgeArmPending: false
   };
 
   const ui = {};
@@ -220,28 +221,26 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
 
   function init() {
     cacheUi();
+    populateModelSelect();
     if (NS.RobotRuntime) {
       NS.RobotRuntime.init({ container: ui.robotSimPreview });
     }
     setupEditor();
     syncEditorModelFromSelect();
-    state.geminiSplitLeftPercent = readStoredGeminiSplitLeft(GEMINI_SPLIT_DEFAULT_LEFT);
-    state.geminiSplitRightPercent = readStoredGeminiSplitRight(GEMINI_SPLIT_DEFAULT_RIGHT_SPLIT);
     state.activeImageSourceTab = readStoredImageSourceTab(state.activeImageSourceTab);
-    state.armConsoleCollapsed = true;
-    applyGeminiSplitLayout({ persist: false });
+    showWorkflow("request", { force: true, focus: false });
     showReviewTab("robot");
     showImageSourceTab(state.activeImageSourceTab);
-    setArmConsoleCollapsed(state.armConsoleCollapsed);
+    initSharedWorkbenchUi();
 
     state.serial = new NS.SerialManager({ baudRate: 9600 });
     const previewRegistry = window.RoboBuddy3DPreview || {};
     const ArmPreview3D = previewRegistry.ArmPreview3D || NS.ArmPreview;
     if (typeof ArmPreview3D === "function" && ui.arm3dFallbackSvg) {
       state.preview3d = new ArmPreview3D(ui.arm3dFallbackSvg, {
-        jointLimits: JOINT_LIMITS,
+        jointLimits: activeJointLimits(),
         initialAngles: state.angles,
-        cameraPreset: "compact"
+        cameraPreset: "inspection"
       });
     } else {
       mark3dPreviewUnavailable();
@@ -266,10 +265,9 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     wireSerialEvents();
     wireRunnerEvents();
     wireButtons();
-    wireSplitters();
     createGeminiWorker();
     createRobotWorker();
-    applyAngles(state.angles, { source: "init" });
+    applyAngles(getActiveInitialAngles(), { source: "init" });
     syncPreviewVisibility();
     syncMotorsToggleUi();
     updateRunControls();
@@ -281,29 +279,64 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     appendOutput("Gemini ready. Enter a session API key before calling Gemini.");
 
     window.addEventListener("resize", refreshEditor);
+    if (ui.workbench) {
+      ui.workbench.addEventListener(NS.WorkbenchUI.LAYOUT_EVENT, refreshEditor);
+    }
+    window.addEventListener("unload", destroySharedWorkbenchUi, { once: true });
     window.addEventListener("pagehide", () => {
       stopCamera({ silent: true });
-    });
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.disarmBridgeForPageExit === "function") {
+        NS.RobotRuntime.disarmBridgeForPageExit();
+      }
+    }, { capture: true });
     window.addEventListener("beforeunload", () => {
       stopCamera({ silent: true });
     });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        if (ui.outputDialog && ui.outputDialog.open) {
-          return;
-        }
-        event.preventDefault();
-        void handleEmergencyStop();
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        stopCamera({ silent: true });
       }
     });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void handleEmergencyStop();
+      }
+    }, true);
+    if (ui.outputDialog) {
+      ui.outputDialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        void handleEmergencyStop();
+      });
+    }
 
     if (!state.serial.supportsWebSerial()) {
       ui.btnConnect.disabled = true;
       setConnectionStatus(false, "Web Serial unavailable");
     }
+    void restoreSo101BridgeSession();
+  }
+
+  function populateModelSelect() {
+    const catalog = NS.ModelCatalog;
+    if (!ui.modelSelect || !catalog || typeof catalog.list !== "function") {
+      throw new Error("The shared RoboBuddy model catalog is unavailable.");
+    }
+    const selectedBeforeRender = ui.modelSelect.value;
+    const models = catalog.list("google", "request");
+    ui.modelSelect.replaceChildren(...models.map((model) => {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = model.label;
+      return option;
+    }));
+    const preferred = catalog.get(selectedBeforeRender) || catalog.defaultFor("request");
+    if (preferred) ui.modelSelect.value = preferred.id;
   }
 
   function cacheUi() {
+    ui.workbench = document.querySelector(".gemini-workbench");
     ui.statusDot = document.getElementById("statusDot");
     ui.statusText = document.getElementById("statusText");
     ui.programStatus = document.getElementById("programStatus");
@@ -312,6 +345,19 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     ui.btnHome = document.getElementById("btnHome");
     ui.btnEmergencyStop = document.getElementById("btnEmergencyStop");
     ui.robotChooser = document.getElementById("geminiRobotChooser");
+    ui.executionTarget = document.querySelector("[data-execution-target]");
+    ui.hardwareSetupLink = document.getElementById("geminiHardwareSetupLink");
+    ui.workflowTabs = Array.from(document.querySelectorAll("[data-workflow-tab]"));
+    ui.workflowPanels = Array.from(document.querySelectorAll("[data-workflow-panel]"));
+    ui.btnWorkflowRequest = document.getElementById("btnGeminiWorkflowRequest");
+    ui.btnWorkflowReview = document.getElementById("btnGeminiWorkflowReview");
+    ui.btnWorkflowExecute = document.getElementById("btnGeminiWorkflowExecute");
+    ui.btnEditRequest = document.getElementById("btnEditGeminiRequest");
+    ui.summaryThumbnail = document.getElementById("geminiRequestThumbnail");
+    ui.summaryModel = document.getElementById("geminiSummaryModel");
+    ui.summaryPrompt = document.getElementById("geminiSummaryPrompt");
+    ui.summaryType = document.getElementById("geminiSummaryType");
+    ui.summaryTime = document.getElementById("geminiSummaryTime");
     ui.apiKey = document.getElementById("geminiApiKey");
     ui.modelSelect = document.getElementById("geminiModelSelect");
     ui.imageInput = document.getElementById("geminiImageInput");
@@ -349,12 +395,10 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     ui.armConsoleToggle = document.getElementById("btnGeminiArmConsoleToggle");
     ui.armConsolePanel = document.getElementById("geminiArmConsolePanel");
     ui.armConsoleToggleIcon = ui.armConsoleToggle
-      ? ui.armConsoleToggle.querySelector(".gemini-draft__console-toggle-icon [data-lucide]")
+      ? ui.armConsoleToggle.querySelector("[data-lucide]")
       : null;
-    ui.geminiSplitContainer = document.querySelector(".gemini-draft");
-    ui.leftSplitter = document.getElementById("geminiSplitSdkRobot");
-    ui.rightSplitter = document.getElementById("geminiSplitRobotSide");
     ui.commandSummary = document.getElementById("geminiCommandSummary");
+    ui.inspectorCommandStatus = document.getElementById("geminiInspectorCommandStatus");
     ui.outputLog = document.getElementById("geminiOutputLog");
     ui.commandPreview = document.getElementById("geminiCommandPreview");
     ui.serialLog = document.getElementById("geminiSerialLog");
@@ -384,10 +428,62 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     ui.btnSaveRobotPython = document.getElementById("btnSaveRobotPython");
     ui.btnLoadRobotPython = document.getElementById("btnLoadRobotPython");
     ui.btnCopyRobotPython = document.getElementById("btnCopyRobotPython");
-    ui.jointValues = [];
-    for (let servo = 0; servo < 6; servo += 1) {
-      ui.jointValues.push(document.getElementById(`geminiJointValue${servo}`));
+    ui.validationStatus = document.getElementById("geminiValidationStatus");
+    ui.validationMirrors = Array.from(document.querySelectorAll("[data-validation-mirror]"));
+    ui.safetyNotes = document.getElementById("geminiSafetyNotes");
+    ui.humanReviewStatus = document.getElementById("geminiHumanReviewStatus");
+    ui.executionContext = document.getElementById("geminiExecutionContext");
+    ui.motorsControl = document.getElementById("geminiMotorsControl");
+    ui.jointList = document.getElementById("geminiJointList");
+    ui.jointStatePanel = document.getElementById("geminiJointStatePanel");
+    ui.jointStateToggle = document.getElementById("geminiJointStateToggle");
+    ui.jointStateBody = document.getElementById("geminiJointStateBody");
+    ui.jointStateCount = document.getElementById("geminiJointStateCount");
+  }
+
+  function initSharedWorkbenchUi() {
+    const workbenchUi = NS.WorkbenchUI;
+    if (!workbenchUi) {
+      throw new Error("The shared RoboBuddy workbench UI module is unavailable.");
     }
+    state.outputPanel = new workbenchUi.CollapsiblePanel({
+      root: ui.armConsoleToggle ? ui.armConsoleToggle.closest(".gemini-workbench__diagnostics") : null,
+      toggle: ui.armConsoleToggle,
+      body: ui.armConsolePanel,
+      label: "Output & Diagnostics",
+      defaultExpanded: false,
+      readExpanded: () => !readOutputCollapsed(),
+      writeExpanded: (expanded) => localStorage.setItem(GEMINI_OUTPUT_COLLAPSED_STORAGE_KEY, expanded ? "0" : "1"),
+      onChange: (expanded) => {
+        state.armConsoleCollapsed = !expanded;
+        refreshEditor();
+      }
+    });
+    state.armConsoleCollapsed = !state.outputPanel.expanded;
+
+    const adapter = workbenchUi.createJointStateAdapter({
+      getManifest: () => activeManifest(),
+      getValues: () => state.angles
+    });
+    state.jointState = new workbenchUi.JointStateView({
+      root: ui.jointStatePanel,
+      toggle: ui.jointStateToggle,
+      body: ui.jointStateBody,
+      list: ui.jointStateBody,
+      count: ui.jointStateCount,
+      adapter,
+      storageKey: "robobuddy:panel:gemini:joint-state:v1",
+      defaultExpanded: false,
+      rowSelector: "[data-joint-index]",
+      rowAttribute: "data-joint-index",
+      valueIdPrefix: "geminiJointValue",
+      onExpandedChange: refreshEditor
+    });
+  }
+
+  function destroySharedWorkbenchUi() {
+    if (state.outputPanel) state.outputPanel.destroy();
+    if (state.jointState) state.jointState.destroy();
   }
 
   function setupEditor() {
@@ -450,7 +546,10 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   function setRobotEditorValue(code) {
     if (state.robotEditor) {
       state.robotEditor.setValue(code || "");
-      window.requestAnimationFrame(() => state.robotEditor.refresh());
+      window.requestAnimationFrame(() => {
+        state.robotEditor.refresh();
+        state.robotEditor.scrollTo(0, 0);
+      });
       return;
     }
     ui.robotPython.value = code || "";
@@ -479,13 +578,21 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
 
   function wireRobotUi() {
     if (ui.robotChooser) {
-      ui.robotChooser.addEventListener("change", () => {
+      ui.robotChooser.addEventListener("change", async () => {
         if (isBusy()) {
           ui.robotChooser.value = activeRobotId();
           setStatus("Wait for the active run to finish before switching robots.");
           return;
         }
         if (NS.RobotRuntime) {
+          if (
+            activeRobotId() === "so101_follower" &&
+            ui.robotChooser.value !== "so101_follower" &&
+            NS.RobotRuntime.isBridgeConnected &&
+            NS.RobotRuntime.isBridgeConnected()
+          ) {
+            await NS.RobotRuntime.setBridgeSafetyConfirmed(false).catch(() => NS.RobotRuntime.stopHardware());
+          }
           NS.RobotRuntime.setActive(ui.robotChooser.value);
         } else if (NS.RobotRegistry) {
           NS.RobotRegistry.setActive(ui.robotChooser.value);
@@ -498,6 +605,21 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
         resetPose: true,
         message: `Robot switched to ${activeManifest().name}. Validate reviewed Python again.`
       });
+      if (activeRobotId() === "so101_follower") {
+        void restoreSo101BridgeSession();
+      } else {
+        state.bridgeSessionStatus = "none";
+        syncExecutionContext();
+      }
+    });
+    window.addEventListener("robobuddy:robot-state-change", (event) => {
+      const detail = event.detail || {};
+      const manifest = activeManifest();
+      if (!manifest || detail.robotId !== manifest.id || !detail.joints) {
+        return;
+      }
+      const values = manifest.joints.map((joint) => Number(detail.joints[joint.id] ?? joint.home ?? 0));
+      applyAngles(values, { source: "robot-runtime" });
     });
   }
 
@@ -511,8 +633,10 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
     syncConnectButton();
     syncMotorsToggleUi();
+    renderManifestJointRows();
+    syncExecutionContext();
     if (options.resetPose) {
-      applyAngles(getActiveHomeAngles());
+      applyAngles(getActiveInitialAngles());
     }
     syncPreviewVisibility();
     if (options.clearValidation) {
@@ -521,8 +645,10 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   function clearReviewedRobotValidation(message) {
+    state.validationEpoch += 1;
     state.validatedCommands = null;
     state.validatedCode = "";
+    state.validatedRobotId = "";
     updateCommandSummary("-");
     if (ui.commandPreview) {
       ui.commandPreview.textContent = "";
@@ -531,6 +657,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       updateEffectStatus(message, "warning");
       setStatus(message);
     }
+    setValidationState("not-validated");
     updateRunControls();
   }
 
@@ -547,25 +674,44 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     return activeRobotId() === "arduino_arm";
   }
 
+  function activeJointLimits() {
+    const manifest = activeManifest();
+    return manifest && Array.isArray(manifest.joints)
+      ? manifest.joints.map((joint) => [Number(joint.min), Number(joint.max)])
+      : [[20, 130], [15, 165], [0, 180], [0, 180], [0, 180], [25, 130]];
+  }
+
   function getActiveHomeAngles() {
     return NS.RobotSafety && activeManifest() ? NS.RobotSafety.getHomeAngles(activeManifest()) : HOME_ANGLES.slice();
+  }
+
+  function getActiveInitialAngles() {
+    return NS.RobotSafety && activeManifest() && typeof NS.RobotSafety.getInitialAngles === "function"
+      ? NS.RobotSafety.getInitialAngles(activeManifest())
+      : getActiveHomeAngles();
   }
 
   function getActiveJointState() {
     const manifest = activeManifest();
     const joints = {};
     (manifest && Array.isArray(manifest.joints) ? manifest.joints : []).forEach((joint, index) => {
-      joints[joint.id] = state.angles[index] ?? joint.home ?? 0;
+      const value = state.angles[index] ?? joint.home ?? 0;
+      joints[joint.id] = NS.RobotSafety && typeof NS.RobotSafety.clampJointValue === "function"
+        ? NS.RobotSafety.clampJointValue(joint, value)
+        : Math.min(Number(joint.max), Math.max(Number(joint.min), Number(value)));
     });
     return joints;
   }
 
   function handleRobotPythonChanged() {
+    state.validationEpoch += 1;
     state.validatedCommands = null;
     state.validatedCode = "";
+    state.validatedRobotId = "";
     updateCommandSummary("-");
     ui.commandPreview.textContent = "";
     updateEffectStatus("Generated Python changed. Validate before running.", "warning");
+    setValidationState("not-validated");
     updateRunControls();
   }
 
@@ -637,6 +783,22 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   function wireButtons() {
+    ui.workflowTabs.forEach((button) => {
+      button.addEventListener("click", () => {
+        showWorkflow(button.dataset.workflowTab, { focus: false });
+      });
+    });
+    wireTablistKeyboard([
+      { name: "request", button: ui.btnWorkflowRequest },
+      { name: "review", button: ui.btnWorkflowReview },
+      { name: "execute", button: ui.btnWorkflowExecute }
+    ], (name) => showWorkflow(name, { focus: false }));
+    if (ui.btnEditRequest) {
+      ui.btnEditRequest.addEventListener("click", () => {
+        showWorkflow("request", { focus: true });
+      });
+    }
+
     ui.btnConnect.addEventListener("click", () => {
       void handleConnectToggle();
     });
@@ -741,12 +903,6 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       cancelGeminiWork("Gemini request canceled");
     });
 
-    if (ui.armConsoleToggle) {
-      ui.armConsoleToggle.addEventListener("click", () => {
-        setArmConsoleCollapsed(!state.armConsoleCollapsed);
-      });
-    }
-
     if (ui.btnSaveGeminiPython) {
       ui.btnSaveGeminiPython.addEventListener("click", () => {
         void saveGeminiPythonToFile();
@@ -844,13 +1000,11 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
     setEditorValue(result.text);
     setRobotEditorValue("");
-    state.validatedCommands = null;
-    state.validatedCode = "";
-    updateCommandSummary("-");
-    ui.commandPreview.textContent = "";
+    clearReviewedRobotValidation();
     clearGeminiOutput();
     updateEffectStatus("Gemini Python loaded. Generate reviewed robot Python before running.", "warning");
     setStatus(`Loaded Gemini Python${result.name ? `: ${result.name}` : ""}.`);
+    showWorkflow("request", { force: true, focus: true });
     updateRunControls();
   }
 
@@ -868,12 +1022,18 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       return;
     }
     setRobotEditorValue(result.text);
-    state.validatedCommands = null;
-    state.validatedCode = "";
-    updateCommandSummary("-");
-    ui.commandPreview.textContent = "";
+    clearReviewedRobotValidation();
+    unlockReview({
+      modelLabel: "Local reviewed file",
+      prompt: "Reviewed Python loaded directly for inspection.",
+      requestType: "Loaded reviewed file",
+      completedAt: new Date(),
+      thumbnailUrl: ""
+    });
     updateEffectStatus("Reviewed Python loaded. Validate before running.", "warning");
     setStatus(`Loaded reviewed Python${result.name ? `: ${result.name}` : ""}.`);
+    showReviewTab("robot");
+    showWorkflow("review", { focus: false });
     updateRunControls();
   }
 
@@ -1146,10 +1306,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
 
     state.apiBusy = true;
-    state.validatedCommands = null;
-    state.validatedCode = "";
-    updateCommandSummary("-");
-    ui.commandPreview.textContent = "";
+    clearReviewedRobotValidation();
     updateRunControls();
 
     try {
@@ -1180,6 +1337,14 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       setStatus(`Calling ${model}...`);
       const responseText = await callGeminiApi(apiKey, model, body);
       appendOutput(`Gemini response:\n${responseText || "(empty response)"}`);
+      const catalogEntry = NS.ModelCatalog && NS.ModelCatalog.get(model);
+      unlockReview({
+        modelLabel: catalogEntry ? catalogEntry.label : model,
+        prompt: extractTextFromContents(capture.request.contents).trim() || "No text prompt supplied.",
+        requestType: robotMode ? "Robot Python plan" : "Gemini request",
+        completedAt: new Date(),
+        thumbnailUrl: selectedImageDataUrl()
+      });
 
       const replay = await executeGeminiPython("replay", code, responseText);
       appendGeminiPythonResult(replay, "Replay");
@@ -1194,6 +1359,8 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
         updateEffectStatus("Gemini response received. Raw output only; no robot motion prepared.", "ready");
       }
       setStatus(robotMode ? "Robot Python generated for review." : "Gemini request complete.");
+      showReviewTab("robot");
+      showWorkflow("review", { focus: false });
       return true;
     } catch (error) {
       const message = error && error.name === "AbortError" ? "Gemini request canceled" : error.message;
@@ -1259,20 +1426,24 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
         throw new Error("Python did not call client.models.generate_content(...).");
       }
 
+      const detectionModel = NS.ModelCatalog && NS.ModelCatalog.defaultFor("object_detection");
+      if (!detectionModel) {
+        throw new Error("No object-detection model is available in the shared model catalog.");
+      }
+      const objectDetectionModelId = detectionModel.id;
       const capturedModel = String(capture.request.model || "");
       const selectedModel = resolveSelectedModel();
       const sourceModel = capturedModel || selectedModel;
-      if (sourceModel && sourceModel !== OBJECT_DETECTION_MODEL) {
-        appendOutput(`Object detection model override: ${sourceModel} -> ${OBJECT_DETECTION_MODEL}`);
+      if (sourceModel && sourceModel !== objectDetectionModelId) {
+        appendOutput(`Object detection model override: ${sourceModel} -> ${objectDetectionModelId}`);
       }
 
       const promptText = extractTextFromContents(capture.request.contents).trim();
       setDetectionStatus("Detecting objects with Robotics-ER...", "warning");
-      setStatus(`Calling ${OBJECT_DETECTION_MODEL} for image recognition...`);
+      setStatus(`Calling ${objectDetectionModelId} for image recognition...`);
       const body = buildObjectDetectionRequestBody(promptText, selectedImage);
-      const responseText = await callGeminiApi(apiKey, OBJECT_DETECTION_MODEL, body);
+      const responseText = await callGeminiApi(apiKey, objectDetectionModelId, body);
       appendOutput(`Object detection response:\n${responseText || "(empty response)"}`);
-
       if (imageVersion !== state.selectedImageVersion) {
         const message = "Detection result discarded because the selected image changed.";
         setStatus(message);
@@ -1283,7 +1454,15 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       const result = parseDetectionJson(responseText);
       state.detectionResult = result;
       await renderDetectionResults(result);
+      unlockReview({
+        modelLabel: detectionModel.label,
+        prompt: promptText || "Detect all prominent objects in the selected image.",
+        requestType: "Object detection",
+        completedAt: new Date(),
+        thumbnailUrl: selectedImageDataUrl(selectedImage)
+      });
       showReviewTab("vision");
+      showWorkflow("review", { focus: false });
       const count = result.detections.length;
       setStatus(`Object detection complete (${count} ${count === 1 ? "object" : "objects"}).`);
       return true;
@@ -2019,10 +2198,12 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
     showReviewTab("robot");
     setRobotEditorValue(robotPython);
-    state.validatedCommands = null;
-    state.validatedCode = "";
-    updateCommandSummary("-");
-    ui.commandPreview.textContent = "";
+    clearReviewedRobotValidation();
+    state.safetyNotes = Array.isArray(parsed.safetyNotes)
+      ? parsed.safetyNotes.map((note) => safeText(note)).filter(Boolean)
+      : [];
+    state.requiresHumanReview = parsed.requiresHumanReview !== false;
+    renderSafetyReview();
     updateEffectStatus(parsed.summary || "Robot Python generated. Review and validate before running.", "warning");
     if (Array.isArray(parsed.safetyNotes) && parsed.safetyNotes.length > 0) {
       appendOutput(`Safety notes:\n${parsed.safetyNotes.map((note) => `- ${note}`).join("\n")}`);
@@ -2048,10 +2229,12 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   async function validateRobotPython() {
-    const code = getRobotEditorValue();
-    if (!code.trim()) {
+    const codeAtStart = getRobotEditorValue();
+    const robotAtStart = activeRobotId();
+    if (!codeAtStart.trim()) {
       setStatus("Reviewed Python is empty.");
       updateEffectStatus("Generate or write RoboBuddy Python before validation.", "warning");
+      setValidationState("invalid");
       return null;
     }
     if (isBusy()) {
@@ -2059,28 +2242,69 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       return null;
     }
 
+    const validationEpoch = state.validationEpoch + 1;
+    state.validationEpoch = validationEpoch;
+    state.validatedCommands = null;
+    state.validatedCode = "";
+    state.validatedRobotId = "";
+    setValidationState("validating");
     try {
       setStatus("Validating reviewed Python...");
-      const result = await executeRobotPython(code);
+      if (
+        bridgeExecutionRequired() &&
+        NS.RobotRuntime &&
+        typeof NS.RobotRuntime.refreshBridgeState === "function"
+      ) {
+        const programAvailability = typeof NS.RobotRuntime.getProgramAvailability === "function"
+          ? NS.RobotRuntime.getProgramAvailability()
+          : null;
+        if (programAvailability && programAvailability.available === false) {
+          throw new Error(programAvailability.reason);
+        }
+        await NS.RobotRuntime.refreshBridgeState({ strict: true });
+        const measuredAngles = NS.RobotRuntime.getMeasuredJointArray
+          ? NS.RobotRuntime.getMeasuredJointArray()
+          : NS.RobotRuntime.getJointArray();
+        applyAngles(measuredAngles, { source: "bridge-program-seed" });
+      }
+      const result = await executeRobotPython(codeAtStart);
       appendRobotResult(result);
       if (!result.ok) {
         throw new Error(result.error || "Robot Python validation failed.");
       }
       const commands = validatePythonCommands(result.commands || []);
+      if (commands.length === 0) {
+        throw new Error("Robot Python produced no commands.");
+      }
+      if (
+        validationEpoch !== state.validationEpoch ||
+        codeAtStart !== getRobotEditorValue() ||
+        robotAtStart !== activeRobotId()
+      ) {
+        setStatus("Validation result discarded because the code or active robot changed.");
+        return null;
+      }
       state.validatedCommands = commands;
-      state.validatedCode = code;
+      state.validatedCode = codeAtStart;
+      state.validatedRobotId = robotAtStart;
       updateCommandSummary(`${commands.length} commands ready`);
       ui.commandPreview.textContent = formatCommands(commands);
       updateEffectStatus("Command list validated. Review preview before running.", "ready");
       setStatus("Reviewed Python validated.");
+      setValidationState("validated");
       return commands;
     } catch (error) {
+      if (validationEpoch !== state.validationEpoch) {
+        return null;
+      }
       state.validatedCommands = null;
       state.validatedCode = "";
+      state.validatedRobotId = "";
       updateCommandSummary("-");
       ui.commandPreview.textContent = "";
       updateEffectStatus(`Validation failed: ${error.message}`, "error");
       setStatus(`Validation failed: ${error.message}`);
+      setValidationState("invalid");
       return null;
     } finally {
       updateRunControls();
@@ -2088,12 +2312,18 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   async function runReviewedRobotPython() {
-    let commands = state.validatedCommands;
-    if (!commands || state.validatedCode !== getRobotEditorValue()) {
-      commands = await validateRobotPython();
-    }
-    if (!commands || commands.length === 0) {
-      setStatus("No validated commands to run.");
+    const commands = state.validatedCommands;
+    const exactIdentity = Boolean(
+      commands &&
+      commands.length > 0 &&
+      state.validationState === "validated" &&
+      state.validatedCode === getRobotEditorValue() &&
+      state.validatedRobotId === activeRobotId()
+    );
+    if (!exactIdentity) {
+      clearReviewedRobotValidation();
+      setStatus("Run refused: validate this exact code for the active robot first.");
+      updateEffectStatus("Run refused. Validation never runs automatically.", "error");
       return false;
     }
     return runCommands(commands, "Reviewed Python");
@@ -2123,6 +2353,9 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
     if (state.runner.isRunning() || state.controlOwner === CONTROL_OWNER.PROGRAM) {
       setStatus("Program already running.");
+      return false;
+    }
+    if (!ensureSo101HardwareReady(`${label} run`)) {
       return false;
     }
     if (isArduinoActive() && state.serial.isConnected() && !ensureMotionAllowed()) {
@@ -2157,7 +2390,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     switch (type) {
       case "servo": {
         const servo = intInRange(command.servo, 0, 5, `Command ${index + 1} servo`);
-        const limits = JOINT_LIMITS[servo] || [0, 180];
+        const limits = activeJointLimits()[servo] || [0, 180];
         const angle = intInRange(command.angle, limits[0], limits[1], `Command ${index + 1} angle`);
         const speed = intInRange(command.speed, 1, 100, `Command ${index + 1} speed`);
         return { type, servo, angle, speed };
@@ -2180,7 +2413,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       }
       case "smoothMove": {
         const servo = intInRange(command.servo, 0, 5, `Command ${index + 1} servo`);
-        const limits = JOINT_LIMITS[servo] || [0, 180];
+        const limits = activeJointLimits()[servo] || [0, 180];
         const from = intInRange(command.from, limits[0], limits[1], `Command ${index + 1} start angle`);
         const to = intInRange(command.to, limits[0], limits[1], `Command ${index + 1} end angle`);
         const durationMs = intInRange(command.durationMs, 200, 10000, `Command ${index + 1} duration`);
@@ -2192,9 +2425,17 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   function formatCommands(commands) {
+    const manifest = activeManifest();
+    const manifestJoints = manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
+    const jointById = new Map(manifestJoints.map((joint) => [joint.id, joint]));
+    const unitFor = (jointId, fallback = "") => {
+      const joint = jointById.get(jointId);
+      return formatUnit(joint ? joint.unit : fallback);
+    };
     return commands.map((command, index) => {
       if (command.type === "servo") {
-        return `${index + 1}. servo ${command.servo} -> ${command.angle} deg @ ${command.speed}`;
+        const joint = manifestJoints[command.servo];
+        return `${index + 1}. ${joint ? joint.label : `servo ${command.servo}`} -> ${command.angle}${formatUnit(joint ? joint.unit : "deg")} @ ${command.speed}`;
       }
       if (command.type === "delay") {
         return `${index + 1}. wait ${command.ms} ms`;
@@ -2209,13 +2450,16 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
         return `${index + 1}. go pose "${command.name}" @ ${command.speed}`;
       }
       if (command.type === "move_joint") {
-        return `${index + 1}. ${command.robotId} ${command.joint} -> ${command.value} @ ${command.speed}`;
+        return `${index + 1}. ${command.robotId} ${command.joint} -> ${command.value}${unitFor(command.joint)} @ ${command.speed}`;
       }
       if (command.type === "move_joints") {
-        return `${index + 1}. ${command.robotId} move joints ${Object.keys(command.joints || {}).join(", ")} @ ${command.speed}`;
+        const values = Object.entries(command.joints || {})
+          .map(([jointId, value]) => `${jointId}=${value}${unitFor(jointId)}`)
+          .join(", ");
+        return `${index + 1}. ${command.robotId} move joints ${values} @ ${command.speed}`;
       }
       if (command.type === "set_gripper") {
-        return `${index + 1}. ${command.robotId} gripper -> ${command.value} @ ${command.speed}`;
+        return `${index + 1}. ${command.robotId} gripper -> ${command.value}${unitFor("gripper", "percent")} @ ${command.speed}`;
       }
       if (command.type === "wait") {
         return `${index + 1}. wait ${command.seconds}s`;
@@ -2573,6 +2817,158 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
   }
 
+  function unlockReview(summary) {
+    state.reviewUnlocked = true;
+    state.requestSummary = {
+      modelLabel: safeSummaryText(summary && summary.modelLabel, "Not available"),
+      prompt: safeSummaryText(summary && summary.prompt, "No text prompt supplied."),
+      requestType: safeSummaryText(summary && summary.requestType, "Gemini request"),
+      completedAt: summary && summary.completedAt instanceof Date ? summary.completedAt : new Date(),
+      thumbnailUrl: String(summary && summary.thumbnailUrl || "")
+    };
+    renderRequestSummary();
+    updateWorkflowAvailability();
+  }
+
+  function safeSummaryText(value, fallback) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    return text ? text.slice(0, 600) : fallback;
+  }
+
+  function renderRequestSummary() {
+    const summary = state.requestSummary;
+    if (!summary) {
+      return;
+    }
+    ui.summaryModel.textContent = summary.modelLabel;
+    ui.summaryPrompt.textContent = summary.prompt;
+    ui.summaryType.textContent = summary.requestType;
+    ui.summaryTime.dateTime = summary.completedAt.toISOString();
+    ui.summaryTime.textContent = summary.completedAt.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+    if (summary.thumbnailUrl) {
+      ui.summaryThumbnail.src = summary.thumbnailUrl;
+      ui.summaryThumbnail.hidden = false;
+    } else {
+      ui.summaryThumbnail.removeAttribute("src");
+      ui.summaryThumbnail.hidden = true;
+    }
+  }
+
+  function showWorkflow(mode, options = {}) {
+    const requested = ["request", "review", "execute"].includes(mode) ? mode : "request";
+    const exactValidation = hasExactValidation();
+    if (!options.force && requested === "review" && !state.reviewUnlocked) {
+      setStatus("Review unlocks after a completed response, plan, detection, or loaded reviewed file.");
+      return false;
+    }
+    if (!options.force && requested === "execute" && !exactValidation) {
+      setStatus("Execute unlocks after validating this exact code for the active robot.");
+      return false;
+    }
+
+    if (state.workflowMode === "request" && requested !== "request") {
+      stopCamera({ silent: true });
+    }
+    state.workflowMode = requested;
+    document.body.dataset.workbenchMode = requested;
+    ui.workflowTabs.forEach((button) => {
+      const active = button.dataset.workflowTab === requested;
+      button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+    ui.workflowPanels.forEach((panel) => {
+      panel.hidden = panel.dataset.workflowPanel !== requested;
+    });
+    updateWorkflowAvailability();
+    refreshEditor();
+    if (requested === "review" && state.robotEditor) {
+      window.requestAnimationFrame(() => {
+        state.robotEditor.refresh();
+        state.robotEditor.scrollTo(0, 0);
+      });
+    }
+    if (options.focus) {
+      window.requestAnimationFrame(() => {
+        if (requested === "request" && state.editor) {
+          state.editor.focus();
+        } else {
+          const activePanel = ui.workflowPanels.find((panel) => panel.dataset.workflowPanel === requested);
+          if (activePanel) activePanel.focus({ preventScroll: true });
+        }
+      });
+    }
+    return true;
+  }
+
+  function updateWorkflowAvailability() {
+    const executeUnlocked = hasExactValidation();
+    if (ui.btnWorkflowReview) {
+      ui.btnWorkflowReview.setAttribute("aria-disabled", String(!state.reviewUnlocked));
+    }
+    if (ui.btnWorkflowExecute) {
+      ui.btnWorkflowExecute.setAttribute("aria-disabled", String(!executeUnlocked));
+    }
+    if (!executeUnlocked && state.workflowMode === "execute") {
+      showWorkflow(state.reviewUnlocked ? "review" : "request", { force: true, focus: false });
+    }
+  }
+
+  function hasExactValidation() {
+    return Boolean(
+      state.validationState === "validated" &&
+      state.validatedCommands &&
+      state.validatedCommands.length > 0 &&
+      state.validatedCode === getRobotEditorValue() &&
+      state.validatedRobotId === activeRobotId()
+    );
+  }
+
+  function setValidationState(nextState) {
+    const normalized = ["not-validated", "validating", "validated", "invalid"].includes(nextState)
+      ? nextState
+      : "not-validated";
+    const labels = {
+      "not-validated": "Not Validated",
+      validating: "Validating",
+      validated: "Validated",
+      invalid: "Invalid"
+    };
+    state.validationState = normalized;
+    [ui.validationStatus, ...ui.validationMirrors].filter(Boolean).forEach((element) => {
+      element.dataset.state = normalized;
+      element.textContent = labels[normalized];
+    });
+    if (ui.inspectorCommandStatus) {
+      const reviewedCode = getRobotEditorValue();
+      const generatedCount = (reviewedCode.match(/\brobot\.[a-z_][a-z0-9_]*\s*\(/gi) || []).length;
+      ui.inspectorCommandStatus.textContent = normalized === "validated"
+        ? `${state.validatedCommands ? state.validatedCommands.length : 0} commands · Validated for ${activeManifest().name}`
+        : generatedCount > 0
+          ? `${generatedCount} command calls · Awaiting validation`
+          : "No command package.";
+    }
+    updateWorkflowAvailability();
+  }
+
+  function renderSafetyReview() {
+    const notes = state.safetyNotes.length > 0
+      ? state.safetyNotes
+      : ["Keep the robot workspace clear and remain ready to use Emergency Stop."];
+    ui.safetyNotes.replaceChildren(...notes.map((note) => {
+      const item = document.createElement("li");
+      item.textContent = note;
+      return item;
+    }));
+    ui.humanReviewStatus.textContent = state.requiresHumanReview
+      ? "Human review is required before physical motion."
+      : "Operator review is still required before execution.";
+  }
+
   function showReviewTab(tabName) {
     const nextTab = tabName === "vision" ? "vision" : "robot";
     state.activeReviewTab = nextTab;
@@ -2631,6 +3027,9 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       }
     });
 
+    if (state.activeImageSourceTab === "camera" && nextTab !== "camera") {
+      stopCamera({ silent: true });
+    }
     state.activeImageSourceTab = nextTab;
     if (nextTab === "camera" && ui.cameraPreviewFrame && !state.cameraActive) {
       ui.cameraPreviewFrame.hidden = true;
@@ -2679,11 +3078,19 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     });
   }
 
-  function setArmConsoleCollapsed(nextCollapsed) {
+  function setArmConsoleCollapsed(nextCollapsed, options = {}) {
     const collapsed = Boolean(nextCollapsed);
+    if (state.outputPanel) {
+      state.outputPanel.setExpanded(!collapsed, {
+        persist: Boolean(options.persist),
+        reason: options.reason || "gemini-output-api"
+      });
+      state.armConsoleCollapsed = collapsed;
+      return;
+    }
     state.armConsoleCollapsed = collapsed;
     if (ui.armConsoleToggle) {
-      const label = `${collapsed ? "Show" : "Hide"} Robot Console`;
+      const label = `${collapsed ? "Show" : "Hide"} Output & Diagnostics`;
       ui.armConsoleToggle.setAttribute("aria-expanded", String(!collapsed));
       ui.armConsoleToggle.setAttribute("aria-label", label);
       ui.armConsoleToggle.title = label;
@@ -2692,46 +3099,25 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     if (ui.armConsolePanel) {
       ui.armConsolePanel.hidden = collapsed;
     }
+    if (options.persist) {
+      try {
+        localStorage.setItem(GEMINI_OUTPUT_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+      } catch (error) {
+        // Optional persistence.
+      }
+    }
     if (ui.armConsoleToggleIcon && window.lucide) {
       ui.armConsoleToggleIcon.setAttribute("data-lucide", collapsed ? "chevron-down" : "chevron-up");
       lucide.createIcons({ nodes: [ui.armConsoleToggleIcon] });
     }
   }
 
-  function readStoredGeminiSplitLeft(fallback) {
-    const value = readStoredPercent(GEMINI_SPLIT_LEFT_STORAGE_KEY, fallback);
-    return clampGeminiSplitPanel(value, fallback);
-  }
-
-  function readStoredGeminiSplitRight(fallback) {
-    return readStoredPercent(GEMINI_SPLIT_RIGHT_STORAGE_KEY, fallback);
-  }
-
-  function clampGeminiSplitPanel(value, fallback) {
-    const numeric = Number(value);
-    const fallbackValue = Number.isFinite(Number(fallback))
-      ? Number(fallback)
-      : GEMINI_SPLIT_PANEL_MIN_PERCENT;
-    return clampNumber(
-      Number.isFinite(numeric) ? numeric : fallbackValue,
-      GEMINI_SPLIT_PANEL_MIN_PERCENT,
-      GEMINI_SPLIT_PANEL_MAX_PERCENT
-    );
-  }
-
-  function readStoredPercent(key, fallback) {
+  function readOutputCollapsed() {
     try {
-      const raw = localStorage.getItem(key);
-      if (raw === null || raw === "") {
-        return fallback;
-      }
-      const parsed = Number(raw);
-      if (!Number.isFinite(parsed)) {
-        return fallback;
-      }
-      return parsed;
+      const raw = localStorage.getItem(GEMINI_OUTPUT_COLLAPSED_STORAGE_KEY);
+      return raw === null ? true : raw !== "0";
     } catch (error) {
-      return fallback;
+      return true;
     }
   }
 
@@ -2746,276 +3132,6 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       return "camera";
     }
     return "image";
-  }
-
-  function wireSplitters() {
-    document.querySelectorAll("[data-gemini-splitter]").forEach(function(splitter) {
-      splitter.addEventListener("pointerdown", handleSplitterPointerDown);
-      splitter.addEventListener("pointermove", handleSplitterPointerMove);
-      splitter.addEventListener("pointerup", endSplitterDrag);
-      splitter.addEventListener("pointercancel", endSplitterDrag);
-      splitter.addEventListener("lostpointercapture", endSplitterDrag);
-      splitter.addEventListener("keydown", handleSplitterKeydown);
-    });
-    document.addEventListener("pointermove", handleSplitterPointerMove);
-    document.addEventListener("pointerup", endSplitterDrag);
-    document.addEventListener("pointercancel", endSplitterDrag);
-  }
-
-  function applyGeminiSplitLayout() {
-    const normalized = normalizeGeminiSplits(
-      readStoredGeminiSplitLeft(state.geminiSplitLeftPercent),
-      readStoredGeminiSplitRight(state.geminiSplitRightPercent)
-    );
-    state.geminiSplitLeftPercent = normalized.left;
-    state.geminiSplitRightPercent = normalized.right;
-    if (ui.geminiSplitContainer) {
-      ui.geminiSplitContainer.style.setProperty("--gemini-split-left", `${state.geminiSplitLeftPercent}%`);
-      ui.geminiSplitContainer.style.setProperty("--gemini-split-mid", `${state.geminiSplitRightPercent}%`);
-    }
-    updateSplitterA11y();
-  }
-
-  function setGeminiSplit(left, right, options = {}) {
-    const next = normalizeGeminiSplits(left, right);
-    state.geminiSplitLeftPercent = next.left;
-    state.geminiSplitRightPercent = next.right;
-    if (ui.geminiSplitContainer) {
-      ui.geminiSplitContainer.style.setProperty("--gemini-split-left", `${state.geminiSplitLeftPercent}%`);
-      ui.geminiSplitContainer.style.setProperty("--gemini-split-mid", `${state.geminiSplitRightPercent}%`);
-    }
-    updateSplitterA11y();
-    if (options.persist !== false) {
-      persistGeminiSplitLayout();
-    }
-    scheduleSplitResizeRefresh();
-  }
-
-  function scheduleSplitResizeRefresh() {
-    if (state.splitResizeRefreshQueued) {
-      return;
-    }
-    state.splitResizeRefreshQueued = true;
-    window.requestAnimationFrame(() => {
-      state.splitResizeRefreshQueued = false;
-      refreshEditor();
-    });
-  }
-
-  function persistGeminiSplitLayout() {
-    try {
-      localStorage.setItem(GEMINI_SPLIT_LEFT_STORAGE_KEY, String(state.geminiSplitLeftPercent));
-      localStorage.setItem(GEMINI_SPLIT_RIGHT_STORAGE_KEY, String(state.geminiSplitRightPercent));
-    } catch (error) {
-      // Optional.
-    }
-  }
-
-  function normalizeGeminiSplits(left, right) {
-    let leftPercent = clampGeminiSplitPanel(left);
-    let rightPercent = Number.isFinite(Number(right)) ? Number(right) : GEMINI_SPLIT_DEFAULT_RIGHT_SPLIT;
-    leftPercent = clampNumber(
-      leftPercent,
-      GEMINI_SPLIT_PANEL_MIN_PERCENT,
-      Math.min(GEMINI_SPLIT_PANEL_MAX_PERCENT, 100 - GEMINI_SPLIT_PANEL_MIN_PERCENT)
-    );
-    rightPercent = clampNumber(
-      rightPercent,
-      leftPercent + GEMINI_SPLIT_PANEL_MIN_PERCENT,
-      leftPercent + GEMINI_SPLIT_PANEL_MAX_PERCENT
-    );
-    rightPercent = clampNumber(
-      rightPercent,
-      100 - GEMINI_SPLIT_PANEL_MAX_PERCENT,
-      100 - GEMINI_SPLIT_PANEL_MIN_PERCENT
-    );
-    leftPercent = clampNumber(
-      leftPercent,
-      rightPercent - GEMINI_SPLIT_PANEL_MAX_PERCENT,
-      rightPercent - GEMINI_SPLIT_PANEL_MIN_PERCENT
-    );
-    return {
-      left: Math.round(leftPercent * 10) / 10,
-      right: Math.round(rightPercent * 10) / 10
-    };
-  }
-
-  function updateSplitterA11y() {
-    const leftPanel = formatSplitPercent(state.geminiSplitLeftPercent);
-    const rightPanel = formatSplitPercent(state.geminiSplitRightPercent);
-    const midPanel = formatSplitPercent(state.geminiSplitRightPercent - state.geminiSplitLeftPercent);
-
-    if (ui.leftSplitter) {
-      const min = GEMINI_SPLIT_PANEL_MIN_PERCENT;
-      const max = Math.min(
-        GEMINI_SPLIT_PANEL_MAX_PERCENT,
-        state.geminiSplitRightPercent - GEMINI_SPLIT_PANEL_MIN_PERCENT
-      );
-      ui.leftSplitter.setAttribute("aria-valuemin", String(min));
-      ui.leftSplitter.setAttribute("aria-valuemax", String(max));
-      ui.leftSplitter.setAttribute("aria-valuenow", String(leftPanel));
-      ui.leftSplitter.setAttribute("aria-valuetext", `Gemini control ${leftPanel} percent`);
-    }
-
-    if (ui.rightSplitter) {
-      const min = Math.max(
-        state.geminiSplitLeftPercent + GEMINI_SPLIT_PANEL_MIN_PERCENT,
-        100 - GEMINI_SPLIT_PANEL_MAX_PERCENT
-      );
-      const max = Math.min(
-        state.geminiSplitLeftPercent + GEMINI_SPLIT_PANEL_MAX_PERCENT,
-        100 - GEMINI_SPLIT_PANEL_MIN_PERCENT
-      );
-      ui.rightSplitter.setAttribute("aria-valuemin", String(min));
-      ui.rightSplitter.setAttribute("aria-valuemax", String(max));
-      ui.rightSplitter.setAttribute("aria-valuenow", String(rightPanel));
-      ui.rightSplitter.setAttribute("aria-valuetext", `Gemini review ${midPanel} percent`);
-    }
-  }
-
-  function formatSplitPercent(value) {
-    return String(Math.round(Number(value) * 10) / 10);
-  }
-
-  function splitterPointerPosition(event) {
-    const container = ui.geminiSplitContainer;
-    if (!container) {
-      return null;
-    }
-    const bounds = container.getBoundingClientRect();
-    if (!bounds.width) {
-      return null;
-    }
-    return (event.clientX - bounds.left) / bounds.width * 100;
-  }
-
-  function handleSplitterPointerDown(event) {
-    if (event.button !== 0 || event.isPrimary === false) {
-      return;
-    }
-    const splitter = event.currentTarget;
-    const key = splitter.getAttribute("data-gemini-splitter");
-    if (key !== "left" && key !== "right") {
-      return;
-    }
-    state.activeSplitter = {
-      key,
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startLeft: state.geminiSplitLeftPercent,
-      startRight: state.geminiSplitRightPercent
-    };
-    splitter.classList.add("is-active");
-    if (splitter.setPointerCapture) {
-      splitter.setPointerCapture(event.pointerId);
-    }
-    document.body.classList.add("is-resizing-gemini");
-    document.body.classList.add("is-resizing-gemini--vertical");
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  function handleSplitterPointerMove(event) {
-    if (!state.activeSplitter) {
-      return;
-    }
-    if (
-      Number.isFinite(state.activeSplitter.pointerId) &&
-      Number.isFinite(event.pointerId) &&
-      event.pointerId !== state.activeSplitter.pointerId
-    ) {
-      return;
-    }
-    const percent = splitterPointerPosition(event);
-    if (percent === null) {
-      return;
-    }
-    const next = state.activeSplitter.key;
-    if (next !== "left" && next !== "right") {
-      return;
-    }
-    if (next === "left") {
-      const leftOffset = percent;
-      const newRight = state.geminiSplitRightPercent;
-      setGeminiSplit(leftOffset, newRight, { persist: false });
-    } else {
-      const newRight = percent;
-      setGeminiSplit(state.geminiSplitLeftPercent, newRight, { persist: false });
-    }
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  function endSplitterDrag(event) {
-    if (!state.activeSplitter) {
-      return;
-    }
-    if (
-      Number.isFinite(state.activeSplitter.pointerId) &&
-      event &&
-      Number.isFinite(event.pointerId) &&
-      event.pointerId !== state.activeSplitter.pointerId
-    ) {
-      return;
-    }
-    const activeSplitterNode = document.querySelector(`[data-gemini-splitter="${state.activeSplitter.key}"]`);
-    if (activeSplitterNode) {
-      activeSplitterNode.classList.remove("is-active");
-      if (event && event.pointerId !== undefined && activeSplitterNode.hasPointerCapture && activeSplitterNode.hasPointerCapture(event.pointerId)) {
-        activeSplitterNode.releasePointerCapture(event.pointerId);
-      }
-    }
-    persistGeminiSplitLayout();
-    state.activeSplitter = null;
-    document.body.classList.remove("is-resizing-gemini", "is-resizing-gemini--vertical");
-    scheduleSplitResizeRefresh();
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }
-
-  function handleSplitterKeydown(event) {
-    const key = event.key;
-    const isArrow = key === "ArrowLeft" || key === "ArrowRight";
-    if (!isArrow && key !== "Home" && key !== "End") {
-      return;
-    }
-    const splitter = event.currentTarget.getAttribute("data-gemini-splitter");
-    let nextLeft = state.geminiSplitLeftPercent;
-    let nextRight = state.geminiSplitRightPercent;
-    const step = event.shiftKey ? 10 : 1;
-    if (key === "Home") {
-      if (splitter === "left") {
-        nextLeft = GEMINI_SPLIT_PANEL_MIN_PERCENT;
-      } else {
-        nextRight = state.geminiSplitLeftPercent + GEMINI_SPLIT_PANEL_MIN_PERCENT;
-      }
-    } else if (key === "End") {
-      if (splitter === "left") {
-        nextLeft = Math.min(
-          state.geminiSplitRightPercent - GEMINI_SPLIT_PANEL_MIN_PERCENT,
-          100 - GEMINI_SPLIT_PANEL_MAX_PERCENT
-        );
-      } else {
-        nextRight = 100 - GEMINI_SPLIT_PANEL_MIN_PERCENT;
-      }
-    } else if (key === "ArrowLeft") {
-      if (splitter === "left") {
-        nextLeft = state.geminiSplitLeftPercent - step;
-      } else {
-        nextRight = state.geminiSplitRightPercent - step;
-      }
-    } else {
-      if (splitter === "left") {
-        nextLeft = state.geminiSplitLeftPercent + step;
-      } else {
-        nextRight = state.geminiSplitRightPercent + step;
-      }
-    }
-    setGeminiSplit(nextLeft, nextRight, { persist: true });
-    event.preventDefault();
-    event.stopPropagation();
   }
 
   async function configureCameraZoom(stream) {
@@ -3239,8 +3355,12 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   async function handleConnectToggle() {
+    if (activeRobotId() === "so101_follower") {
+      await toggleSo101BridgeArm();
+      return;
+    }
     if (!isArduinoActive()) {
-      setStatus(activeRobotId() === "so101_follower" ? "SO-101 hardware uses the local bridge workflow." : "LeKiwi is simulation-only in Tier 1.");
+      setStatus("LeKiwi is simulation-only in Tier 1.");
       syncConnectButton();
       return;
     }
@@ -3298,10 +3418,11 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     try {
       setStatus("Moving to safe park pose before disconnect...");
       await state.serial.attachAll();
-      for (let servo = 0; servo < HOME_ANGLES.length; servo += 1) {
-        await state.serial.moveServo(servo, clampAngle(servo, HOME_ANGLES[servo]), DISCONNECT_PARK_SPEED);
+      const homeAngles = getActiveHomeAngles();
+      for (let servo = 0; servo < homeAngles.length; servo += 1) {
+        await state.serial.moveServo(servo, clampAngle(servo, homeAngles[servo]), DISCONNECT_PARK_SPEED);
       }
-      applyAngles(HOME_ANGLES, { source: "disconnect-park" });
+      applyAngles(homeAngles, { source: "disconnect-park" });
       return true;
     } catch (error) {
       appendSerial("SYS", `Safe park before disconnect failed: ${error.message}`);
@@ -3311,6 +3432,19 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
 
   async function handleHome() {
     if (!isArduinoActive()) {
+      if (activeRobotId() === "so101_follower" && bridgeExecutionRequired()) {
+        if (!ensureSo101HardwareReady("Home")) {
+          return;
+        }
+        try {
+          await NS.RobotRuntime.applyCommand({ type: "home", robotId: "so101_follower" });
+          applyAngles(NS.RobotRuntime.getJointArray(), { source: "bridge-home" });
+          setStatus("SO-101 moved to Home through the retained local bridge");
+        } catch (error) {
+          setStatus(`SO-101 Home failed: ${error.message}`);
+        }
+        return;
+      }
       if (NS.RobotRuntime) {
         NS.RobotRuntime.home();
         applyAngles(NS.RobotRuntime.getJointArray());
@@ -3327,7 +3461,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       if (state.serial.isConnected()) {
         await state.serial.home();
       }
-      applyAngles(HOME_ANGLES, { source: "home" });
+      applyAngles(getActiveHomeAngles(), { source: "home" });
       setStatus("Moved to home position");
     } catch (error) {
       setStatus(`Home failed: ${error.message}`);
@@ -3339,6 +3473,9 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     terminateRobotPythonRun("Robot Python stopped by emergency stop");
     state.runner.stop();
     try {
+      if (activeRobotId() === "so101_follower" && bridgeExecutionRequired() && NS.RobotRuntime) {
+        await NS.RobotRuntime.stopHardware();
+      }
       if (state.serial.isConnected()) {
         await state.serial.emergencyStop();
       }
@@ -3466,7 +3603,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     if (profileId !== EXPECTED_FIRMWARE_PROFILE_ID) {
       issues.push(`profile ${profileId || "(missing)"} expected ${EXPECTED_FIRMWARE_PROFILE_ID}`);
     }
-    const gripperLimits = JOINT_LIMITS[5] || [25, 130];
+    const gripperLimits = activeJointLimits()[5] || [25, 130];
     if (Number(profile.gripperMin) !== gripperLimits[0] || Number(profile.gripperMax) !== gripperLimits[1]) {
       issues.push(`gripper ${profile.gripperMin}..${profile.gripperMax} expected ${gripperLimits[0]}..${gripperLimits[1]}`);
     }
@@ -3589,16 +3726,28 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     if (!Array.isArray(nextAngles)) {
       return;
     }
-    state.angles = nextAngles.slice(0, 6).map((value, index) => clampAngle(index, value));
+    const manifest = activeManifest();
+    const jointCount = manifest && Array.isArray(manifest.joints) ? manifest.joints.length : 6;
+    state.angles = nextAngles.slice(0, jointCount).map((value, index) => clampAngle(index, value));
     if (state.preview3d) {
       state.preview3d.setAngles(state.angles);
     }
-    for (let servo = 0; servo < 6; servo += 1) {
-      const valueEl = ui.jointValues[servo];
-      if (valueEl) {
-        valueEl.textContent = `${state.angles[servo]} deg`;
-      }
+    if (state.jointState) {
+      state.jointState.refresh();
     }
+  }
+
+  function renderManifestJointRows() {
+    if (state.jointState) {
+      state.jointState.refresh();
+    }
+  }
+
+  function formatUnit(unit) {
+    const normalized = String(unit || "").trim().toLowerCase();
+    if (["deg", "degree", "degrees", "°"].includes(normalized)) return "°";
+    if (["percent", "pct", "%"].includes(normalized)) return "%";
+    return normalized ? ` ${unit}` : "";
   }
 
   function syncPreviewVisibility() {
@@ -3649,7 +3798,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
     ui.btnValidateRobotPython.disabled = busy || !state.robotWorkerReady;
     const robotCode = getRobotEditorValue();
-    ui.btnRunRobotPython.disabled = busy || !state.robotWorkerReady || !robotCode.trim();
+    ui.btnRunRobotPython.disabled = busy || !state.robotWorkerReady || !robotCode.trim() || !hasExactValidation();
     if (ui.btnLoadRobotPython) {
       ui.btnLoadRobotPython.disabled = busy;
     }
@@ -3694,21 +3843,162 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     if (!ui.btnConnect || !state.serial) {
       return;
     }
+    const runtimeState = NS.RobotRuntime && NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    const bridgeConnected = Boolean(
+      activeRobotId() === "so101_follower" &&
+      runtimeState &&
+      runtimeState.connection &&
+      runtimeState.connection.connected
+    );
+    const bridgeArmed = Boolean(bridgeConnected && NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
     const connected = state.serial.isConnected();
+    const arduino = isArduinoActive();
+    ui.btnConnect.hidden = !arduino && activeRobotId() !== "so101_follower";
+    if (ui.hardwareSetupLink) {
+      ui.hardwareSetupLink.hidden = arduino;
+    }
     const span = ui.btnConnect.querySelector("span");
     if (span) {
-      span.textContent = !isArduinoActive()
-        ? (activeRobotId() === "so101_follower" ? "Use Bridge" : "Sim Only")
+      span.textContent = activeRobotId() === "so101_follower"
+        ? (bridgeConnected ? (bridgeArmed ? "Disarm" : "Arm Motion") : "Setup Bridge")
         : (connected ? "Disconnect" : "Connect");
     }
-    ui.btnConnect.disabled = !isArduinoActive() || !state.serial.supportsWebSerial();
-    if (state.serial.supportsWebSerial && !state.serial.supportsWebSerial()) {
+    ui.btnConnect.disabled = activeRobotId() === "so101_follower"
+      ? state.bridgeArmPending
+      : (!arduino || !state.serial.supportsWebSerial());
+    if (arduino && state.serial.supportsWebSerial && !state.serial.supportsWebSerial()) {
       ui.btnConnect.disabled = true;
     }
     const icon = ui.btnConnect.querySelector("[data-lucide]");
     if (icon && window.lucide) {
-      icon.setAttribute("data-lucide", connected ? "unlink" : "plug");
+      icon.setAttribute("data-lucide", activeRobotId() === "so101_follower"
+        ? (bridgeArmed ? "shield-off" : "shield-check")
+        : (connected ? "unlink" : "plug"));
       lucide.createIcons({ nodes: [icon] });
+    }
+    syncExecutionContext();
+  }
+
+  function syncExecutionContext() {
+    const manifest = activeManifest();
+    const serialHardware = isArduinoActive() && state.serial && state.serial.isConnected();
+    const bridgeHardware = Boolean(
+      activeRobotId() === "so101_follower" &&
+      NS.RobotRuntime &&
+      NS.RobotRuntime.isBridgeConnected &&
+      NS.RobotRuntime.isBridgeConnected()
+    );
+    const bridgeIntent = bridgeExecutionRequired();
+    const hardware = serialHardware || bridgeHardware;
+    const target = hardware ? "hardware" : (bridgeIntent ? "hardware-unavailable" : "simulation");
+    const targetLabel = bridgeHardware ? "Local Bridge" : (serialHardware ? "Hardware" : (bridgeIntent ? "Bridge unavailable" : "Simulation"));
+    if (ui.executionTarget) {
+      ui.executionTarget.dataset.executionTarget = target;
+      ui.executionTarget.setAttribute("aria-label", `Execution target: ${targetLabel}`);
+      const label = ui.executionTarget.querySelector("span");
+      if (label) label.textContent = targetLabel;
+      const icon = ui.executionTarget.querySelector("[data-lucide]");
+      if (icon && window.lucide) {
+        icon.setAttribute("data-lucide", hardware || bridgeIntent ? "cable" : "monitor");
+        lucide.createIcons({ nodes: [icon] });
+      }
+    }
+    if (ui.executionContext) {
+      ui.executionContext.textContent = `${targetLabel} · ${manifest ? manifest.name : "active robot"}`;
+    }
+  }
+
+  function bridgeExecutionRequired() {
+    if (activeRobotId() !== "so101_follower" || !NS.RobotRuntime) {
+      return false;
+    }
+    const runtimeState = NS.RobotRuntime.getState ? NS.RobotRuntime.getState() : null;
+    return Boolean(
+      (runtimeState && runtimeState.mode === "local_bridge") ||
+      (NS.RobotRuntime.hasBridgeSession && NS.RobotRuntime.hasBridgeSession())
+    );
+  }
+
+  function ensureSo101HardwareReady(action) {
+    if (!bridgeExecutionRequired()) {
+      return true;
+    }
+    if (!NS.RobotRuntime.isBridgeConnected || !NS.RobotRuntime.isBridgeConnected()) {
+      setStatus(`${action} blocked: the retained SO-101 bridge is unavailable. Return to Main and reconnect.`);
+      updateEffectStatus("Hardware execution blocked; commands were not sent to simulation.", "error");
+      return false;
+    }
+    if (!NS.RobotRuntime.isBridgeArmed || !NS.RobotRuntime.isBridgeArmed()) {
+      setStatus(`${action} blocked: select Arm Motion for this page first.`);
+      updateEffectStatus("SO-101 is connected but motion is disarmed.", "warning");
+      return false;
+    }
+    return true;
+  }
+
+  async function restoreSo101BridgeSession() {
+    if (
+      activeRobotId() !== "so101_follower" ||
+      !NS.RobotRuntime ||
+      typeof NS.RobotRuntime.hasBridgeSession !== "function" ||
+      !NS.RobotRuntime.hasBridgeSession() ||
+      typeof NS.RobotRuntime.reattachBridgeSession !== "function"
+    ) {
+      state.bridgeSessionStatus = "none";
+      syncConnectButton();
+      setConnectionStatus(false, activeRobotId() === "so101_follower" ? "Simulation · Bridge setup on Main" : undefined);
+      return false;
+    }
+    state.bridgeSessionStatus = "reattaching";
+    setConnectionStatus(false, "Reattaching SO-101 bridge…");
+    const result = await NS.RobotRuntime.reattachBridgeSession({ disarm: true });
+    state.bridgeSessionStatus = result.status;
+    if (!result.attached) {
+      setConnectionStatus(false, "Bridge unavailable");
+      setStatus(result.error && result.error.message
+        ? result.error.message
+        : "The retained SO-101 bridge is no longer connected. Return to Main to reconnect.");
+      syncConnectButton();
+      return false;
+    }
+    const angles = NS.RobotRuntime.getMeasuredJointArray
+      ? NS.RobotRuntime.getMeasuredJointArray()
+      : NS.RobotRuntime.getJointArray();
+    applyAngles(angles, { source: "bridge-reattach" });
+    setConnectionStatus(true, "Connected · Disarmed");
+    setStatus("SO-101 connection retained. Select Arm Motion before executing reviewed robot Python.");
+    updateEffectStatus("Local bridge attached; motion is disarmed for this page.", "warning");
+    syncConnectButton();
+    return true;
+  }
+
+  async function toggleSo101BridgeArm() {
+    if (!NS.RobotRuntime) {
+      return false;
+    }
+    if (!NS.RobotRuntime.isBridgeConnected || !NS.RobotRuntime.isBridgeConnected()) {
+      const restored = await restoreSo101BridgeSession();
+      if (!restored) {
+        setStatus("Set up and connect the SO-101 from the Main page first.");
+        return false;
+      }
+    }
+    state.bridgeArmPending = true;
+    syncConnectButton();
+    try {
+      const arm = !(NS.RobotRuntime.isBridgeArmed && NS.RobotRuntime.isBridgeArmed());
+      const runtimeState = await NS.RobotRuntime.setBridgeSafetyConfirmed(arm);
+      const armed = Boolean(runtimeState && runtimeState.connection && runtimeState.connection.armedForMotion);
+      setConnectionStatus(true, armed ? "Connected · Armed" : "Connected · Disarmed");
+      setStatus(armed ? "SO-101 armed for explicit reviewed-code runs on this page." : "SO-101 motion disarmed; physical connection retained.");
+      updateEffectStatus(armed ? "Hardware execution enabled for this page." : "Hardware motion is disarmed.", armed ? "ready" : "warning");
+      return armed;
+    } catch (error) {
+      setStatus(`SO-101 arm change failed: ${error.message}`);
+      return false;
+    } finally {
+      state.bridgeArmPending = false;
+      syncConnectButton();
     }
   }
 
@@ -3718,6 +4008,11 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
     ui.motorsEnabled.checked = isArduinoActive() && state.motorsEnabled;
     ui.motorsEnabled.disabled = !isArduinoActive();
+    if (ui.motorsControl) {
+      ui.motorsControl.hidden = !isArduinoActive();
+      const label = ui.motorsControl.querySelector("span");
+      if (label) label.textContent = state.motorsEnabled ? "Motors On" : "Motors Off";
+    }
     updateRunControls();
   }
 
@@ -3730,6 +4025,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     ui.statusDot.classList.toggle("is-connected", connected);
     ui.statusDot.classList.remove("is-connecting");
     ui.statusText.textContent = text || (connected ? "Connected" : "Disconnected");
+    syncExecutionContext();
   }
 
   function setStatus(text) {
@@ -3791,7 +4087,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
   }
 
   function clampAngle(servo, angle) {
-    const limits = JOINT_LIMITS[servo] || [0, 180];
+    const limits = activeJointLimits()[servo] || [0, 180];
     const value = Number(angle);
     const safe = Number.isFinite(value) ? Math.round(value) : limits[0];
     return Math.min(limits[1], Math.max(limits[0], safe));
