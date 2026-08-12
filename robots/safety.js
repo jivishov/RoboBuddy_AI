@@ -126,7 +126,7 @@
     }
     const selectedMode = manifest.supportedModes.includes(mode) ? mode : manifest.defaultMode;
     const initialJoints = getInitialJoints(manifest);
-    return {
+    const state = {
       robotId: manifest.id,
       mode: selectedMode,
       connection: {
@@ -190,6 +190,23 @@
       lastCommand: null,
       stopped: false
     };
+    if (manifest.humanoid) {
+      state.humanoidRoot = { x: 0, z: 0, theta: 0 };
+      state.humanoidMotion = {
+        active: false,
+        id: "",
+        phase: "idle",
+        progress: 0,
+        durationSeconds: 0,
+        startedAtMs: 0,
+        cancellationId: 0
+      };
+      state.endEffectors = {
+        left_hand: { heldObjectId: "" },
+        right_hand: { heldObjectId: "" }
+      };
+    }
+    return state;
   }
 
   function sanitizeActiveRobotState(rawState) {
@@ -213,6 +230,29 @@
         x: Number.isFinite(Number(rawBase.x)) ? Number(rawBase.x) : 0,
         y: Number.isFinite(Number(rawBase.y)) ? Number(rawBase.y) : 0,
         theta: Number.isFinite(Number(rawBase.theta)) ? Number(rawBase.theta) : 0
+      };
+    }
+    if (manifest.humanoid) {
+      const rawRoot = rawState && rawState.humanoidRoot && typeof rawState.humanoidRoot === "object" ? rawState.humanoidRoot : {};
+      state.humanoidRoot = {
+        x: Number.isFinite(Number(rawRoot.x)) ? Number(rawRoot.x) : 0,
+        z: Number.isFinite(Number(rawRoot.z)) ? Number(rawRoot.z) : 0,
+        theta: Number.isFinite(Number(rawRoot.theta)) ? Number(rawRoot.theta) : 0
+      };
+      const rawEffectors = rawState && rawState.endEffectors && typeof rawState.endEffectors === "object" ? rawState.endEffectors : {};
+      state.endEffectors = {
+        left_hand: { heldObjectId: String(rawEffectors.left_hand && rawEffectors.left_hand.heldObjectId || "") },
+        right_hand: { heldObjectId: String(rawEffectors.right_hand && rawEffectors.right_hand.heldObjectId || "") }
+      };
+      const rawMotion = rawState && rawState.humanoidMotion && typeof rawState.humanoidMotion === "object" ? rawState.humanoidMotion : {};
+      state.humanoidMotion = {
+        active: Boolean(rawMotion.active),
+        id: String(rawMotion.id || ""),
+        phase: String(rawMotion.phase || "idle"),
+        progress: Math.min(1, Math.max(0, Number(rawMotion.progress) || 0)),
+        durationSeconds: Math.max(0, Number(rawMotion.durationSeconds) || 0),
+        startedAtMs: Math.max(0, Number(rawMotion.startedAtMs) || 0),
+        cancellationId: Math.max(0, Math.round(Number(rawMotion.cancellationId) || 0))
       };
     }
     return state;

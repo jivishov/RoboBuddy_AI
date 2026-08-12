@@ -12,7 +12,13 @@
     "move_joints",
     "set_gripper",
     "drive",
-    "smooth_move"
+    "smooth_move",
+    "set_posture",
+    "humanoid_walk",
+    "humanoid_turn",
+    "pick_nearest",
+    "release_object",
+    "run_demo"
   ]);
 
   function commandError(message) {
@@ -82,6 +88,22 @@
         normalizeJointKey(joint.label) === key ||
         (manifest.id === "arduino_arm" && LEGACY_SERVO_JOINTS[joint.servoIndex] === key)
       )) || null;
+  }
+
+  function getGripperJoints(manifest) {
+    return (manifest && Array.isArray(manifest.joints) ? manifest.joints : [])
+      .filter((joint) => joint.type === "gripper");
+  }
+
+  function gripperSide(joint) {
+    const declared = normalizeJointKey(joint && joint.side);
+    if (declared === "left" || declared === "right") {
+      return declared;
+    }
+    const id = normalizeJointKey(joint && joint.id);
+    if (id.startsWith("left_")) return "left";
+    if (id.startsWith("right_")) return "right";
+    return "";
   }
 
   function jointIdForLegacyServo(servo) {
@@ -243,22 +265,52 @@
           if (!hasCapability(manifest, "gripper")) {
             return commandError(`${manifest.name} does not support gripper control.`);
           }
-          const joint = resolveJoint(manifest, "gripper");
-          if (!joint) {
+          const grippers = getGripperJoints(manifest);
+          if (grippers.length === 0) {
             return commandError(`${manifest.name} does not define a gripper joint.`);
           }
-          let value = normalized.value;
-          if (value === "open") {
-            value = joint.open;
-          } else if (value === "close" || value === "closed") {
-            value = joint.close;
+          if (grippers.length === 1) {
+            const joint = grippers[0];
+            let value = normalized.value;
+            if (value === "open") {
+              value = joint.open;
+            } else if (value === "close" || value === "closed") {
+              value = joint.close;
+            }
+            value = numberInRange(value, Number(joint.min), Number(joint.max), `${joint.label} value`);
+            return commandOk({
+              type: "set_gripper",
+              robotId: manifest.id,
+              value,
+              speed: speedInRange(normalized.speed ?? 50, `${joint.label}`, joint),
+              blockId: normalized.blockId
+            });
           }
-          value = numberInRange(value, Number(joint.min), Number(joint.max), `${joint.label} value`);
+
+          const side = normalizeJointKey(normalized.side || "both");
+          if (!new Set(["left", "right", "both"]).has(side)) {
+            return commandError("gripper side must be left, right, or both.");
+          }
+          const targets = grippers.filter((joint) => side === "both" || gripperSide(joint) === side);
+          if (targets.length === 0) {
+            return commandError(`${manifest.name} does not define a ${side} gripper.`);
+          }
+          const joints = {};
+          targets.forEach((joint) => {
+            let value = normalized.value;
+            if (value === "open") {
+              value = joint.open;
+            } else if (value === "close" || value === "closed") {
+              value = joint.close;
+            }
+            joints[joint.id] = numberInRange(value, Number(joint.min), Number(joint.max), `${joint.label} value`);
+          });
           return commandOk({
             type: "set_gripper",
             robotId: manifest.id,
-            value,
-            speed: speedInRange(normalized.speed ?? 50, `${joint.label}`, joint),
+            side,
+            joints,
+            speed: speedInRange(normalized.speed ?? 50, `${manifest.shortName || manifest.name} grippers`, targets[0]),
             blockId: normalized.blockId
           });
         }
@@ -301,6 +353,102 @@
             from,
             to,
             seconds,
+            blockId: normalized.blockId
+          });
+        }
+
+        case "set_posture": {
+          if (!hasCapability(manifest, "posture_presets") || !manifest.postures) {
+            return commandError(`${manifest.name} does not support posture presets.`);
+          }
+          const posture = String(normalized.posture || "").trim();
+          if (!posture || !manifest.postures[posture]) {
+            return commandError(`Unknown posture for ${manifest.id}: ${posture || "(missing)"}.`);
+          }
+          return commandOk({
+            type: "set_posture",
+            robotId: manifest.id,
+            posture,
+            seconds: numberInRange(normalized.seconds ?? 0.8, 0.2, 10, "posture seconds"),
+            blockId: normalized.blockId
+          });
+        }
+
+        case "humanoid_walk": {
+          if (!hasCapability(manifest, "humanoid_walk") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support humanoid stepping.`);
+          }
+          const direction = normalized.direction === "backward" ? "backward" : normalized.direction === "forward" ? "forward" : "";
+          if (!direction) {
+            return commandError("humanoid_walk direction must be forward or backward.");
+          }
+          const steps = Math.round(numberInRange(normalized.steps ?? 1, 1, Number(manifest.humanoid.maxSteps) || 20, "walk steps"));
+          const stepLengthM = numberInRange(
+            normalized.stepLengthM ?? 0.08,
+            Number(manifest.humanoid.stepLengthMinM) || 0.02,
+            Number(manifest.humanoid.stepLengthMaxM) || 0.12,
+            "walk stepLengthM"
+          );
+          const speed = speedInRange(normalized.speed ?? 50, "walk", null);
+          const secondsPerStep = 0.92 + (0.34 - 0.92) * (speed / 100);
+          return commandOk({
+            type: "humanoid_walk",
+            robotId: manifest.id,
+            direction,
+            steps,
+            stepLengthM,
+            speed,
+            durationSeconds: secondsPerStep * steps,
+            blockId: normalized.blockId
+          });
+        }
+
+        case "humanoid_turn": {
+          if (!hasCapability(manifest, "humanoid_turn") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support humanoid turning.`);
+          }
+          const angleDeg = numberInRange(
+            normalized.angleDeg,
+            -(Number(manifest.humanoid.maxTurnDeg) || 180),
+            Number(manifest.humanoid.maxTurnDeg) || 180,
+            "turn angleDeg"
+          );
+          if (Math.abs(angleDeg) < 0.001) {
+            return commandError("turn angleDeg must be non-zero.");
+          }
+          const seconds = numberInRange(normalized.seconds ?? 1.5, 0.2, 10, "turn seconds");
+          return commandOk({
+            type: "humanoid_turn",
+            robotId: manifest.id,
+            angleDeg,
+            seconds,
+            durationSeconds: seconds,
+            blockId: normalized.blockId
+          });
+        }
+
+        case "pick_nearest":
+        case "release_object": {
+          if (!hasCapability(manifest, "fixed_hand_interaction") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support fixed-hand object interaction.`);
+          }
+          const hand = String(normalized.hand || "").trim();
+          const hands = Array.isArray(manifest.humanoid.hands) ? manifest.humanoid.hands : [];
+          if (!hands.includes(hand)) {
+            return commandError(`${normalized.type} hand must be one of: ${hands.join(", ")}.`);
+          }
+          return commandOk({ type: normalized.type, robotId: manifest.id, hand, blockId: normalized.blockId });
+        }
+
+        case "run_demo": {
+          if (!hasCapability(manifest, "scripted_demo") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support the scripted demonstration.`);
+          }
+          return commandOk({
+            type: "run_demo",
+            robotId: manifest.id,
+            demo: manifest.humanoid.demoId || "walk_grab_return",
+            durationSeconds: 11.5,
             blockId: normalized.blockId
           });
         }

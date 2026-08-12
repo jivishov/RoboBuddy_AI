@@ -55,6 +55,20 @@ def _norm_key(value):
 def _joints():
     return list(manifest.get("joints") or [])
 
+def _gripper_joints():
+    return [joint for joint in _joints() if joint.get("type") == "gripper"]
+
+def _gripper_side(joint):
+    declared = _norm_key(joint.get("side", ""))
+    if declared in ("left", "right"):
+        return declared
+    joint_id = _norm_key(joint.get("id", ""))
+    if joint_id.startswith("left_"):
+        return "left"
+    if joint_id.startswith("right_"):
+        return "right"
+    return ""
+
 def _joint_aliases():
     aliases = {}
     for index, joint in enumerate(_joints()):
@@ -181,6 +195,75 @@ class Robot:
             raise ValueError("move_joints requires at least one joint")
         self._append({"type": "move_joints", "robotId": robot_id, "joints": safe, "unit": "deg", "speed": _speed(speed)})
 
+    def set_posture(self, posture, seconds=0.8):
+        postures = manifest.get("postures") or {}
+        posture_id = str(posture or "").strip()
+        if posture_id not in postures:
+            raise ValueError(f"unknown posture: {posture_id or '(missing)'}")
+        pose = postures.get(posture_id) or {}
+        for key, value in (pose.get("joints") or {}).items():
+            joint_def = _joint(key)
+            self.joints[joint_def.get("id")] = _joint_value(joint_def, value)
+        self._append({
+            "type": "set_posture",
+            "robotId": robot_id,
+            "posture": posture_id,
+            "seconds": _seconds(seconds, "posture seconds", 0.2, 10),
+        })
+
+    def walk(self, direction="forward", steps=3, step_length=0.08, speed=50):
+        humanoid = manifest.get("humanoid") or {}
+        direction_id = str(direction or "").strip().lower()
+        if direction_id not in ("forward", "backward"):
+            raise ValueError("walk direction must be forward or backward")
+        safe_steps = int(_safe_float(steps, "walk steps"))
+        max_steps = int(humanoid.get("maxSteps") or 20)
+        if safe_steps < 1 or safe_steps > max_steps:
+            raise ValueError(f"walk steps must be 1..{max_steps}")
+        safe_length = _safe_float(step_length, "walk step length")
+        min_length = float(humanoid.get("stepLengthMinM") or 0.02)
+        max_length = float(humanoid.get("stepLengthMaxM") or 0.12)
+        if safe_length < min_length or safe_length > max_length:
+            raise ValueError(f"walk step length must be {min_length:g}..{max_length:g} m")
+        self._append({
+            "type": "humanoid_walk",
+            "robotId": robot_id,
+            "direction": direction_id,
+            "steps": safe_steps,
+            "stepLengthM": safe_length,
+            "speed": _speed(speed),
+        })
+
+    def turn(self, angle, seconds=1.2):
+        humanoid = manifest.get("humanoid") or {}
+        safe_angle = _safe_float(angle, "turn angle")
+        max_angle = float(humanoid.get("maxTurnDeg") or 180)
+        if abs(safe_angle) < 0.001 or safe_angle < -max_angle or safe_angle > max_angle:
+            raise ValueError(f"turn angle must be non-zero and within {-max_angle:g}..{max_angle:g} degrees")
+        self._append({
+            "type": "humanoid_turn",
+            "robotId": robot_id,
+            "angleDeg": safe_angle,
+            "seconds": _seconds(seconds, "turn seconds", 0.2, 10),
+        })
+
+    def pick_nearest(self, hand="right_hand"):
+        hand_id = str(hand or "").strip()
+        hands = (manifest.get("humanoid") or {}).get("hands") or []
+        if hand_id not in hands:
+            raise ValueError(f"hand must be one of: {', '.join(hands)}")
+        self._append({"type": "pick_nearest", "robotId": robot_id, "hand": hand_id})
+
+    def release(self, hand="right_hand"):
+        hand_id = str(hand or "").strip()
+        hands = (manifest.get("humanoid") or {}).get("hands") or []
+        if hand_id not in hands:
+            raise ValueError(f"hand must be one of: {', '.join(hands)}")
+        self._append({"type": "release_object", "robotId": robot_id, "hand": hand_id})
+
+    def run_demo(self):
+        self._append({"type": "run_demo", "robotId": robot_id})
+
     def move_arm(self, base=None, shoulder=None, elbow=None, wrist_rot=None, wrist_tilt=None, gripper=None, speed=50):
         values = {
             "base": base,
@@ -195,27 +278,55 @@ class Robot:
             requested = {joint.get("id"): self.joints.get(joint.get("id"), joint.get("home", 0)) for joint in _joints()}
         self.move_joints(requested, speed=speed)
 
-    def set_gripper(self, value, speed=55):
-        joint_def = _joint("gripper")
-        if value == "open":
-            value = joint_def.get("open")
-        elif value in ("close", "closed"):
-            value = joint_def.get("close")
-        safe_value = _joint_value(joint_def, value)
-        self.joints[joint_def.get("id")] = safe_value
-        self._append({"type": "set_gripper", "robotId": robot_id, "value": safe_value, "speed": _speed(speed, joint_def)})
+    def set_gripper(self, value, speed=55, side="both"):
+        grippers = _gripper_joints()
+        if not grippers:
+            raise ValueError("active robot does not define a gripper joint")
+        if len(grippers) == 1:
+            joint_def = grippers[0]
+            target = joint_def.get("open") if value == "open" else joint_def.get("close") if value in ("close", "closed") else value
+            safe_value = _joint_value(joint_def, target)
+            self.joints[joint_def.get("id")] = safe_value
+            self._append({"type": "set_gripper", "robotId": robot_id, "value": safe_value, "speed": _speed(speed, joint_def)})
+            return
 
-    def open_gripper(self, speed=55):
-        self.set_gripper("open", speed=speed)
+        normalized_side = _norm_key(side or "both")
+        if normalized_side not in ("left", "right", "both"):
+            raise ValueError("gripper side must be left, right, or both")
+        targets = [joint for joint in grippers if normalized_side == "both" or _gripper_side(joint) == normalized_side]
+        if not targets:
+            raise ValueError(f"active robot does not define a {normalized_side} gripper")
+        safe = {}
+        for joint_def in targets:
+            target = joint_def.get("open") if value == "open" else joint_def.get("close") if value in ("close", "closed") else value
+            safe_value = _joint_value(joint_def, target)
+            safe[joint_def.get("id")] = safe_value
+            self.joints[joint_def.get("id")] = safe_value
+        self._append({
+            "type": "set_gripper",
+            "robotId": robot_id,
+            "side": normalized_side,
+            "joints": safe,
+            "speed": _speed(speed, targets[0]),
+        })
 
-    def close_gripper(self, speed=55):
-        self.set_gripper("close", speed=speed)
+    def open_gripper(self, speed=55, side="both"):
+        self.set_gripper("open", speed=speed, side=side)
 
-    def gripper_open(self, speed=55):
-        self.open_gripper(speed=speed)
+    def close_gripper(self, speed=55, side="both"):
+        self.set_gripper("close", speed=speed, side=side)
 
-    def gripper_close(self, speed=55):
-        self.close_gripper(speed=speed)
+    def set_left_gripper(self, value, speed=55):
+        self.set_gripper(value, speed=speed, side="left")
+
+    def set_right_gripper(self, value, speed=55):
+        self.set_gripper(value, speed=speed, side="right")
+
+    def gripper_open(self, speed=55, side="both"):
+        self.open_gripper(speed=speed, side=side)
+
+    def gripper_close(self, speed=55, side="both"):
+        self.close_gripper(speed=speed, side=side)
 
     def smooth_move(self, joint, start, end, seconds=1.5):
         joint_def = _joint(joint)

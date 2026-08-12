@@ -62,7 +62,7 @@
         const manifest = activeManifest();
         const joints = manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
         const fields = [];
-        const count = Math.min(6, joints.length || 6);
+        const count = joints.length || 6;
         for (let index = 0; index < count; index += 1) {
           const jointId = joints[index] ? joints[index].id : String(index);
           const fallback = joints[index] ? joints[index].home : 90;
@@ -72,16 +72,66 @@
         return;
       }
 
+      case "move_joint_pose": {
+        const fields = [];
+        const seen = new Set();
+        let target = block.getInputTargetBlock("TARGETS");
+        while (target) {
+          if (target.type === "joint_target") {
+            const jointId = fieldJoint(target, "JOINT");
+            if (seen.has(jointId)) {
+              throw new Error(`Joint pose contains duplicate target: ${jointId}.`);
+            }
+            seen.add(jointId);
+            fields.push(`${pythonString(jointId)}: ${toFloat(target.getFieldValue("ANGLE"), 0)}`);
+          }
+          target = target.getNextBlock();
+        }
+        if (fields.length === 0) {
+          throw new Error("Move joint pose requires at least one joint target.");
+        }
+        lines.push(`${pad}robot.move_joints({${fields.join(", ")}}, speed=${toInt(block.getFieldValue("SPEED"), 50)})`);
+        return;
+      }
+
+      case "joint_target":
+        warnings.push("A Joint Target must be placed inside a Move Joint Pose block.");
+        return;
+
+      case "g1_posture":
+        lines.push(`${pad}robot.set_posture(${pythonString(block.getFieldValue("POSTURE") || "neutral")}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 0.8))})`);
+        return;
+
+      case "g1_walk":
+        lines.push(`${pad}robot.walk(${pythonString(block.getFieldValue("DIRECTION") || "forward")}, steps=${toInt(block.getFieldValue("STEPS"), 3)}, step_length=${toFloat(block.getFieldValue("STEP_LENGTH"), 0.08)}, speed=${toInt(block.getFieldValue("SPEED"), 50)})`);
+        return;
+
+      case "g1_turn":
+        lines.push(`${pad}robot.turn(${toFloat(block.getFieldValue("ANGLE"), 90)}, seconds=${formatSeconds(toFloat(block.getFieldValue("SECONDS"), 1.2))})`);
+        return;
+
+      case "g1_pick":
+        lines.push(`${pad}robot.pick_nearest(${pythonString(block.getFieldValue("HAND") || "right_hand")})`);
+        return;
+
+      case "g1_release":
+        lines.push(`${pad}robot.release(${pythonString(block.getFieldValue("HAND") || "right_hand")})`);
+        return;
+
+      case "g1_demo":
+        lines.push(`${pad}robot.run_demo()`);
+        return;
+
       case "home_position":
         lines.push(`${pad}robot.home()`);
         return;
 
       case "gripper_open":
-        lines.push(`${pad}robot.open_gripper(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)})`);
+        lines.push(`${pad}robot.open_gripper(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)}, side=${pythonString(block.getFieldValue("SIDE") || "both")})`);
         return;
 
       case "gripper_close":
-        lines.push(`${pad}robot.close_gripper(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)})`);
+        lines.push(`${pad}robot.close_gripper(speed=${toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED)}, side=${pythonString(block.getFieldValue("SIDE") || "both")})`);
         return;
 
       case "wait_seconds":

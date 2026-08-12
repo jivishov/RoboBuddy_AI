@@ -107,6 +107,23 @@
     return joints.map((joint) => [Number(joint.min), Number(joint.max)]);
   }
 
+  function getGripperSideOptions() {
+    const joints = activeJoints() || [];
+    const grippers = joints.filter((joint) => joint.type === "gripper");
+    if (grippers.length <= 1) {
+      return [["gripper", "both"]];
+    }
+    return [["both grippers", "both"], ["left gripper", "left"], ["right gripper", "right"]];
+  }
+
+  function globalJointMin() {
+    return Math.min(...getJointLimits().map((limits) => Number(limits[0])));
+  }
+
+  function globalJointMax() {
+    return Math.max(...getJointLimits().map((limits) => Number(limits[1])));
+  }
+
   function registerBlocks() {
     if (registered) {
       return;
@@ -118,7 +135,7 @@
           .appendField("Move")
           .appendField(new Blockly.FieldDropdown(getJointOptions), "JOINT")
           .appendField("to")
-          .appendField(new Blockly.FieldNumber(90, -180, 180, 1), "ANGLE")
+          .appendField(new Blockly.FieldNumber(homeFor(0), globalJointMin(), globalJointMax(), 1), "ANGLE")
           .appendField("speed")
           .appendField(new Blockly.FieldNumber(50, 1, 100, 1), "SPEED");
         this.setPreviousStatement(true, null);
@@ -161,6 +178,111 @@
       }
     };
 
+    Blockly.Blocks.joint_target = {
+      init() {
+        this.appendDummyInput()
+          .appendField(new Blockly.FieldDropdown(getJointOptions), "JOINT")
+          .appendField("to")
+          .appendField(new Blockly.FieldNumber(homeFor(0), globalJointMin(), globalJointMax(), 0.5), "ANGLE")
+          .appendField("deg");
+        this.setPreviousStatement(true, "JointTarget");
+        this.setNextStatement(true, "JointTarget");
+        this.setStyle("movement_style");
+        this.setTooltip("Add one named joint target to a scalable robot pose.");
+      }
+    };
+
+    Blockly.Blocks.move_joint_pose = {
+      init() {
+        this.appendDummyInput()
+          .appendField("Move joint pose at speed")
+          .appendField(new Blockly.FieldNumber(50, 1, 100, 1), "SPEED");
+        this.appendStatementInput("TARGETS")
+          .setCheck("JointTarget")
+          .appendField("targets");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("movement_style");
+        this.setTooltip("Move any subset of the active robot's joints.");
+      }
+    };
+
+    Blockly.Blocks.g1_posture = {
+      init() {
+        this.appendDummyInput()
+          .appendField("G1 posture")
+          .appendField(new Blockly.FieldDropdown(getPostureOptions), "POSTURE")
+          .appendField("in")
+          .appendField(new Blockly.FieldNumber(0.8, 0.2, 10, 0.1), "SECONDS")
+          .appendField("s");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("movement_style");
+      }
+    };
+
+    Blockly.Blocks.g1_walk = {
+      init() {
+        this.appendDummyInput()
+          .appendField("G1 walk")
+          .appendField(new Blockly.FieldDropdown([["forward", "forward"], ["backward", "backward"]]), "DIRECTION")
+          .appendField(new Blockly.FieldNumber(3, 1, 20, 1), "STEPS")
+          .appendField("steps of")
+          .appendField(new Blockly.FieldNumber(0.08, 0.02, 0.12, 0.01), "STEP_LENGTH")
+          .appendField("m at")
+          .appendField(new Blockly.FieldNumber(50, 1, 100, 1), "SPEED")
+          .appendField("%");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("movement_style");
+      }
+    };
+
+    Blockly.Blocks.g1_turn = {
+      init() {
+        this.appendDummyInput()
+          .appendField("G1 turn")
+          .appendField(new Blockly.FieldNumber(90, -180, 180, 1), "ANGLE")
+          .appendField("deg in")
+          .appendField(new Blockly.FieldNumber(1.2, 0.2, 10, 0.1), "SECONDS")
+          .appendField("s");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("movement_style");
+      }
+    };
+
+    Blockly.Blocks.g1_pick = {
+      init() {
+        this.appendDummyInput()
+          .appendField("G1 pick nearest with")
+          .appendField(new Blockly.FieldDropdown(getHandOptions), "HAND");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("pose_style");
+      }
+    };
+
+    Blockly.Blocks.g1_release = {
+      init() {
+        this.appendDummyInput()
+          .appendField("G1 release from")
+          .appendField(new Blockly.FieldDropdown(getHandOptions), "HAND");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("pose_style");
+      }
+    };
+
+    Blockly.Blocks.g1_demo = {
+      init() {
+        this.appendDummyInput().appendField("Run G1 walk, grab, return demo");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setStyle("advanced_style");
+      }
+    };
+
     Blockly.Blocks.home_position = {
       init() {
         this.appendDummyInput().appendField("Home Position");
@@ -173,7 +295,8 @@
     Blockly.Blocks.gripper_open = {
       init() {
         this.appendDummyInput()
-          .appendField("Gripper Open")
+          .appendField("Open")
+          .appendField(new Blockly.FieldDropdown(getGripperSideOptions), "SIDE")
           .appendField("speed")
           .appendField(new Blockly.FieldNumber(DEFAULT_GRIPPER_SPEED, 1, 100, 1), "SPEED");
         this.setPreviousStatement(true, null);
@@ -185,7 +308,8 @@
     Blockly.Blocks.gripper_close = {
       init() {
         this.appendDummyInput()
-          .appendField("Gripper Close")
+          .appendField("Close")
+          .appendField(new Blockly.FieldDropdown(getGripperSideOptions), "SIDE")
           .appendField("speed")
           .appendField(new Blockly.FieldNumber(DEFAULT_GRIPPER_SPEED, 1, 100, 1), "SPEED");
         this.setPreviousStatement(true, null);
@@ -332,18 +456,48 @@
     return Array.isArray(names) && names.length > 0 ? names.map((name) => [name, name]) : [["No poses", "__none__"]];
   }
 
+  function getPostureOptions() {
+    const manifest = activeManifest();
+    const postures = manifest && manifest.postures && typeof manifest.postures === "object"
+      ? Object.entries(manifest.postures)
+      : [];
+    return postures.length > 0
+      ? postures.map(([id, posture]) => [posture.label || id, id])
+      : [["neutral", "neutral"]];
+  }
+
+  function getHandOptions() {
+    const manifest = activeManifest();
+    const hands = manifest && manifest.humanoid && Array.isArray(manifest.humanoid.hands)
+      ? manifest.humanoid.hands
+      : ["left_hand", "right_hand"];
+    return hands.map((id) => [id.replace(/_/g, " "), id]);
+  }
+
   function toolboxXml(robotId) {
     const manifest = robotId && NS.RobotRegistry ? NS.RobotRegistry.get(robotId) : activeManifest();
     const capabilities = new Set(manifest && Array.isArray(manifest.capabilities) ? manifest.capabilities : []);
     const showArm = capabilities.has("joint_control");
     const showGripper = capabilities.has("gripper");
     const showMobile = capabilities.has("drive_2d") || capabilities.has("holonomic_drive");
+    const scalablePose = Boolean(manifest && Array.isArray(manifest.joints) && manifest.joints.length > 12);
     const movementBlocks = [
       showArm ? "<block type=\"move_joint\"></block>" : "",
-      showArm && capabilities.has("multi_joint_pose") ? "<block type=\"move_arm\"></block>" : "",
+      showArm && capabilities.has("multi_joint_pose") && scalablePose ? "<block type=\"move_joint_pose\"><statement name=\"TARGETS\"><block type=\"joint_target\"></block></statement></block><block type=\"joint_target\"></block>" : "",
+      showArm && capabilities.has("multi_joint_pose") && !scalablePose ? "<block type=\"move_arm\"></block>" : "",
       capabilities.has("home") ? "<block type=\"home_position\"></block>" : "",
       showGripper ? "<block type=\"gripper_open\"></block><block type=\"gripper_close\"></block>" : ""
     ].join("");
+    const humanoidCategory = capabilities.has("humanoid_walk") ? `
+      <category name="Humanoid" categorystyle="movement_category">
+        <block type="g1_posture"></block>
+        <block type="g1_walk"></block>
+        <block type="g1_turn"></block>
+        <block type="g1_pick"></block>
+        <block type="g1_release"></block>
+        <block type="g1_demo"></block>
+      </category>
+    ` : "";
     const mobileCategory = showMobile ? `
       <category name="Mobile Base" categorystyle="mobile_category">
         <block type="drive_forward"></block>
@@ -361,6 +515,7 @@
       <category name="Movement" categorystyle="movement_category">
         ${movementBlocks}
       </category>
+      ${humanoidCategory}
       ${mobileCategory}
       <category name="Flow" categorystyle="flow_category">
         <block type="wait_seconds"></block>

@@ -35,8 +35,10 @@ jobs:
           rm -rf site
           mkdir site
           cp ./*.html site/
-          cp -a assets css js missions robots simulator site/
+          cp -a assets css docs js missions robots simulator site/
           test "$(find site -maxdepth 1 -type f -name '*.html' | wc -l)" -eq 11
+          test -f site/docs/unitree-g1-simulator.md
+          test -f site/docs/licenses/unitree_ros-BSD-3-Clause.txt
           find site -type f | sort
 
       - name: Upload Pages artifact

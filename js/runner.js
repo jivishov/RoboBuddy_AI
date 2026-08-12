@@ -83,6 +83,12 @@
         this.paused = false;
         this._emitPaused(false);
       }
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.getManifest === "function" && typeof NS.RobotRuntime.stop === "function") {
+        const manifest = NS.RobotRuntime.getManifest();
+        if (manifest && manifest.id !== "arduino_arm") {
+          NS.RobotRuntime.stop();
+        }
+      }
       if (!this.running) {
         return;
       }
@@ -118,6 +124,9 @@
       }
       this.paused = true;
       this._emitPaused(true);
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.setSimulationPaused === "function") {
+        NS.RobotRuntime.setSimulationPaused(true);
+      }
       if (this.serial.isConnected()) {
         try {
           await this.serial.pauseMotion({ immediate: true });
@@ -134,6 +143,9 @@
       }
       this.paused = false;
       this._emitPaused(false);
+      if (NS.RobotRuntime && typeof NS.RobotRuntime.setSimulationPaused === "function") {
+        NS.RobotRuntime.setSimulationPaused(false);
+      }
       if (this.serial.isConnected()) {
         try {
           await this.serial.resumeMotion({ immediate: true });
@@ -198,6 +210,21 @@
 
         case "smooth_move":
           await this._executeUniversalSmoothMove(cmd);
+          return;
+
+        case "set_posture":
+        case "humanoid_walk":
+        case "humanoid_turn":
+        case "run_demo":
+          {
+            const applied = await this._executeRuntimeCommand(cmd);
+            await this._executeDelay(Math.round(Number(applied.durationSeconds ?? applied.seconds ?? 0) * 1000));
+          }
+          return;
+
+        case "pick_nearest":
+        case "release_object":
+          await this._executeRuntimeCommand(cmd);
           return;
 
         case "stop":
@@ -382,14 +409,23 @@
       if (!NS.RobotRuntime || typeof NS.RobotRuntime.applyCommand !== "function") {
         throw new Error("Robot runtime is not available.");
       }
-      await NS.RobotRuntime.applyCommand(cmd);
+      const manifest = NS.RobotRuntime.getManifest && NS.RobotRuntime.getManifest();
+      const validated = NS.RobotCommandSchema && typeof NS.RobotCommandSchema.validateCommand === "function"
+        ? NS.RobotCommandSchema.validateCommand(cmd, { activeRobotId: manifest && manifest.id })
+        : { ok: true, command: cmd };
+      if (!validated.ok) {
+        throw new Error(validated.error);
+      }
+      const safeCommand = validated.command || cmd;
+      await NS.RobotRuntime.applyCommand(safeCommand);
       if (typeof NS.RobotRuntime.getJointArray === "function") {
         const angles = NS.RobotRuntime.getJointArray();
         if (Array.isArray(angles) && angles.length > 0) {
           this.applyAngles(angles);
         }
       }
-      this._emitStatus(`${cmd.robotId || "Robot"} ${cmd.type} applied`);
+      this._emitStatus(`${safeCommand.robotId || "Robot"} ${safeCommand.type} applied`);
+      return safeCommand;
     }
 
     async _executeDelay(ms) {

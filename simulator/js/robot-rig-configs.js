@@ -259,5 +259,122 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
         }
       }
     ]
-  }
+  },
+
+  openarm_v2_bimanual: {
+    title: "OpenArm V2 Bimanual",
+    units: "mm",
+    source: {
+      format: "official-stl-baked-local-meshes",
+      repository: "https://github.com/enactic/openarm_description",
+      revision: "6c7b720f1ba48e8bafa3a3dc752c45f397b42221",
+      notes: "All 11 official collision STL sources are commit-pinned and baked into a local quantized module. The 550 mm stand and programmable turntable are RoboBuddy-side modifications."
+    },
+    meshData: {
+      module: "./robot-mesh-data-openarm-v2.js",
+      version: "20260811-openarm-local-v1"
+    },
+    visualZeroJoints: {
+      base_yaw: 0,
+      left_j1: 0,
+      left_j2: 0,
+      left_j3: 0,
+      left_j4: 0,
+      left_j5: 0,
+      left_j6: 0,
+      left_j7: 0,
+      left_gripper: 0,
+      right_j1: 0,
+      right_j2: 0,
+      right_j3: 0,
+      right_j4: 0,
+      right_j5: 0,
+      right_j6: 0,
+      right_j7: 0,
+      right_gripper: 0
+    },
+    scene: {
+      fogNear: 1500,
+      fogFar: 3600,
+      cameraFar: 4200
+    },
+    floor: {
+      grid: 1800,
+      gridDivisions: 36,
+      radius: 980
+    },
+    camera: {
+      position: [1180, 840, 1500],
+      target: [0, 360, 0],
+      minDistance: 480,
+      maxDistance: 3600
+    },
+    materials: {
+      body: { color: 0x171d23, roughness: 0.34, metalness: 0.78, doubleSided: true },
+      base: { color: 0x252c32, roughness: 0.30, metalness: 0.72, doubleSided: true },
+      link: { color: 0xb9c0c5, roughness: 0.25, metalness: 0.88, doubleSided: true },
+      linkDark: { color: 0x333a40, roughness: 0.33, metalness: 0.72, doubleSided: true },
+      gripper: { color: 0x252c31, roughness: 0.31, metalness: 0.76, doubleSided: true },
+      turntable: { color: 0x576674, roughness: 0.20, metalness: 0.90 },
+      pedestal: { color: 0x2b333b, roughness: 0.30, metalness: 0.82 },
+      bearing: { color: 0x9db0bd, roughness: 0.24, metalness: 0.88 },
+      heading: { color: 0x58d3c4, roughness: 0.42, metalness: 0.22 }
+    },
+    chain: []
+  },
+
+  unitree_g1_29dof: {
+    title: "Unitree G1 29-DoF",
+    units: "mm",
+    source: {
+      format: "urdf-baked-meshes",
+      url: "https://raw.githubusercontent.com/unitreerobotics/unitree_ros/dd4fa6866e523ad61324f658d63736e4eda3a6e4/robots/g1_description/g1_29dof.urdf",
+      revision: "dd4fa6866e523ad61324f658d63736e4eda3a6e4",
+      notes: "All 36 official visual meshes are baked locally. Motion is a kinematic educational visualization."
+    },
+    meshData: {
+      module: "./robot-mesh-data-unitree-g1.js",
+      version: "20260811-g1-29dof-official-1"
+    },
+    humanoidRoot: {
+      positionScale: 1000,
+      yawSign: -1
+    },
+    toolFrames: [
+      { id: "left_hand", group: "left_wrist_yaw_joint", offsetMm: [131.5, 0, -3] },
+      { id: "right_hand", group: "right_wrist_yaw_joint", offsetMm: [131.5, 0, 3] }
+    ],
+    taskObjects: [
+      {
+        id: "green_tool",
+        label: "Green tool",
+        shape: "capsule",
+        color: 0x58d68d,
+        positionMm: [470, 58, -70],
+        radiusMm: 22,
+        lengthMm: 135
+      }
+    ],
+    scene: {
+      fogNear: 2600,
+      fogFar: 6200,
+      cameraFar: 7000
+    },
+    floor: {
+      grid: 3600,
+      gridDivisions: 60,
+      radius: 1800
+    },
+    camera: {
+      position: [1650, 1120, 1850],
+      target: [40, 650, 0],
+      minDistance: 520,
+      maxDistance: 4200
+    },
+    materials: {
+      dark: { color: 0x2d333b, roughness: 0.58, metalness: 0.16 },
+      white: { color: 0xc8ced6, roughness: 0.48, metalness: 0.2 },
+      fallback: { color: 0xf06a5d, roughness: 0.62, metalness: 0.04 }
+    },
+    chain: []
 });

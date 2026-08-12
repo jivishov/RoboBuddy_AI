@@ -74,7 +74,7 @@
         const joints = {};
         const manifestJoints = manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
         const speed = clamp(toInt(block.getFieldValue("SPEED"), 50), 1, 100);
-        const count = Math.min(6, manifestJoints.length || 6);
+        const count = manifestJoints.length || 6;
         for (let index = 0; index < count; index += 1) {
           const jointId = manifestJoints[index] ? manifestJoints[index].id : String(index);
           const fallback = manifestJoints[index] ? manifestJoints[index].home : 90;
@@ -84,16 +84,91 @@
         return;
       }
 
+      case "move_joint_pose": {
+        const joints = {};
+        let target = block.getInputTargetBlock("TARGETS");
+        while (target) {
+          if (target.type === "joint_target") {
+            const joint = blockJoint(target, "JOINT");
+            if (Object.prototype.hasOwnProperty.call(joints, joint.id)) {
+              throw new Error(`Joint pose contains duplicate target: ${joint.id}.`);
+            }
+            const fallback = joint.joint ? joint.joint.home : 0;
+            joints[joint.id] = normalizeJointValue(joint, target.getFieldValue("ANGLE"), fallback);
+          }
+          target = target.getNextBlock();
+        }
+        if (Object.keys(joints).length === 0) {
+          throw new Error("Move joint pose requires at least one joint target.");
+        }
+        outCommands.push({
+          type: "move_joints",
+          robotId,
+          joints,
+          unit: "deg",
+          speed: clamp(toInt(block.getFieldValue("SPEED"), 50), 1, 100),
+          blockId: id
+        });
+        return;
+      }
+
+      case "joint_target":
+        return;
+
+      case "g1_posture":
+        outCommands.push({
+          type: "set_posture",
+          robotId,
+          posture: block.getFieldValue("POSTURE") || "neutral",
+          seconds: clamp(toFloat(block.getFieldValue("SECONDS"), 0.8), 0.2, 10),
+          blockId: id
+        });
+        return;
+
+      case "g1_walk":
+        outCommands.push({
+          type: "humanoid_walk",
+          robotId,
+          direction: block.getFieldValue("DIRECTION") || "forward",
+          steps: clamp(toInt(block.getFieldValue("STEPS"), 3), 1, 20),
+          stepLengthM: clamp(toFloat(block.getFieldValue("STEP_LENGTH"), 0.08), 0.02, 0.12),
+          speed: clamp(toInt(block.getFieldValue("SPEED"), 50), 1, 100),
+          blockId: id
+        });
+        return;
+
+      case "g1_turn":
+        outCommands.push({
+          type: "humanoid_turn",
+          robotId,
+          angleDeg: toFloat(block.getFieldValue("ANGLE"), 90),
+          seconds: clamp(toFloat(block.getFieldValue("SECONDS"), 1.2), 0.2, 10),
+          blockId: id
+        });
+        return;
+
+      case "g1_pick":
+        outCommands.push({ type: "pick_nearest", robotId, hand: block.getFieldValue("HAND") || "right_hand", blockId: id });
+        return;
+
+      case "g1_release":
+        outCommands.push({ type: "release_object", robotId, hand: block.getFieldValue("HAND") || "right_hand", blockId: id });
+        return;
+
+      case "g1_demo":
+        outCommands.push({ type: "run_demo", robotId, blockId: id });
+        return;
+
       case "home_position":
         outCommands.push({ type: "home", robotId, blockId: id });
         return;
 
       case "gripper_open":
-        outCommands.push({ type: "set_gripper", robotId, value: "open", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
+        outCommands.push({ type: "set_gripper", robotId, side: block.getFieldValue("SIDE") || "both", value: "open", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
         return;
 
       case "gripper_close":
-        outCommands.push({ type: "set_gripper", robotId, value: "close", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
+        outCommands.push({ type: "set_gripper", robotId, side: block.getFieldValue("SIDE") || "both", value: "close", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
         return;
 
       case "wait_seconds":
