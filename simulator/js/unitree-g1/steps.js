@@ -1,4 +1,4 @@
-import { advanceRoot, normalizeDegrees, secondsPerStep } from "./calculations.js";
+import { advanceRoot, normalizeDegrees, secondsPerStep } from "./calculations.js?v=20260812-g1-registration-fix-2";
 
 export const G1_NEUTRAL_LEGS = Object.freeze({
   left_hip_pitch_joint: 0,
