@@ -84,6 +84,22 @@
       )) || null;
   }
 
+  function getGripperJoints(manifest) {
+    return (manifest && Array.isArray(manifest.joints) ? manifest.joints : [])
+      .filter((joint) => joint.type === "gripper");
+  }
+
+  function gripperSide(joint) {
+    const declared = normalizeJointKey(joint && joint.side);
+    if (declared === "left" || declared === "right") {
+      return declared;
+    }
+    const id = normalizeJointKey(joint && joint.id);
+    if (id.startsWith("left_")) return "left";
+    if (id.startsWith("right_")) return "right";
+    return "";
+  }
+
   function jointIdForLegacyServo(servo) {
     const index = Math.round(Number(servo));
     return LEGACY_SERVO_JOINTS[index] || null;
@@ -243,22 +259,52 @@
           if (!hasCapability(manifest, "gripper")) {
             return commandError(`${manifest.name} does not support gripper control.`);
           }
-          const joint = resolveJoint(manifest, "gripper");
-          if (!joint) {
+          const grippers = getGripperJoints(manifest);
+          if (grippers.length === 0) {
             return commandError(`${manifest.name} does not define a gripper joint.`);
           }
-          let value = normalized.value;
-          if (value === "open") {
-            value = joint.open;
-          } else if (value === "close" || value === "closed") {
-            value = joint.close;
+          if (grippers.length === 1) {
+            const joint = grippers[0];
+            let value = normalized.value;
+            if (value === "open") {
+              value = joint.open;
+            } else if (value === "close" || value === "closed") {
+              value = joint.close;
+            }
+            value = numberInRange(value, Number(joint.min), Number(joint.max), `${joint.label} value`);
+            return commandOk({
+              type: "set_gripper",
+              robotId: manifest.id,
+              value,
+              speed: speedInRange(normalized.speed ?? 50, `${joint.label}`, joint),
+              blockId: normalized.blockId
+            });
           }
-          value = numberInRange(value, Number(joint.min), Number(joint.max), `${joint.label} value`);
+
+          const side = normalizeJointKey(normalized.side || "both");
+          if (!new Set(["left", "right", "both"]).has(side)) {
+            return commandError("gripper side must be left, right, or both.");
+          }
+          const targets = grippers.filter((joint) => side === "both" || gripperSide(joint) === side);
+          if (targets.length === 0) {
+            return commandError(`${manifest.name} does not define a ${side} gripper.`);
+          }
+          const joints = {};
+          targets.forEach((joint) => {
+            let value = normalized.value;
+            if (value === "open") {
+              value = joint.open;
+            } else if (value === "close" || value === "closed") {
+              value = joint.close;
+            }
+            joints[joint.id] = numberInRange(value, Number(joint.min), Number(joint.max), `${joint.label} value`);
+          });
           return commandOk({
             type: "set_gripper",
             robotId: manifest.id,
-            value,
-            speed: speedInRange(normalized.speed ?? 50, `${joint.label}`, joint),
+            side,
+            joints,
+            speed: speedInRange(normalized.speed ?? 50, `${manifest.shortName || manifest.name} grippers`, targets[0]),
             blockId: normalized.blockId
           });
         }

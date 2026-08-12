@@ -105,7 +105,11 @@
           Object.entries(command.joints || {}).forEach(([jointId, value]) => this._setJoint(jointId, value));
           break;
         case "set_gripper":
-          this._setJoint("gripper", command.value);
+          if (command.joints && typeof command.joints === "object") {
+            Object.entries(command.joints).forEach(([jointId, value]) => this._setJoint(jointId, value));
+          } else {
+            this._setJoint(command.joint || "gripper", command.value);
+          }
           break;
         case "smooth_move":
           this._setJoint(command.joint, command.to);
@@ -264,6 +268,28 @@
             }
           });
         }
+        const movementButton = container.querySelector("[data-robot-sim-3d-movement]");
+        if (movementButton) {
+          movementButton.addEventListener("click", () => {
+            const enabled = movementButton.getAttribute("aria-pressed") !== "true";
+            if (adapter.preview3d && typeof adapter.preview3d.setCameraMovementEnabled === "function") {
+              adapter.preview3d.setCameraMovementEnabled(enabled);
+            }
+            movementButton.setAttribute("aria-pressed", String(enabled));
+            movementButton.title = enabled ? "Disable camera orbit and pan" : "Enable camera orbit and pan";
+          });
+        }
+        const zoomButton = container.querySelector("[data-robot-sim-3d-zoom]");
+        if (zoomButton) {
+          zoomButton.addEventListener("click", () => {
+            const enabled = zoomButton.getAttribute("aria-pressed") !== "true";
+            if (adapter.preview3d && typeof adapter.preview3d.setCameraZoomEnabled === "function") {
+              adapter.preview3d.setCameraZoomEnabled(enabled);
+            }
+            zoomButton.setAttribute("aria-pressed", String(enabled));
+            zoomButton.title = enabled ? "Disable camera zoom" : "Enable camera zoom";
+          });
+        }
         if (window.lucide) {
           lucide.createIcons({ nodes: container.querySelectorAll("[data-lucide]") });
         }
@@ -335,6 +361,14 @@
       <div class="robot-sim robot-sim--three" data-robot-sim-3d-shell>
         <div class="robot-sim-3d__viewport" data-robot-sim-3d-viewport aria-label="${escapeHtml(manifest.name)} 3D simulator"></div>
         <div class="robot-sim-3d__toolbar">
+          <button class="robot-sim-3d__reset" type="button" data-robot-sim-3d-movement aria-pressed="true" title="Disable camera orbit and pan" data-hint="Toggle camera orbit and pan">
+            <i data-lucide="move-3d" aria-hidden="true"></i>
+            <span>Move view</span>
+          </button>
+          <button class="robot-sim-3d__reset" type="button" data-robot-sim-3d-zoom aria-pressed="true" title="Disable camera zoom" data-hint="Toggle camera zoom">
+            <i data-lucide="zoom-in" aria-hidden="true"></i>
+            <span>Zoom</span>
+          </button>
           <button class="robot-sim-3d__reset" type="button" data-robot-sim-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
             <i data-lucide="rotate-ccw" aria-hidden="true"></i>
             <span>Camera</span>

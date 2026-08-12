@@ -259,5 +259,67 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
         }
       }
     ]
+  },
+
+  openarm_v2_bimanual: {
+    title: "OpenArm V2 Bimanual",
+    units: "mm",
+    source: {
+      format: "official-stl-baked-local-meshes",
+      repository: "https://github.com/enactic/openarm_description",
+      revision: "6c7b720f1ba48e8bafa3a3dc752c45f397b42221",
+      notes: "All 11 official collision STL sources are commit-pinned and baked into a local quantized module. The 550 mm stand and programmable turntable are RoboBuddy-side modifications."
+    },
+    meshData: {
+      module: "./robot-mesh-data-openarm-v2.js",
+      version: "20260811-openarm-local-v1"
+    },
+    visualZeroJoints: {
+      base_yaw: 0,
+      left_j1: 0,
+      left_j2: 0,
+      left_j3: 0,
+      left_j4: 0,
+      left_j5: 0,
+      left_j6: 0,
+      left_j7: 0,
+      left_gripper: 0,
+      right_j1: 0,
+      right_j2: 0,
+      right_j3: 0,
+      right_j4: 0,
+      right_j5: 0,
+      right_j6: 0,
+      right_j7: 0,
+      right_gripper: 0
+    },
+    scene: {
+      fogNear: 1500,
+      fogFar: 3600,
+      cameraFar: 4200
+    },
+    floor: {
+      grid: 1800,
+      gridDivisions: 36,
+      radius: 980
+    },
+    camera: {
+      position: [1180, 840, 1500],
+      target: [0, 360, 0],
+      minDistance: 480,
+      maxDistance: 3600
+    },
+    materials: {
+      body: { color: 0x171d23, roughness: 0.34, metalness: 0.78, doubleSided: true },
+      base: { color: 0x252c32, roughness: 0.30, metalness: 0.72, doubleSided: true },
+      link: { color: 0xb9c0c5, roughness: 0.25, metalness: 0.88, doubleSided: true },
+      linkDark: { color: 0x333a40, roughness: 0.33, metalness: 0.72, doubleSided: true },
+      gripper: { color: 0x252c31, roughness: 0.31, metalness: 0.76, doubleSided: true },
+      turntable: { color: 0x576674, roughness: 0.20, metalness: 0.90 },
+      pedestal: { color: 0x2b333b, roughness: 0.30, metalness: 0.82 },
+      bearing: { color: 0x9db0bd, roughness: 0.24, metalness: 0.88 },
+      heading: { color: 0x58d3c4, roughness: 0.42, metalness: 0.22 }
+    },
+    chain: []
   }
 });

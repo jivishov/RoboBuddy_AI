@@ -1052,7 +1052,7 @@
     }
 
     state.pythonRuntimeReady = false;
-    state.pythonWorker = new Worker("js/python-worker.js");
+    state.pythonWorker = new Worker("js/python-worker.js?v=20260811-openarm-solu-v1");
     state.pythonWorker.addEventListener("message", onPythonWorkerMessage);
     state.pythonWorker.addEventListener("error", (event) => {
       state.pythonRuntimeReady = false;
@@ -1415,12 +1415,18 @@
         };
       }
       if (type === "set_gripper") {
-        return {
+        const normalized = {
           type,
           robotId: String(command.robotId || ""),
-          value: Number(command.value),
           speed: Number(command.speed)
         };
+        if (command.joints && typeof command.joints === "object") {
+          normalized.side = String(command.side || "both");
+          normalized.joints = command.joints;
+        } else {
+          normalized.value = Number(command.value);
+        }
+        return normalized;
       }
       if (type === "wait") {
         return { type, seconds: Number(command.seconds) };

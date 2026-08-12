@@ -74,7 +74,7 @@
         const joints = {};
         const manifestJoints = manifest && Array.isArray(manifest.joints) ? manifest.joints : [];
         const speed = clamp(toInt(block.getFieldValue("SPEED"), 50), 1, 100);
-        const count = Math.min(6, manifestJoints.length || 6);
+        const count = manifestJoints.length || 6;
         for (let index = 0; index < count; index += 1) {
           const jointId = manifestJoints[index] ? manifestJoints[index].id : String(index);
           const fallback = manifestJoints[index] ? manifestJoints[index].home : 90;
@@ -84,16 +84,47 @@
         return;
       }
 
+      case "move_joint_pose": {
+        const joints = {};
+        let target = block.getInputTargetBlock("TARGETS");
+        while (target) {
+          if (target.type === "joint_target") {
+            const joint = blockJoint(target, "JOINT");
+            if (Object.prototype.hasOwnProperty.call(joints, joint.id)) {
+              throw new Error(`Joint pose contains duplicate target: ${joint.id}.`);
+            }
+            const fallback = joint.joint ? joint.joint.home : 0;
+            joints[joint.id] = normalizeJointValue(joint, target.getFieldValue("ANGLE"), fallback);
+          }
+          target = target.getNextBlock();
+        }
+        if (Object.keys(joints).length === 0) {
+          throw new Error("Move joint pose requires at least one joint target.");
+        }
+        outCommands.push({
+          type: "move_joints",
+          robotId,
+          joints,
+          unit: "deg",
+          speed: clamp(toInt(block.getFieldValue("SPEED"), 50), 1, 100),
+          blockId: id
+        });
+        return;
+      }
+
+      case "joint_target":
+        return;
+
       case "home_position":
         outCommands.push({ type: "home", robotId, blockId: id });
         return;
 
       case "gripper_open":
-        outCommands.push({ type: "set_gripper", robotId, value: "open", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
+        outCommands.push({ type: "set_gripper", robotId, side: block.getFieldValue("SIDE") || "both", value: "open", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
         return;
 
       case "gripper_close":
-        outCommands.push({ type: "set_gripper", robotId, value: "close", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
+        outCommands.push({ type: "set_gripper", robotId, side: block.getFieldValue("SIDE") || "both", value: "close", speed: toInt(block.getFieldValue("SPEED"), GRIPPER_DEFAULT_SPEED), blockId: id });
         return;
 
       case "wait_seconds":

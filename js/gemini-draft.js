@@ -145,8 +145,9 @@ robot.home()
 robot.wait(seconds)
 robot.move_joint(joint, value, speed=50)
 robot.move_joints({"joint_id": value}, speed=50)
-robot.open_gripper(speed=55)
-robot.close_gripper(speed=55)
+robot.open_gripper(speed=55, side="left|right|both")
+robot.close_gripper(speed=55, side="left|right|both")
+robot.set_gripper(value, speed=55, side="left|right|both")
 robot.smooth_move(joint, start, end, seconds=1.5)
 robot.save_pose(name)
 robot.go_to_pose(name, speed=50)
@@ -1193,7 +1194,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
 
     state.robotWorkerReady = false;
-    state.robotWorker = new Worker("js/python-worker.js");
+    state.robotWorker = new Worker("js/python-worker.js?v=20260811-openarm-solu-v1");
     state.robotWorker.addEventListener("message", onRobotWorkerMessage);
     state.robotWorker.addEventListener("error", (event) => {
       state.robotWorkerReady = false;
@@ -2459,7 +2460,10 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
         return `${index + 1}. ${command.robotId} move joints ${values} @ ${command.speed}`;
       }
       if (command.type === "set_gripper") {
-        return `${index + 1}. ${command.robotId} gripper -> ${command.value}${unitFor("gripper", "percent")} @ ${command.speed}`;
+        const targets = command.joints && typeof command.joints === "object"
+          ? Object.entries(command.joints).map(([joint, value]) => `${joint}=${value}${unitFor(joint)}`).join(", ")
+          : `gripper=${command.value}${unitFor("gripper", "percent")}`;
+        return `${index + 1}. ${command.robotId} ${targets} @ ${command.speed}`;
       }
       if (command.type === "wait") {
         return `${index + 1}. wait ${command.seconds}s`;
