@@ -151,6 +151,12 @@ robot.set_gripper(value, speed=55, side="left|right|both")
 robot.smooth_move(joint, start, end, seconds=1.5)
 robot.save_pose(name)
 robot.go_to_pose(name, speed=50)
+robot.set_posture(posture, seconds=0.8)
+robot.walk(direction="forward", steps=3, step_length=0.08, speed=50)
+robot.turn(angle, seconds=1.2)
+robot.pick_nearest(hand="right_hand")
+robot.release(hand="right_hand")
+robot.run_demo()
 robot.stop()
 robot.emergency_stop()
 
@@ -1194,7 +1200,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
 
     state.robotWorkerReady = false;
-    state.robotWorker = new Worker("js/python-worker.js?v=20260811-openarm-solu-v1");
+    state.robotWorker = new Worker("js/python-worker.js?v=20260812-openarm-g1-solu-1");
     state.robotWorker.addEventListener("message", onRobotWorkerMessage);
     state.robotWorker.addEventListener("error", (event) => {
       state.robotWorkerReady = false;
@@ -1915,6 +1921,15 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
         `Maximum angular speed is ${manifest.mobileBase.maxAngularSpeed || 90} deg/s; drive speed arguments are percentages.`
       ].join("\n")
       : "Drive support: not available. Do not emit drive, strafe, or turn commands.";
+    const humanoidContext = manifest.humanoid
+      ? [
+        "Humanoid simulation support: available.",
+        `Postures: ${Object.keys(manifest.postures || {}).join(", ") || "none"}.`,
+        `Hands: ${(manifest.humanoid.hands || []).join(", ") || "none"}.`,
+        `Walk step length: ${manifest.humanoid.stepLengthMinM}..${manifest.humanoid.stepLengthMaxM} m; maximum ${manifest.humanoid.maxSteps} steps.`,
+        `Turn range: +/-${manifest.humanoid.maxTurnDeg} degrees. This is a scripted kinematic preview, not dynamics or balance control.`
+      ].join("\n")
+      : "Humanoid simulation support: not available. Do not emit set_posture, walk, turn, pick_nearest, release, or run_demo.";
     return [
       "Active robot context:",
       `Name: ${manifest.name}`,
@@ -1923,6 +1938,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
       "Available joints and limits:",
       joints,
       driveContext,
+      humanoidContext,
       "Use only the exact joint IDs listed above."
     ].join("\n");
   }

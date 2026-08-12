@@ -321,5 +321,60 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       heading: { color: 0x58d3c4, roughness: 0.42, metalness: 0.22 }
     },
     chain: []
-  }
+  },
+
+  unitree_g1_29dof: {
+    title: "Unitree G1 29-DoF",
+    units: "mm",
+    source: {
+      format: "urdf-baked-meshes",
+      url: "https://raw.githubusercontent.com/unitreerobotics/unitree_ros/dd4fa6866e523ad61324f658d63736e4eda3a6e4/robots/g1_description/g1_29dof.urdf",
+      revision: "dd4fa6866e523ad61324f658d63736e4eda3a6e4",
+      notes: "All 36 official visual meshes are baked locally. Motion is a kinematic educational visualization."
+    },
+    meshData: {
+      module: "./robot-mesh-data-unitree-g1.js",
+      version: "20260811-g1-29dof-official-1"
+    },
+    humanoidRoot: {
+      positionScale: 1000,
+      yawSign: -1
+    },
+    toolFrames: [
+      { id: "left_hand", group: "left_wrist_yaw_joint", offsetMm: [131.5, 0, -3] },
+      { id: "right_hand", group: "right_wrist_yaw_joint", offsetMm: [131.5, 0, 3] }
+    ],
+    taskObjects: [
+      {
+        id: "green_tool",
+        label: "Green tool",
+        shape: "capsule",
+        color: 0x58d68d,
+        positionMm: [470, 58, -70],
+        radiusMm: 22,
+        lengthMm: 135
+      }
+    ],
+    scene: {
+      fogNear: 2600,
+      fogFar: 6200,
+      cameraFar: 7000
+    },
+    floor: {
+      grid: 3600,
+      gridDivisions: 60,
+      radius: 1800
+    },
+    camera: {
+      position: [1650, 1120, 1850],
+      target: [40, 650, 0],
+      minDistance: 520,
+      maxDistance: 4200
+    },
+    materials: {
+      dark: { color: 0x2d333b, roughness: 0.58, metalness: 0.16 },
+      white: { color: 0xc8ced6, roughness: 0.48, metalness: 0.2 },
+      fallback: { color: 0xf06a5d, roughness: 0.62, metalness: 0.04 }
+    },
+    chain: []
 });

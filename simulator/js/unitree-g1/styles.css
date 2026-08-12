@@ -1,0 +1,16 @@
+.robot-sim--unitree-g1 .robot-sim-3d__viewport {
+  background: radial-gradient(circle at 50% 28%, #f4f8fb 0%, #e7eef4 58%, #d8e2ea 100%);
+}
+
+.unitree-g1-action-status {
+  color: #41566a;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.unitree-g1-action-status[data-active="true"] {
+  color: #0f6d78;
+}
+
+
+\n

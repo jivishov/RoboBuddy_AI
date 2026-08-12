@@ -25,7 +25,8 @@
     "robot-wave.json",
     "gripper-open-close.json",
     "lekiwi-drive-square.json",
-    "lekiwi-mobile-pick-preview.json"
+    "lekiwi-mobile-pick-preview.json",
+    "unitree-g1-walk-grab-return.json"
   ];
   const QUICK_START_PYTHON = [
     "robot.home()",
@@ -1052,7 +1053,7 @@
     }
 
     state.pythonRuntimeReady = false;
-    state.pythonWorker = new Worker("js/python-worker.js?v=20260811-openarm-solu-v1");
+    state.pythonWorker = new Worker("js/python-worker.js?v=20260812-openarm-g1-solu-1");
     state.pythonWorker.addEventListener("message", onPythonWorkerMessage);
     state.pythonWorker.addEventListener("error", (event) => {
       state.pythonRuntimeReady = false;

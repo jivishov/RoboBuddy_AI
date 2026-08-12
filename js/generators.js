@@ -115,6 +115,50 @@
       case "joint_target":
         return;
 
+      case "g1_posture":
+        outCommands.push({
+          type: "set_posture",
+          robotId,
+          posture: block.getFieldValue("POSTURE") || "neutral",
+          seconds: clamp(toFloat(block.getFieldValue("SECONDS"), 0.8), 0.2, 10),
+          blockId: id
+        });
+        return;
+
+      case "g1_walk":
+        outCommands.push({
+          type: "humanoid_walk",
+          robotId,
+          direction: block.getFieldValue("DIRECTION") || "forward",
+          steps: clamp(toInt(block.getFieldValue("STEPS"), 3), 1, 20),
+          stepLengthM: clamp(toFloat(block.getFieldValue("STEP_LENGTH"), 0.08), 0.02, 0.12),
+          speed: clamp(toInt(block.getFieldValue("SPEED"), 50), 1, 100),
+          blockId: id
+        });
+        return;
+
+      case "g1_turn":
+        outCommands.push({
+          type: "humanoid_turn",
+          robotId,
+          angleDeg: toFloat(block.getFieldValue("ANGLE"), 90),
+          seconds: clamp(toFloat(block.getFieldValue("SECONDS"), 1.2), 0.2, 10),
+          blockId: id
+        });
+        return;
+
+      case "g1_pick":
+        outCommands.push({ type: "pick_nearest", robotId, hand: block.getFieldValue("HAND") || "right_hand", blockId: id });
+        return;
+
+      case "g1_release":
+        outCommands.push({ type: "release_object", robotId, hand: block.getFieldValue("HAND") || "right_hand", blockId: id });
+        return;
+
+      case "g1_demo":
+        outCommands.push({ type: "run_demo", robotId, blockId: id });
+        return;
+
       case "home_position":
         outCommands.push({ type: "home", robotId, blockId: id });
         return;

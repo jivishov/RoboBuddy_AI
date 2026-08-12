@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ARM_PREVIEW_MESH_DATA } from "./arm-preview-mesh-data.js?v=20260611-meshdata";
 import { ARM_RIG_CONFIG } from "./arm-rig-config.js?v=20260611-meshdata";
-import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260811-openarm-solu-v1";
+import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260812-openarm-g1-solu-1";
+import { G1_SIMULATION } from "./unitree-g1/index.js?v=20260811-unitree-g1-solu-1";
 
 const NS = (window.RoboAdmin = window.RoboAdmin || {});
 const DEG_TO_RAD = Math.PI / 180;
@@ -811,6 +812,18 @@ class RobotRigPreview3D {
     };
     this.visualMobilePose = this.cloneMobilePose(this.state && this.state.mobileBase);
     this.activeMobileMotion = null;
+    this.visualHumanoidState = {
+      root: G1_SIMULATION.state.createHumanoidRoot(this.state && this.state.humanoidRoot),
+      joints: { ...((this.state && this.state.joints) || {}) }
+    };
+    this.activeHumanoidMotion = null;
+    this.humanoidMotionPaused = false;
+    this.humanoidMotionEvents = new Set();
+    this.g1ToolFrames = new Map();
+    this.g1TaskObjects = null;
+    if (this.manifest && this.manifest.id === "unitree_g1_29dof") {
+      G1_SIMULATION.ensureG1Styles();
+    }
     this.lastFrameSeconds = 0;
     this.wheelSpinById = {};
     this.wheelControllers = [];
@@ -875,7 +888,6 @@ class RobotRigPreview3D {
     }
     return next;
   }
-
   setCameraZoomEnabled(enabled) {
     const next = Boolean(enabled);
     if (this.controls) {
@@ -892,11 +904,17 @@ class RobotRigPreview3D {
   }
 
   initScene() {
+    const sceneConfig = this.config.scene || {};
+    const background = Number.isFinite(Number(sceneConfig.background)) ? Number(sceneConfig.background) : 0xf7f8fa;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf7f8fa);
-    this.scene.fog = new THREE.Fog(0xf7f8fa, 760, 1600);
+    this.scene.background = new THREE.Color(background);
+    this.scene.fog = new THREE.Fog(
+      background,
+      Number(sceneConfig.fogNear) || 760,
+      Number(sceneConfig.fogFar) || 1600
+    );
 
-    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2400);
+    this.camera = new THREE.PerspectiveCamera(45, 1, 1, Number(sceneConfig.cameraFar) || 2400);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
@@ -1166,6 +1184,7 @@ class RobotRigPreview3D {
     this.rigGeometries = rig.geometries || new Set();
     this.scene.add(this.root);
     this.bindMobileWheels();
+    this.setupG1Scene();
     if (this.leaderPoseState.active) {
       this.ensureLeaderRigArtifacts();
       this.applyLeaderPoseLayers();
@@ -2050,6 +2069,13 @@ class RobotRigPreview3D {
       this.visualMobilePose = this.cloneMobilePose(this.state.mobileBase);
     }
     this.applyMobilePose(this.visualMobilePose);
+    if (this.config.humanoidRoot && !this.activeHumanoidMotion) {
+      this.visualHumanoidState = {
+        root: G1_SIMULATION.state.createHumanoidRoot(this.state.humanoidRoot),
+        joints: { ...(this.state.joints || {}) }
+      };
+    }
+    this.applyHumanoidPose(this.visualHumanoidState.root);
     if (this.leaderPoseState.active) {
       this.applyLeaderPoseLayers();
       return;
@@ -2057,6 +2083,175 @@ class RobotRigPreview3D {
     this.applyJointPose();
     this.applyGripperPose();
   }
+
+  setupG1Scene() {
+    if (!this.config.humanoidRoot || !this.root) {
+      return;
+    }
+    if (this.g1TaskObjects && this.g1TaskObjects.group) {
+      this.scene.remove(this.g1TaskObjects.group);
+    }
+    this.g1ToolFrames = G1_SIMULATION.createToolFrames(THREE, this.groups, this.config.toolFrames || []);
+    this.g1TaskObjects = G1_SIMULATION.createTaskObjects(THREE, this.config.taskObjects || []);
+    this.scene.add(this.g1TaskObjects.group);
+    this.applyHumanoidPose(this.visualHumanoidState.root);
+  }
+
+  applyHumanoidPose(pose = this.visualHumanoidState.root) {
+    if (!this.root || !this.config.humanoidRoot) {
+      return;
+    }
+    const rootPose = G1_SIMULATION.state.createHumanoidRoot(pose);
+    const positionScale = Number(this.config.humanoidRoot.positionScale) || 1000;
+    const yawSign = Number(this.config.humanoidRoot.yawSign) || 1;
+    const groundY = Number(this.root.userData && this.root.userData.groundOffsetMm) || 0;
+    this.root.position.set(rootPose.x * positionScale, groundY, -rootPose.z * positionScale);
+    this.root.rotation.y = yawSign * rootPose.theta * DEG_TO_RAD;
+  }
+
+  startHumanoidMotion(action) {
+    if (!this.config.humanoidRoot || !action) {
+      return false;
+    }
+    this.humanoidMotionEvents.clear();
+    this.humanoidMotionPaused = false;
+    this.activeHumanoidMotion = {
+      ...action,
+      elapsedSeconds: 0
+    };
+    const sample = G1_SIMULATION.sampleG1Action(action, 0);
+    if (sample) {
+      this.visualHumanoidState = { root: sample.root, joints: sample.joints };
+      this.applyHumanoidPose(sample.root);
+      this.applyJointPoseTo(this.groups, { joints: sample.joints });
+    }
+    return true;
+  }
+
+  updateHumanoidAnimation(deltaSeconds) {
+    const motion = this.activeHumanoidMotion;
+    if (!motion || !this.config.humanoidRoot) {
+      return;
+    }
+    if (this.humanoidMotionPaused) {
+      return;
+    }
+    motion.elapsedSeconds = Math.min(motion.durationSeconds, motion.elapsedSeconds + Math.max(0, deltaSeconds));
+    const progress = motion.durationSeconds > 0 ? motion.elapsedSeconds / motion.durationSeconds : 1;
+    const sample = G1_SIMULATION.sampleG1Action(motion, progress);
+    if (!sample) {
+      this.activeHumanoidMotion = null;
+      return;
+    }
+    this.visualHumanoidState = { root: sample.root, joints: sample.joints };
+    this.applyHumanoidPose(sample.root);
+    this.applyJointPoseTo(this.groups, { joints: sample.joints });
+    if (sample.crossedEvent && !this.humanoidMotionEvents.has(sample.crossedEvent)) {
+      this.humanoidMotionEvents.add(sample.crossedEvent);
+      if (sample.crossedEvent === "pick_right") {
+        this.pickNearestG1Object("right_hand", { forceNearest: true });
+      }
+    }
+    this.setStatus(G1_SIMULATION.g1StatusText(motion.id, progress), "ready");
+    if (progress >= 1) {
+      this.activeHumanoidMotion = null;
+      this.setStatus(`${this.manifestShortName()} kinematic action complete`, "ready");
+    }
+  }
+
+  cancelHumanoidMotion(options = {}) {
+    this.activeHumanoidMotion = null;
+    this.humanoidMotionPaused = false;
+    if (options.lockToVisual === false) {
+      this.visualHumanoidState = {
+        root: G1_SIMULATION.state.createHumanoidRoot(this.state && this.state.humanoidRoot),
+        joints: { ...((this.state && this.state.joints) || {}) }
+      };
+      this.applyHumanoidPose(this.visualHumanoidState.root);
+      this.applyJointPoseTo(this.groups, { joints: this.visualHumanoidState.joints });
+    }
+    return {
+      humanoidRoot: G1_SIMULATION.state.createHumanoidRoot(this.visualHumanoidState.root),
+      joints: { ...this.visualHumanoidState.joints },
+      endEffectors: this.getG1EndEffectorState()
+    };
+  }
+
+  getVisualHumanoidState() {
+    return {
+      humanoidRoot: G1_SIMULATION.state.createHumanoidRoot(this.visualHumanoidState.root),
+      joints: { ...this.visualHumanoidState.joints },
+      endEffectors: this.getG1EndEffectorState()
+    };
+  }
+
+  setHumanoidMotionPaused(paused) {
+    this.humanoidMotionPaused = Boolean(paused && this.activeHumanoidMotion);
+    if (this.activeHumanoidMotion) {
+      this.setStatus(
+        this.humanoidMotionPaused
+          ? `${this.manifestShortName()} kinematic action paused`
+          : G1_SIMULATION.g1StatusText(
+              this.activeHumanoidMotion.id,
+              this.activeHumanoidMotion.durationSeconds > 0
+                ? this.activeHumanoidMotion.elapsedSeconds / this.activeHumanoidMotion.durationSeconds
+                : 0
+            ),
+        this.humanoidMotionPaused ? "loading" : "ready"
+      );
+    }
+    return this.humanoidMotionPaused;
+  }
+
+  getG1EndEffectorState() {
+    const result = {
+      left_hand: { heldObjectId: "" },
+      right_hand: { heldObjectId: "" }
+    };
+    if (!this.g1TaskObjects || !this.g1TaskObjects.objects) {
+      return result;
+    }
+    this.g1TaskObjects.objects.forEach((object) => {
+      const handId = object && object.userData && object.userData.heldBy;
+      if (result[handId]) {
+        result[handId] = { heldObjectId: object.userData.taskObjectId || object.name || "" };
+      }
+    });
+    return result;
+  }
+
+  pickNearestG1Object(handId, options = {}) {
+    if (!this.g1TaskObjects) {
+      return { ok: false, objectId: "" };
+    }
+    if (options.forceNearest) {
+      const frame = this.g1ToolFrames.get(handId);
+      const first = this.g1TaskObjects.objects.values().next().value;
+      if (frame && first) {
+        frame.attach(first);
+        first.position.set(52, 0, 0);
+        first.rotation.set(0, 0, Math.PI / 2);
+        first.userData.heldBy = handId;
+        return { ok: true, objectId: first.userData.taskObjectId || first.name, distanceMm: 0 };
+      }
+    }
+    return G1_SIMULATION.pickNearestObject(
+      THREE,
+      handId,
+      this.g1ToolFrames,
+      this.g1TaskObjects,
+      Number(this.manifest && this.manifest.humanoid && this.manifest.humanoid.pickupRadiusM) * 1000 || 340
+    );
+  }
+
+  releaseG1Object(handId) {
+    return G1_SIMULATION.releaseObject(handId, this.g1ToolFrames, this.g1TaskObjects);
+  }
+
+  resetG1Objects() {
+    G1_SIMULATION.resetTaskObjects(this.g1TaskObjects);
+  }
+
 
   applyMobilePose(pose = this.visualMobilePose) {
     if (!this.root || !this.config.mobileBase) {
@@ -2428,6 +2623,7 @@ class RobotRigPreview3D {
       }
     }
     this.updateMobileAnimation(Math.min(MAX_MOBILE_DELTA_SECONDS, Math.max(0, rawDeltaSeconds)));
+    this.updateHumanoidAnimation(Math.min(MAX_MOBILE_DELTA_SECONDS, Math.max(0, rawDeltaSeconds)));
     this.controls.update();
     if (!this.webglContextLost) {
       this.renderer.render(this.scene, this.camera);
@@ -2502,6 +2698,7 @@ registry.ArmPreview3D = ArmPreview3D;
 registry.RobotRigPreview3D = RobotRigPreview3D;
 registry.config = ARM_RIG_CONFIG;
 registry.robotRigPreviewConfigs = ROBOT_RIG_PREVIEW_CONFIGS;
+registry.g1Simulation = G1_SIMULATION;
 registry.getLeaderDebugSnapshots = () => Array.from(registry.robotRigInstances || [])
   .map((instance) => instance.getLeaderDebugSnapshot());
 registry.resetLeaderFrameTimingSamples = () => Array.from(registry.robotRigInstances || [])

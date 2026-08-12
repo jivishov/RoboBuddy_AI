@@ -297,6 +297,7 @@
     ui.manualLimitDetails = document.getElementById("manualLimitDetails");
     ui.servoSliders = document.querySelector(".servo-sliders");
     ui.robotDriveControls = document.getElementById("robotDriveControls");
+    ui.robotHumanoidControls = document.getElementById("robotHumanoidControls");
     ui.robotBridgePanel = document.getElementById("robotBridgePanel");
     ui.bridgeUrl = document.getElementById("bridgeUrl");
     ui.bridgePortSelect = document.getElementById("bridgePortSelect");
@@ -660,6 +661,7 @@
     renderRobotChooser();
     renderManualControls();
     renderDriveControls();
+    renderHumanoidControls();
     syncRobotPreviewVisibility();
   }
 
@@ -799,7 +801,7 @@
     }
     const joints = activeJoints();
     const initialAngles = getActiveInitialAngles();
-    ui.servoSliders.innerHTML = joints.map((joint, index) => {
+    const renderChannel = (joint, index) => {
       const initialValue = Number(initialAngles[index]);
       const value = Number.isFinite(initialValue)
         ? initialValue
@@ -821,7 +823,31 @@
           </span>
         </div>
       `;
-    }).join("");
+    };
+    const manifest = activeManifest();
+    const groups = manifest && manifest.ui && Array.isArray(manifest.ui.jointGroups)
+      ? manifest.ui.jointGroups
+      : [];
+    if (groups.length > 0) {
+      ui.servoSliders.innerHTML = groups.map((group, groupIndex) => {
+        const grouped = joints
+          .map((joint, index) => ({ joint, index }))
+          .filter((entry) => entry.joint.subsystem === group.id);
+        if (grouped.length === 0) {
+          return "";
+        }
+        return `
+          <details class="servo-joint-group"${groupIndex === 0 ? " open" : ""}>
+            <summary>${escapeHtml(group.label || group.id)} <span>${grouped.length} joints</span></summary>
+            <div class="servo-joint-group__body">
+              ${grouped.map(({ joint, index }) => renderChannel(joint, index)).join("")}
+            </div>
+          </details>
+        `;
+      }).join("");
+    } else {
+      ui.servoSliders.innerHTML = joints.map(renderChannel).join("");
+    }
 
     wireSliders();
     syncSliderLimitsFromJointLimits();
@@ -873,6 +899,82 @@
     });
     if (window.lucide) {
       lucide.createIcons({ nodes: ui.robotDriveControls.querySelectorAll("[data-lucide]") });
+    }
+  }
+
+  function renderHumanoidControls() {
+    if (!ui.robotHumanoidControls) {
+      return;
+    }
+    const manifest = activeManifest();
+    const show = Boolean(manifest && manifest.humanoid);
+    ui.robotHumanoidControls.hidden = !show;
+    if (!show) {
+      ui.robotHumanoidControls.innerHTML = "";
+      return;
+    }
+    const postures = Object.entries(manifest.postures || {});
+    ui.robotHumanoidControls.innerHTML = `
+      <div class="panel-label"><i data-lucide="person-standing"></i> Humanoid actions</div>
+      <div class="robot-humanoid-controls__posture">
+        <label for="g1PostureSelect">Posture</label>
+        <select id="g1PostureSelect">
+          ${postures.map(([id, posture]) => `<option value="${escapeHtml(id)}">${escapeHtml(posture.label || id)}</option>`).join("")}
+        </select>
+        <button class="btn btn--load" type="button" data-g1-action="posture">Apply</button>
+      </div>
+      <div class="robot-humanoid-controls__grid">
+        <button class="btn btn--load" type="button" data-g1-action="walk-forward"><i data-lucide="arrow-up"></i><span>3 steps</span></button>
+        <button class="btn btn--load" type="button" data-g1-action="walk-backward"><i data-lucide="arrow-down"></i><span>Back 3</span></button>
+        <button class="btn btn--load" type="button" data-g1-action="turn-left"><i data-lucide="rotate-ccw"></i><span>Left 90 deg</span></button>
+        <button class="btn btn--load" type="button" data-g1-action="turn-right"><i data-lucide="rotate-cw"></i><span>Right 90 deg</span></button>
+        <button class="btn btn--load" type="button" data-g1-action="pick-right"><i data-lucide="hand"></i><span>Pick</span></button>
+        <button class="btn btn--clear" type="button" data-g1-action="release-right"><i data-lucide="package-open"></i><span>Release</span></button>
+        <button class="btn btn--run robot-humanoid-controls__demo" type="button" data-g1-action="demo"><i data-lucide="route"></i><span>Run demo</span></button>
+        <button class="btn btn--stop" type="button" data-g1-action="stop"><i data-lucide="square"></i><span>Stop</span></button>
+      </div>
+      <p class="unitree-g1-action-status" id="g1ActionStatus" role="status" aria-live="polite">Kinematic simulation. Programs can control all 29 joints.</p>
+    `;
+    ui.robotHumanoidControls.querySelectorAll("[data-g1-action]").forEach((button) => {
+      button.addEventListener("click", () => void handleHumanoidAction(button.dataset.g1Action));
+    });
+    if (window.lucide) {
+      lucide.createIcons({ nodes: ui.robotHumanoidControls.querySelectorAll("[data-lucide]") });
+    }
+  }
+
+  async function handleHumanoidAction(action) {
+    const manifest = activeManifest();
+    if (!manifest || !manifest.humanoid) {
+      return;
+    }
+    let command = null;
+    if (action === "posture") {
+      const select = document.getElementById("g1PostureSelect");
+      command = { type: "set_posture", robotId: manifest.id, posture: select ? select.value : "neutral", seconds: 0.8 };
+    } else if (action === "walk-forward" || action === "walk-backward") {
+      command = { type: "humanoid_walk", robotId: manifest.id, direction: action === "walk-forward" ? "forward" : "backward", steps: 3, stepLengthM: 0.08, speed: 50 };
+    } else if (action === "turn-left" || action === "turn-right") {
+      command = { type: "humanoid_turn", robotId: manifest.id, angleDeg: action === "turn-left" ? 90 : -90, seconds: 1.5 };
+    } else if (action === "pick-right") {
+      command = { type: "pick_nearest", robotId: manifest.id, hand: "right_hand" };
+    } else if (action === "release-right") {
+      command = { type: "release_object", robotId: manifest.id, hand: "right_hand" };
+    } else if (action === "demo") {
+      command = { type: "run_demo", robotId: manifest.id };
+    } else if (action === "stop") {
+      command = { type: "stop", robotId: manifest.id, reason: "user" };
+    }
+    if (!command) {
+      return;
+    }
+    const result = await applyManualRobotCommand(command);
+    const status = document.getElementById("g1ActionStatus");
+    if (status) {
+      status.dataset.active = String(Boolean(result.ok && !["stop", "pick_nearest", "release_object"].includes(command.type)));
+      status.textContent = result.ok
+        ? `${command.type.replace(/_/g, " ")} accepted. STOP remains available.`
+        : (result.error && result.error.message) || "G1 action rejected.";
     }
   }
 
@@ -939,6 +1041,7 @@
     }
     renderManualControls();
     renderDriveControls();
+    renderHumanoidControls();
     syncSliderLimitsFromJointLimits();
     if (ui.manualControlsCard) {
       ui.manualControlsCard.classList.toggle("has-bridge-controls", manifest.id === "so101_follower");

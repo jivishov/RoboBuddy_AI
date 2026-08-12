@@ -12,7 +12,13 @@
     "move_joints",
     "set_gripper",
     "drive",
-    "smooth_move"
+    "smooth_move",
+    "set_posture",
+    "humanoid_walk",
+    "humanoid_turn",
+    "pick_nearest",
+    "release_object",
+    "run_demo"
   ]);
 
   function commandError(message) {
@@ -347,6 +353,102 @@
             from,
             to,
             seconds,
+            blockId: normalized.blockId
+          });
+        }
+
+        case "set_posture": {
+          if (!hasCapability(manifest, "posture_presets") || !manifest.postures) {
+            return commandError(`${manifest.name} does not support posture presets.`);
+          }
+          const posture = String(normalized.posture || "").trim();
+          if (!posture || !manifest.postures[posture]) {
+            return commandError(`Unknown posture for ${manifest.id}: ${posture || "(missing)"}.`);
+          }
+          return commandOk({
+            type: "set_posture",
+            robotId: manifest.id,
+            posture,
+            seconds: numberInRange(normalized.seconds ?? 0.8, 0.2, 10, "posture seconds"),
+            blockId: normalized.blockId
+          });
+        }
+
+        case "humanoid_walk": {
+          if (!hasCapability(manifest, "humanoid_walk") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support humanoid stepping.`);
+          }
+          const direction = normalized.direction === "backward" ? "backward" : normalized.direction === "forward" ? "forward" : "";
+          if (!direction) {
+            return commandError("humanoid_walk direction must be forward or backward.");
+          }
+          const steps = Math.round(numberInRange(normalized.steps ?? 1, 1, Number(manifest.humanoid.maxSteps) || 20, "walk steps"));
+          const stepLengthM = numberInRange(
+            normalized.stepLengthM ?? 0.08,
+            Number(manifest.humanoid.stepLengthMinM) || 0.02,
+            Number(manifest.humanoid.stepLengthMaxM) || 0.12,
+            "walk stepLengthM"
+          );
+          const speed = speedInRange(normalized.speed ?? 50, "walk", null);
+          const secondsPerStep = 0.92 + (0.34 - 0.92) * (speed / 100);
+          return commandOk({
+            type: "humanoid_walk",
+            robotId: manifest.id,
+            direction,
+            steps,
+            stepLengthM,
+            speed,
+            durationSeconds: secondsPerStep * steps,
+            blockId: normalized.blockId
+          });
+        }
+
+        case "humanoid_turn": {
+          if (!hasCapability(manifest, "humanoid_turn") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support humanoid turning.`);
+          }
+          const angleDeg = numberInRange(
+            normalized.angleDeg,
+            -(Number(manifest.humanoid.maxTurnDeg) || 180),
+            Number(manifest.humanoid.maxTurnDeg) || 180,
+            "turn angleDeg"
+          );
+          if (Math.abs(angleDeg) < 0.001) {
+            return commandError("turn angleDeg must be non-zero.");
+          }
+          const seconds = numberInRange(normalized.seconds ?? 1.5, 0.2, 10, "turn seconds");
+          return commandOk({
+            type: "humanoid_turn",
+            robotId: manifest.id,
+            angleDeg,
+            seconds,
+            durationSeconds: seconds,
+            blockId: normalized.blockId
+          });
+        }
+
+        case "pick_nearest":
+        case "release_object": {
+          if (!hasCapability(manifest, "fixed_hand_interaction") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support fixed-hand object interaction.`);
+          }
+          const hand = String(normalized.hand || "").trim();
+          const hands = Array.isArray(manifest.humanoid.hands) ? manifest.humanoid.hands : [];
+          if (!hands.includes(hand)) {
+            return commandError(`${normalized.type} hand must be one of: ${hands.join(", ")}.`);
+          }
+          return commandOk({ type: normalized.type, robotId: manifest.id, hand, blockId: normalized.blockId });
+        }
+
+        case "run_demo": {
+          if (!hasCapability(manifest, "scripted_demo") || !manifest.humanoid) {
+            return commandError(`${manifest.name} does not support the scripted demonstration.`);
+          }
+          return commandOk({
+            type: "run_demo",
+            robotId: manifest.id,
+            demo: manifest.humanoid.demoId || "walk_grab_return",
+            durationSeconds: 11.5,
             blockId: normalized.blockId
           });
         }

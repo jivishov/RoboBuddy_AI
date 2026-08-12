@@ -291,6 +291,15 @@
     return registry.getActive();
   }
 
+  function setSimulationPaused(paused) {
+    if (!simAdapter || typeof simAdapter.setPaused !== "function") {
+      return getState();
+    }
+    state = simAdapter.setPaused(Boolean(paused));
+    emitState();
+    return getState();
+  }
+
   function getLeaderFrameIntervalMs() {
     const manifest = getManifest();
     const configuredRate = Number(manifest && manifest.virtualLeader && manifest.virtualLeader.maxFrameRateHz);
@@ -2090,6 +2099,7 @@
     setActive,
     setMode,
     getManifest,
+    setSimulationPaused,
     getState,
     getJointArray,
     updateJointsFromArray,

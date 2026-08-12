@@ -42,7 +42,7 @@
       </div>
       <div>
         <h1 class="topbar__title">RoboBuddy Python Docs</h1>
-        <p class="topbar__subtitle">Arduino, SO-101, LeKiwi, and OpenArm Reference</p>
+        <p class="topbar__subtitle">Arduino, SO-101, LeKiwi, OpenArm, and Unitree G1 Reference</p>
       </div>
     </div>
 
@@ -75,6 +75,7 @@
             <a href="#so101-guide">SO-101 Guide</a>
             <a href="#lekiwi-guide">LeKiwi Guide</a>
             <a href="#openarm-guide">OpenArm Guide</a>
+            <a href="#unitree-g1-guide">Unitree G1 Guide</a>
             <a href="#robot-support">Robot Support &amp; Limits</a>
             <a href="#arm-api">Arm API <span>(Legacy)</span></a>
             <a href="#joint-reference">Arduino Joints</a>
@@ -513,6 +514,29 @@ robot.move_joint("right_gripper", 36, speed=25)</code></pre>
         </div>
       </section>
 
+      <section class="python-docs__section" id="unitree-g1-guide">
+        <div class="panel-label"><i data-lucide="person-standing"></i> Unitree G1 Guide</div>
+        <h2>Program all 29 joints in the kinematic G1 simulator</h2>
+        <p>
+          Select <strong>Unitree G1 29-DoF</strong> on an operational page. Every leg, waist, arm, and wrist joint is available through
+          <code>robot.move_joint(...)</code> and <code>robot.move_joints({...})</code>. The complete joint list and pinned mesh provenance are in
+          <a href="docs/unitree-g1-simulator.md">the G1 simulator guide</a>.
+        </p>
+        <pre class="python-docs__code"><code>robot.home()
+robot.set_posture("wide_stance", seconds=0.8)
+robot.walk("forward", steps=3, step_length=0.08, speed=45)
+robot.turn(90, seconds=1.2)
+robot.set_posture("work_reach", seconds=0.8)
+robot.pick_nearest("right_hand")
+robot.release("right_hand")
+# Or run the authored walk, grab, return preview:
+robot.run_demo()</code></pre>
+        <div class="python-docs__callout python-docs__callout--warn" role="note">
+          <strong>G1 locomotion is scripted kinematics only.</strong>
+          <span>No dynamics, balance control, contact solving, collision avoidance, articulated fingers, torque control, or Unitree hardware adapter is included. STOP interrupts the visual action through RoboBuddy's normal runner.</span>
+        </div>
+      </section>
+
       <section class="python-docs__section" id="robot-support">
         <div class="panel-label"><i data-lucide="badge-help"></i> Robot Support &amp; Limits</div>
         <h2>Know what each programming method guarantees</h2>
@@ -552,6 +576,7 @@ robot.move_joint("right_gripper", 36, speed=25)</code></pre>
               <tr><td><code>so101_follower</code></td><td>Yes</td><td>Optional local bridge with qualification gates</td><td>Yes</td><td>No</td></tr>
               <tr><td><code>lekiwi_sim</code></td><td>Yes</td><td>No; simulation-only</td><td>Yes, arm and gripper</td><td>Yes, simulated</td></tr>
               <tr><td><code>openarm_v2_bimanual</code></td><td>Yes</td><td>No; simulation-only</td><td>Yes, both arms and grippers</td><td>Rotational base joint only</td></tr>
+              <tr><td><code>unitree_g1_29dof</code></td><td>Yes, kinematic</td><td>No; simulation-only</td><td>Yes, all 29 joints</td><td>Scripted planar visual root</td></tr>
             </tbody>
           </table>
         </div>

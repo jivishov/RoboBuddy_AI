@@ -226,6 +226,175 @@
     }
   }
 
+  class UnitreeG1SimulationAdapter extends SimulationAdapter {
+    constructor(manifest) {
+      super(manifest);
+      this.pendingHumanoidAction = null;
+    }
+
+    home() {
+      this.cancelHumanoidMotion({ lockToVisual: false });
+      const result = super.home();
+      this.state.humanoidRoot = { x: 0, z: 0, theta: 0 };
+      this.state.humanoidMotion = {
+        active: false,
+        id: "",
+        phase: "idle",
+        progress: 0,
+        durationSeconds: 0,
+        startedAtMs: 0,
+        cancellationId: Number(this.state.humanoidMotion && this.state.humanoidMotion.cancellationId) || 0
+      };
+      this.state.endEffectors = {
+        left_hand: { heldObjectId: "" },
+        right_hand: { heldObjectId: "" }
+      };
+      if (this.preview3d && typeof this.preview3d.resetG1Objects === "function") {
+        this.preview3d.resetG1Objects();
+      }
+      this.render(this.container, this.state);
+      return this.getState();
+    }
+
+    stop() {
+      this.cancelHumanoidMotion({ lockToVisual: true });
+      super.stop();
+      this.state.humanoidMotion = {
+        ...(this.state.humanoidMotion || {}),
+        active: false,
+        phase: "stopped",
+        progress: 0,
+        cancellationId: (Number(this.state.humanoidMotion && this.state.humanoidMotion.cancellationId) || 0) + 1
+      };
+      return this.getState();
+    }
+
+    cancelHumanoidMotion(options = {}) {
+      this.pendingHumanoidAction = null;
+      if (this.preview3d && typeof this.preview3d.cancelHumanoidMotion === "function") {
+        const visual = this.preview3d.cancelHumanoidMotion(options);
+        if (options.lockToVisual !== false && visual) {
+          this.state.humanoidRoot = sanitizeHumanoidRoot(visual.humanoidRoot);
+          this.state.joints = { ...this.state.joints, ...(visual.joints || {}) };
+          if (visual.endEffectors) {
+            this.state.endEffectors = visual.endEffectors;
+          }
+        }
+      }
+    }
+
+    setPaused(paused) {
+      const active = this.preview3d && typeof this.preview3d.setHumanoidMotionPaused === "function"
+        ? this.preview3d.setHumanoidMotionPaused(paused)
+        : false;
+      this.state.humanoidMotion = {
+        ...(this.state.humanoidMotion || {}),
+        phase: active ? "paused" : "commanded"
+      };
+      return this.getState();
+    }
+
+    applyCommand(command) {
+      if (!command || typeof command !== "object") {
+        return this.getState();
+      }
+      if (command.type === "stop") {
+        return this.stop();
+      }
+      if (command.type === "home") {
+        return this.home();
+      }
+      if (["set_posture", "humanoid_walk", "humanoid_turn", "run_demo"].includes(command.type)) {
+        return this.startG1Action(command);
+      }
+      if (command.type === "pick_nearest") {
+        return this.pickNearest(command.hand);
+      }
+      if (command.type === "release_object") {
+        return this.releaseObject(command.hand);
+      }
+      this.cancelHumanoidMotion({ lockToVisual: true });
+      return super.applyCommand(command);
+    }
+
+    startG1Action(command) {
+      const library = window.RoboBuddy3DPreview && window.RoboBuddy3DPreview.g1Simulation;
+      if (!library || typeof library.createG1Action !== "function") {
+        throw new Error("Unitree G1 simulation module is still loading.");
+      }
+      this.cancelHumanoidMotion({ lockToVisual: true });
+      const action = library.createG1Action(command, this.state, this.manifest);
+      const finalState = library.finalG1ActionState(action);
+      if (!action || !finalState) {
+        throw new Error(`Unitree G1 cannot execute ${command.type}.`);
+      }
+      this.state.humanoidRoot = sanitizeHumanoidRoot(finalState.humanoidRoot);
+      this.state.joints = { ...this.state.joints, ...finalState.joints };
+      this.state.stopped = false;
+      this.state.humanoidMotion = {
+        active: false,
+        id: action.id,
+        phase: "commanded",
+        progress: 1,
+        durationSeconds: action.durationSeconds,
+        startedAtMs: Date.now(),
+        cancellationId: Number(this.state.humanoidMotion && this.state.humanoidMotion.cancellationId) || 0
+      };
+      if (command.type === "run_demo") {
+        this.state.endEffectors = {
+          ...(this.state.endEffectors || {}),
+          right_hand: { heldObjectId: "green_tool" }
+        };
+      }
+      this.state.lastCommand = { ...command, durationSeconds: action.durationSeconds };
+      this.pendingHumanoidAction = action;
+      this.render(this.container, this.state);
+      return this.getState();
+    }
+
+    pickNearest(handId) {
+      this.cancelHumanoidMotion({ lockToVisual: true });
+      this.render(this.container, this.state);
+      const result = this.preview3d && typeof this.preview3d.pickNearestG1Object === "function"
+        ? this.preview3d.pickNearestG1Object(handId)
+        : { ok: false, objectId: "" };
+      if (!result.ok) {
+        throw new Error(`No task object is within ${Math.round((this.manifest.humanoid.pickupRadiusM || 0.34) * 100)} cm of ${handId}.`);
+      }
+      this.state.endEffectors = {
+        ...(this.state.endEffectors || {}),
+        [handId]: { heldObjectId: result.objectId }
+      };
+      this.state.lastCommand = { type: "pick_nearest", robotId: this.manifest.id, hand: handId, objectId: result.objectId };
+      return this.getState();
+    }
+
+    releaseObject(handId) {
+      this.cancelHumanoidMotion({ lockToVisual: true });
+      const result = this.preview3d && typeof this.preview3d.releaseG1Object === "function"
+        ? this.preview3d.releaseG1Object(handId)
+        : { ok: false, objectId: "" };
+      if (!result.ok) {
+        throw new Error(`${handId} is not holding an object.`);
+      }
+      this.state.endEffectors = {
+        ...(this.state.endEffectors || {}),
+        [handId]: { heldObjectId: "" }
+      };
+      this.state.lastCommand = { type: "release_object", robotId: this.manifest.id, hand: handId, objectId: result.objectId };
+      return this.getState();
+    }
+
+    render(container, state = this.state) {
+      this.container = container || this.container;
+      if (!this.container) {
+        return;
+      }
+      renderThreePreview(this, this.container, state);
+    }
+  }
+
+
   function renderThreePreview(adapter, container, state) {
     const previewRegistry = window.RoboBuddy3DPreview || {};
     const Preview3D = previewRegistry.RobotRigPreview3D;
@@ -252,6 +421,13 @@
           config: previewConfig,
           onStatus(status) {
             adapter.preview3dStatus = status;
+            if (adapter.manifest.id === "unitree_g1_29dof" && typeof document !== "undefined") {
+              const statusNode = document.getElementById("g1ActionStatus");
+              if (statusNode) {
+                statusNode.textContent = status && status.text ? status.text : "Unitree G1 simulation ready.";
+                statusNode.dataset.active = String(Boolean(adapter.preview3d && adapter.preview3d.activeHumanoidMotion));
+              }
+            }
           },
           onUnavailable(error) {
             console.warn("Robot 3D simulator unavailable.", error);
@@ -323,6 +499,15 @@
         adapter.pendingVisualMotion = null;
       }
 
+      if (
+        adapter.pendingHumanoidAction &&
+        adapter.preview3d &&
+        typeof adapter.preview3d.startHumanoidMotion === "function"
+      ) {
+        adapter.preview3d.startHumanoidMotion(adapter.pendingHumanoidAction);
+        adapter.pendingHumanoidAction = null;
+      }
+
       return true;
     } catch (error) {
       console.warn("Robot 3D simulator unavailable.", error);
@@ -357,8 +542,9 @@
   }
 
   function createThreePreviewMarkup(manifest, config) {
+    const robotClass = manifest && manifest.id === "unitree_g1_29dof" ? " robot-sim--unitree-g1" : "";
     return `
-      <div class="robot-sim robot-sim--three" data-robot-sim-3d-shell>
+      <div class="robot-sim robot-sim--three${robotClass}" data-robot-sim-3d-shell>
         <div class="robot-sim-3d__viewport" data-robot-sim-3d-viewport aria-label="${escapeHtml(manifest.name)} 3D simulator"></div>
         <div class="robot-sim-3d__toolbar">
           <button class="robot-sim-3d__reset" type="button" data-robot-sim-3d-movement aria-pressed="true" title="Disable camera orbit and pan" data-hint="Toggle camera orbit and pan">
@@ -395,6 +581,7 @@
     adapter.preview3dRobotId = "";
     adapter.preview3dStatus = null;
     adapter.pendingVisualMotion = null;
+    adapter.pendingHumanoidAction = null;
     adapter.appliedLeaderInteractionCallbacks = null;
   }
 
@@ -408,7 +595,19 @@
     if (manifest.id === "lekiwi_sim") {
       return new LekiwiSimulationAdapter(manifest);
     }
+    if (manifest.id === "unitree_g1_29dof") {
+      return new UnitreeG1SimulationAdapter(manifest);
+    }
     return new KinematicArmSimulationAdapter(manifest);
+  }
+
+  function sanitizeHumanoidRoot(value) {
+    const root = value && typeof value === "object" ? value : {};
+    return {
+      x: Number.isFinite(Number(root.x)) ? Number(root.x) : 0,
+      z: Number.isFinite(Number(root.z)) ? Number(root.z) : 0,
+      theta: normalizeDegrees(Number.isFinite(Number(root.theta)) ? Number(root.theta) : 0)
+    };
   }
 
   function normalizeDegrees(value) {
@@ -472,6 +671,7 @@
     ExistingArduinoSimulationAdapter,
     KinematicArmSimulationAdapter,
     LekiwiSimulationAdapter,
+    UnitreeG1SimulationAdapter,
     integrateDrivePose,
     createSimulationAdapter
   };
