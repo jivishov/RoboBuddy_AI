@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ARM_PREVIEW_MESH_DATA } from "./arm-preview-mesh-data.js?v=20260611-meshdata";
 import { ARM_RIG_CONFIG } from "./arm-rig-config.js?v=20260611-meshdata";
-import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260811-unitree-g1-solu-1";
+import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260812-openarm-g1-solu-1";
 import { G1_SIMULATION } from "./unitree-g1/index.js?v=20260811-unitree-g1-solu-1";
 
 const NS = (window.RoboAdmin = window.RoboAdmin || {});
@@ -888,7 +888,6 @@ class RobotRigPreview3D {
     }
     return next;
   }
-
   setCameraZoomEnabled(enabled) {
     const next = Boolean(enabled);
     if (this.controls) {
@@ -1152,8 +1151,12 @@ class RobotRigPreview3D {
       if (Array.isArray(part.quat) && part.quat.length === 4) {
         mesh.quaternion.fromArray(part.quat.map(Number)).normalize();
       }
-      const scale = Number(part.scale);
-      mesh.scale.setScalar(Number.isFinite(scale) && scale > 0 ? scale : 1);
+      if (Array.isArray(part.scale3) && part.scale3.length === 3) {
+        mesh.scale.fromArray(part.scale3.map((value) => Number(value) || 1));
+      } else {
+        const scale = Number(part.scale);
+        mesh.scale.setScalar(Number.isFinite(scale) && scale > 0 ? scale : 1);
+      }
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       const parent = groups[part.group] || root;
@@ -1225,7 +1228,8 @@ class RobotRigPreview3D {
     return new THREE.MeshStandardMaterial({
       color: Number.isFinite(color) ? color : 0xff6b6b,
       roughness: Number.isFinite(roughness) ? roughness : 0.62,
-      metalness: Number.isFinite(metalness) ? metalness : 0.04
+      metalness: Number.isFinite(metalness) ? metalness : 0.04,
+      side: options.doubleSided ? THREE.DoubleSide : THREE.FrontSide
     });
   }
 

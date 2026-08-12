@@ -1,0 +1,6 @@
+OpenArm V2 source meshes are loaded from enactic/openarm_description at commit
+6c7b720f1ba48e8bafa3a3dc752c45f397b42221 and are licensed under Apache-2.0.
+
+RoboBuddy-side modifications in this handoff: shortened 550 mm stand, mirrored
+bimanual assembly configuration, procedural 360-degree turntable, controller
+mapping, custom preview integration, and removal of task-scene objects.

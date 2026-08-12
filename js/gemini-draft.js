@@ -1200,7 +1200,7 @@ Prefer short, conservative programs. Start from robot.home() unless the user exp
     }
 
     state.robotWorkerReady = false;
-    state.robotWorker = new Worker("js/python-worker.js?v=20260811-unitree-g1-solu-1");
+    state.robotWorker = new Worker("js/python-worker.js?v=20260812-openarm-g1-solu-1");
     state.robotWorker.addEventListener("message", onRobotWorkerMessage);
     state.robotWorker.addEventListener("error", (event) => {
       state.robotWorkerReady = false;

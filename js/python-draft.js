@@ -1053,7 +1053,7 @@
     }
 
     state.pythonRuntimeReady = false;
-    state.pythonWorker = new Worker("js/python-worker.js?v=20260811-unitree-g1-solu-1");
+    state.pythonWorker = new Worker("js/python-worker.js?v=20260812-openarm-g1-solu-1");
     state.pythonWorker.addEventListener("message", onPythonWorkerMessage);
     state.pythonWorker.addEventListener("error", (event) => {
       state.pythonRuntimeReady = false;
