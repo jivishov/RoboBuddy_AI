@@ -161,6 +161,3 @@ export function createDemoKeyframes(startState) {
   });
   return { keyframes, durationSeconds: 11.5 };
 }
-
-
-\n

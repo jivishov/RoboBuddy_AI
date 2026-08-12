@@ -36,6 +36,3 @@ export function resetTaskObjects(taskObjects) {
     mesh.userData.heldBy = "";
   });
 }
-
-
-\n

@@ -13,5 +13,3 @@ export function g1StatusText(actionId, progress) {
   if (!actionId) return G1_INSTRUCTIONS.summary;
   return `${String(actionId).replace(/_/g, " ")} - ${Math.round((Number(progress) || 0) * 100)}%`;
 }
-
-\n

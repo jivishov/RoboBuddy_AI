@@ -48,6 +48,3 @@ function normalizeDegrees(value) {
   while (next < -180) next += 360;
   return next;
 }
-
-
-\n

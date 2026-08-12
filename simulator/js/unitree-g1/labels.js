@@ -10,6 +10,3 @@ export const G1_LABELS = Object.freeze({
   demo: "Walk, grab, and return",
   stopped: "G1 motion stopped"
 });
-
-
-\n

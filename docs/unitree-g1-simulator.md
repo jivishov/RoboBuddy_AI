@@ -50,5 +50,3 @@ All values are validated against the active manifest. Programs use finite durati
 This integration is a scripted kinematic visualization. It does not implement rigid-body dynamics, balance control, contact-aware foot placement, collision avoidance, torque control, motion planning, or verified hardware control. Walk and turn commands animate finite authored keyframes while moving a planar visual root. The rubber hands have no finger joints; pickup is a proximity-tested attachment to a fixed hand tool frame. The full demo uses its authored validation attachment event.
 
 No network is required for the G1 geometry after checkout. Camera orbit/pan and zoom can each be disabled from the 3D toolbar, and Camera restores the default view.
-
-\n

@@ -4,6 +4,3 @@ export const G1_TOOL_FRAMES = Object.freeze({
 });
 
 export const G1_HAND_IDS = Object.freeze(Object.keys(G1_TOOL_FRAMES));
-
-
-\n

@@ -4,6 +4,3 @@ export const G1_INSTRUCTIONS = Object.freeze({
   hands: "The selected official G1 model has fixed rubber hands. Pickup attaches a nearby scene object to a fixed tool frame.",
   camera: "Use Camera to reset the view. Orbit and Zoom can each be disabled from the preview toolbar."
 });
-
-
-\n
