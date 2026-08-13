@@ -11,7 +11,7 @@
   "legacyClassification": "C",
   "migration": {
     "class": "C",
-    "legacyLearningObjective": "Program Unitree G1 to complete the observable handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence.",
+    "legacyLearningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
     "redesignRationale": "The legacy objective is preserved as observable lab logistics: G1 transports only mechanically secured carriers while people or compatible bench equipment perform manipulation and measurement."
   },
   "canonicalModel": {
@@ -19,40 +19,79 @@
     "sourceRevision": "dd4fa6866e523ad61324f658d63736e4eda3a6e4"
   },
   "frames": {
-    "carrier_1_approach": {
-      "label": "Secured Preparation Carrier approach waypoint",
+    "home": {
+      "label": "Home waypoint",
       "positionMm": [
-        560,
         0,
-        980
+        0,
+        0
       ],
       "headingDeg": 0,
+      "role": "home",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "safe_transfer_hub": {
+      "label": "Visible safe transfer hub",
+      "positionMm": [
+        0,
+        0,
+        -600
+      ],
+      "headingDeg": 180,
+      "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_approach": {
+      "label": "Secured Preparation Carrier primary approach waypoint",
+      "positionMm": [
+        500,
+        0,
+        920
+      ],
+      "headingDeg": 54,
       "role": "approach",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_1_dock": {
-      "label": "Secured Preparation Carrier pickup dock",
+    "carrier_1_secondary_approach": {
+      "label": "Secured Preparation Carrier alternate safe approach waypoint",
       "positionMm": [
-        680,
+        500,
         0,
-        1040
+        1280
       ],
-      "headingDeg": 0,
+      "headingDeg": 152,
+      "role": "approach",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_pickup_dock": {
+      "label": "Secured Preparation Carrier visible pickup dock",
+      "positionMm": [
+        640,
+        0,
+        1020
+      ],
+      "headingDeg": 63,
       "role": "dock",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_1_latch": {
-      "label": "Secured Preparation Carrier visible latch alignment",
+    "carrier_1_pickup_latch": {
+      "label": "Secured Preparation Carrier visible pickup latch alignment",
       "positionMm": [
-        740,
+        720,
         0,
-        1070
+        1060
       ],
-      "headingDeg": 0,
+      "headingDeg": 63,
       "role": "latch",
       "tolerance": {
         "positionMm": 60
@@ -65,34 +104,74 @@
         0,
         1100
       ],
-      "headingDeg": 0,
+      "headingDeg": 63,
       "role": "contact",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_1_clearance": {
-      "label": "Secured Preparation Carrier latched clearance waypoint",
+    "carrier_1_planar_clearance": {
+      "label": "Secured Preparation Carrier planar dock-clearance waypoint; schema lift role does not imply arm lifting",
       "positionMm": [
-        920,
+        960,
         0,
-        1180
+        1200
       ],
-      "headingDeg": 0,
+      "headingDeg": 58,
       "role": "lift",
+      "tolerance": {
+        "positionMm": 60
+      },
+      "motionMeaning": "planar secured-carrier clearance only; no arm lift or leg IK"
+    },
+    "carrier_1_route_1": {
+      "label": "Secured Preparation Carrier constrained safe-route waypoint 1",
+      "positionMm": [
+        608,
+        0,
+        903
+      ],
+      "headingDeg": -58,
+      "role": "route",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_1_safe_route": {
-      "label": "Secured Preparation Carrier constrained safe-route waypoint",
+    "carrier_1_route_2": {
+      "label": "Secured Preparation Carrier constrained safe-route waypoint 2",
       "positionMm": [
-        525,
+        415,
         0,
-        1055
+        1025
       ],
-      "headingDeg": -90,
+      "headingDeg": -53,
       "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_receiver_dock": {
+      "label": "Secured Preparation Carrier visible receiver dock",
+      "positionMm": [
+        30,
+        0,
+        1310
+      ],
+      "headingDeg": 56,
+      "role": "dock",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_receiver_latch": {
+      "label": "Secured Preparation Carrier visible receiver latch alignment",
+      "positionMm": [
+        150,
+        0,
+        1390
+      ],
+      "headingDeg": 59,
+      "role": "latch",
       "tolerance": {
         "positionMm": 60
       }
@@ -104,7 +183,7 @@
         0,
         1450
       ],
-      "headingDeg": 0,
+      "headingDeg": 59,
       "role": "destination",
       "tolerance": {
         "positionMm": 60
@@ -113,50 +192,63 @@
     "carrier_1_retreat": {
       "label": "Secured Preparation Carrier receiver retreat waypoint",
       "positionMm": [
-        70,
+        -10,
         0,
-        1590
+        1670
       ],
-      "headingDeg": 0,
+      "headingDeg": -50,
       "role": "retreat",
       "tolerance": {
         "positionMm": 60
       }
     },
     "carrier_2_approach": {
-      "label": "Secured Cooling Return Carrier approach waypoint",
+      "label": "Secured Cooling Return Carrier primary approach waypoint",
       "positionMm": [
-        110,
+        50,
         0,
-        1180
+        1120
       ],
-      "headingDeg": 0,
+      "headingDeg": 54,
       "role": "approach",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_2_dock": {
-      "label": "Secured Cooling Return Carrier pickup dock",
+    "carrier_2_secondary_approach": {
+      "label": "Secured Cooling Return Carrier alternate safe approach waypoint",
       "positionMm": [
-        230,
+        50,
         0,
-        1240
+        1480
       ],
-      "headingDeg": 0,
+      "headingDeg": 152,
+      "role": "approach",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_2_pickup_dock": {
+      "label": "Secured Cooling Return Carrier visible pickup dock",
+      "positionMm": [
+        190,
+        0,
+        1220
+      ],
+      "headingDeg": 63,
       "role": "dock",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_2_latch": {
-      "label": "Secured Cooling Return Carrier visible latch alignment",
+    "carrier_2_pickup_latch": {
+      "label": "Secured Cooling Return Carrier visible pickup latch alignment",
       "positionMm": [
-        290,
+        270,
         0,
-        1270
+        1260
       ],
-      "headingDeg": 0,
+      "headingDeg": 63,
       "role": "latch",
       "tolerance": {
         "positionMm": 60
@@ -169,34 +261,74 @@
         0,
         1300
       ],
-      "headingDeg": 0,
+      "headingDeg": 63,
       "role": "contact",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_2_clearance": {
-      "label": "Secured Cooling Return Carrier latched clearance waypoint",
+    "carrier_2_planar_clearance": {
+      "label": "Secured Cooling Return Carrier planar dock-clearance waypoint; schema lift role does not imply arm lifting",
       "positionMm": [
-        470,
+        510,
         0,
-        1380
+        1400
       ],
-      "headingDeg": 0,
+      "headingDeg": 58,
       "role": "lift",
+      "tolerance": {
+        "positionMm": 60
+      },
+      "motionMeaning": "planar secured-carrier clearance only; no arm lift or leg IK"
+    },
+    "carrier_2_route_1": {
+      "label": "Secured Cooling Return Carrier constrained safe-route waypoint 1",
+      "positionMm": [
+        -87,
+        0,
+        1585
+      ],
+      "headingDeg": -95,
+      "role": "route",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_2_safe_route": {
-      "label": "Secured Cooling Return Carrier constrained safe-route waypoint",
+    "carrier_2_route_2": {
+      "label": "Secured Cooling Return Carrier constrained safe-route waypoint 2",
       "positionMm": [
-        -275,
+        -525,
         0,
-        1470
+        1550
       ],
-      "headingDeg": 90,
+      "headingDeg": -129,
       "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_2_receiver_dock": {
+      "label": "Secured Cooling Return Carrier visible receiver dock",
+      "positionMm": [
+        -1120,
+        0,
+        1060
+      ],
+      "headingDeg": 56,
+      "role": "dock",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_2_receiver_latch": {
+      "label": "Secured Cooling Return Carrier visible receiver latch alignment",
+      "positionMm": [
+        -1000,
+        0,
+        1140
+      ],
+      "headingDeg": 59,
+      "role": "latch",
       "tolerance": {
         "positionMm": 60
       }
@@ -208,7 +340,7 @@
         0,
         1200
       ],
-      "headingDeg": 0,
+      "headingDeg": 59,
       "role": "destination",
       "tolerance": {
         "positionMm": 60
@@ -217,50 +349,63 @@
     "carrier_2_retreat": {
       "label": "Secured Cooling Return Carrier receiver retreat waypoint",
       "positionMm": [
-        -1080,
+        -1160,
         0,
-        1340
+        1420
       ],
-      "headingDeg": 0,
+      "headingDeg": -50,
       "role": "retreat",
       "tolerance": {
         "positionMm": 60
       }
     },
     "carrier_3_approach": {
-      "label": "Secured Weighing Carrier approach waypoint",
+      "label": "Secured Weighing Carrier primary approach waypoint",
       "positionMm": [
-        -940,
+        -1000,
         0,
-        980
+        920
       ],
-      "headingDeg": 0,
+      "headingDeg": 54,
       "role": "approach",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_3_dock": {
-      "label": "Secured Weighing Carrier pickup dock",
+    "carrier_3_secondary_approach": {
+      "label": "Secured Weighing Carrier alternate safe approach waypoint",
       "positionMm": [
-        -820,
+        -1000,
         0,
-        1040
+        1280
       ],
-      "headingDeg": 0,
+      "headingDeg": 152,
+      "role": "approach",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_3_pickup_dock": {
+      "label": "Secured Weighing Carrier visible pickup dock",
+      "positionMm": [
+        -860,
+        0,
+        1020
+      ],
+      "headingDeg": 63,
       "role": "dock",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_3_latch": {
-      "label": "Secured Weighing Carrier visible latch alignment",
+    "carrier_3_pickup_latch": {
+      "label": "Secured Weighing Carrier visible pickup latch alignment",
       "positionMm": [
-        -760,
+        -780,
         0,
-        1070
+        1060
       ],
-      "headingDeg": 0,
+      "headingDeg": 63,
       "role": "latch",
       "tolerance": {
         "positionMm": 60
@@ -273,34 +418,74 @@
         0,
         1100
       ],
-      "headingDeg": 0,
+      "headingDeg": 63,
       "role": "contact",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_3_clearance": {
-      "label": "Secured Weighing Carrier latched clearance waypoint",
+    "carrier_3_planar_clearance": {
+      "label": "Secured Weighing Carrier planar dock-clearance waypoint; schema lift role does not imply arm lifting",
       "positionMm": [
-        -580,
+        -540,
         0,
-        1180
+        1200
       ],
-      "headingDeg": 0,
+      "headingDeg": 58,
       "role": "lift",
+      "tolerance": {
+        "positionMm": 60
+      },
+      "motionMeaning": "planar secured-carrier clearance only; no arm lift or leg IK"
+    },
+    "carrier_3_route_1": {
+      "label": "Secured Weighing Carrier constrained safe-route waypoint 1",
+      "positionMm": [
+        -52,
+        0,
+        833
+      ],
+      "headingDeg": 85,
+      "role": "route",
       "tolerance": {
         "positionMm": 60
       }
     },
-    "carrier_3_safe_route": {
-      "label": "Secured Weighing Carrier constrained safe-route waypoint",
+    "carrier_3_route_2": {
+      "label": "Secured Weighing Carrier constrained safe-route waypoint 2",
       "positionMm": [
-        225,
+        595,
         0,
-        955
+        885
       ],
-      "headingDeg": -90,
+      "headingDeg": 56,
       "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_3_receiver_dock": {
+      "label": "Secured Weighing Carrier visible receiver dock",
+      "positionMm": [
+        930,
+        0,
+        1110
+      ],
+      "headingDeg": 56,
+      "role": "dock",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_3_receiver_latch": {
+      "label": "Secured Weighing Carrier visible receiver latch alignment",
+      "positionMm": [
+        1050,
+        0,
+        1190
+      ],
+      "headingDeg": 59,
+      "role": "latch",
       "tolerance": {
         "positionMm": 60
       }
@@ -312,7 +497,7 @@
         0,
         1250
       ],
-      "headingDeg": 0,
+      "headingDeg": 59,
       "role": "destination",
       "tolerance": {
         "positionMm": 60
@@ -321,11 +506,11 @@
     "carrier_3_retreat": {
       "label": "Secured Weighing Carrier receiver retreat waypoint",
       "positionMm": [
-        970,
+        890,
         0,
-        1390
+        1470
       ],
-      "headingDeg": 0,
+      "headingDeg": -50,
       "role": "retreat",
       "tolerance": {
         "positionMm": 60
@@ -337,15 +522,15 @@
       "id": "pickup_dock_1",
       "label": "Visible pickup dock 1",
       "visible": true,
-      "frameId": "carrier_1_dock",
+      "frameId": "carrier_1_pickup_dock",
       "type": "secured-carrier-dock",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
       "id": "pickup_latch_1",
-      "label": "Visible mechanical latch 1",
+      "label": "Visible pickup latch 1",
       "visible": true,
-      "frameId": "carrier_1_latch",
+      "frameId": "carrier_1_pickup_latch",
       "type": "carrier-latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
@@ -353,23 +538,31 @@
       "id": "receiver_dock_1",
       "label": "Visible receiver dock 1",
       "visible": true,
-      "frameId": "carrier_1_destination",
+      "frameId": "carrier_1_receiver_dock",
       "type": "secured-carrier-receiver",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "receiver_latch_1",
+      "label": "Visible receiver latch 1",
+      "visible": true,
+      "frameId": "carrier_1_receiver_latch",
+      "type": "receiver-latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
       "id": "pickup_dock_2",
       "label": "Visible pickup dock 2",
       "visible": true,
-      "frameId": "carrier_2_dock",
+      "frameId": "carrier_2_pickup_dock",
       "type": "secured-carrier-dock",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
       "id": "pickup_latch_2",
-      "label": "Visible mechanical latch 2",
+      "label": "Visible pickup latch 2",
       "visible": true,
-      "frameId": "carrier_2_latch",
+      "frameId": "carrier_2_pickup_latch",
       "type": "carrier-latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
@@ -377,23 +570,31 @@
       "id": "receiver_dock_2",
       "label": "Visible receiver dock 2",
       "visible": true,
-      "frameId": "carrier_2_destination",
+      "frameId": "carrier_2_receiver_dock",
       "type": "secured-carrier-receiver",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "receiver_latch_2",
+      "label": "Visible receiver latch 2",
+      "visible": true,
+      "frameId": "carrier_2_receiver_latch",
+      "type": "receiver-latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
       "id": "pickup_dock_3",
       "label": "Visible pickup dock 3",
       "visible": true,
-      "frameId": "carrier_3_dock",
+      "frameId": "carrier_3_pickup_dock",
       "type": "secured-carrier-dock",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
       "id": "pickup_latch_3",
-      "label": "Visible mechanical latch 3",
+      "label": "Visible pickup latch 3",
       "visible": true,
-      "frameId": "carrier_3_latch",
+      "frameId": "carrier_3_pickup_latch",
       "type": "carrier-latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
@@ -401,8 +602,16 @@
       "id": "receiver_dock_3",
       "label": "Visible receiver dock 3",
       "visible": true,
-      "frameId": "carrier_3_destination",
+      "frameId": "carrier_3_receiver_dock",
       "type": "secured-carrier-receiver",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "receiver_latch_3",
+      "label": "Visible receiver latch 3",
+      "visible": true,
+      "frameId": "carrier_3_receiver_latch",
+      "type": "receiver-latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
@@ -430,8 +639,8 @@
       "attachmentInterface": "robobuddy-secured-carrier-v2",
       "initialState": {
         "contentsSecured": true,
-        "contentsStatus": "secured before motion",
-        "authorization": "teacher-configured simulated release authorization"
+        "contentsStatus": "secured before any loaded motion",
+        "teacherConfiguredReleaseAuthorization": "visible configured simulation authorization; no temperature or measurement implied"
       }
     },
     {
@@ -443,8 +652,8 @@
       "attachmentInterface": "robobuddy-secured-carrier-v2",
       "initialState": {
         "contentsSecured": true,
-        "contentsStatus": "secured before motion",
-        "authorization": "teacher-configured simulated release authorization"
+        "contentsStatus": "secured before any loaded motion",
+        "teacherConfiguredReleaseAuthorization": "visible configured simulation authorization; no temperature or measurement implied"
       }
     },
     {
@@ -456,8 +665,8 @@
       "attachmentInterface": "robobuddy-secured-carrier-v2",
       "initialState": {
         "contentsSecured": true,
-        "contentsStatus": "secured before motion",
-        "authorization": "teacher-configured simulated release authorization"
+        "contentsStatus": "secured before any loaded motion",
+        "teacherConfiguredReleaseAuthorization": "visible configured simulation authorization; no temperature or measurement implied"
       }
     },
     {
@@ -478,8 +687,9 @@
       "objectId": "prep_carrier",
       "mode": "secured-carrier-latch",
       "effector": "secured_carrier_mount",
+      "approachFrame": "carrier_1_approach",
       "contactFrame": "carrier_1_contact",
-      "latchFrame": "carrier_1_latch",
+      "latchFrame": "carrier_1_pickup_latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
@@ -487,8 +697,9 @@
       "objectId": "cooling_return_carrier",
       "mode": "secured-carrier-latch",
       "effector": "secured_carrier_mount",
+      "approachFrame": "carrier_2_approach",
       "contactFrame": "carrier_2_contact",
-      "latchFrame": "carrier_2_latch",
+      "latchFrame": "carrier_2_pickup_latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     },
     {
@@ -496,15 +707,16 @@
       "objectId": "weighing_carrier",
       "mode": "secured-carrier-latch",
       "effector": "secured_carrier_mount",
+      "approachFrame": "carrier_3_approach",
       "contactFrame": "carrier_3_contact",
-      "latchFrame": "carrier_3_latch",
+      "latchFrame": "carrier_3_pickup_latch",
       "attachmentInterface": "robobuddy-secured-carrier-v2"
     }
   ],
   "processModels": [
     {
       "id": "receiver_verification_1",
-      "label": "Receiver 1 dock verification",
+      "label": "Receiver 1 dock and latch verification",
       "discrete": true,
       "contactGated": true,
       "initialState": "ready",
@@ -514,12 +726,28 @@
           "op": "object_at",
           "objectId": "prep_carrier",
           "frameId": "carrier_1_destination"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_1_receiver_dock"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_1_receiver_latch"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "prep_carrier",
+            "frameId": "carrier_1_destination"
+          }
         }
       ]
     },
     {
       "id": "receiver_verification_2",
-      "label": "Receiver 2 dock verification",
+      "label": "Receiver 2 dock and latch verification",
       "discrete": true,
       "contactGated": true,
       "initialState": "ready",
@@ -529,12 +757,28 @@
           "op": "object_at",
           "objectId": "cooling_return_carrier",
           "frameId": "carrier_2_destination"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_2_receiver_dock"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_2_receiver_latch"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "cooling_return_carrier",
+            "frameId": "carrier_2_destination"
+          }
         }
       ]
     },
     {
       "id": "receiver_verification_3",
-      "label": "Receiver 3 dock verification",
+      "label": "Receiver 3 dock and latch verification",
       "discrete": true,
       "contactGated": true,
       "initialState": "ready",
@@ -544,16 +788,73 @@
           "op": "object_at",
           "objectId": "weighing_carrier",
           "frameId": "carrier_3_destination"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_3_receiver_dock"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_3_receiver_latch"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "weighing_carrier",
+            "frameId": "carrier_3_destination"
+          }
         }
       ]
     }
   ],
   "goalPredicates": [
     {
+      "id": "returned_home",
+      "op": "equal",
+      "path": "lastReachedFrame",
+      "value": "home"
+    },
+    {
       "id": "prep_carrier_delivered",
       "op": "object_at",
       "objectId": "prep_carrier",
       "frameId": "carrier_1_destination"
+    },
+    {
+      "id": "prep_carrier_contents_remained_secured",
+      "op": "truthy",
+      "path": "objects.prep_carrier.state.contentsSecured"
+    },
+    {
+      "id": "prep_carrier_pickup_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_pickup_dock"
+    },
+    {
+      "id": "prep_carrier_pickup_latch_engaged",
+      "op": "event",
+      "match": {
+        "type": "ATTACH_OBJECT",
+        "objectId": "prep_carrier",
+        "effector": "secured_carrier_mount",
+        "attachmentInterface": "robobuddy-secured-carrier-v2"
+      }
+    },
+    {
+      "id": "prep_carrier_safe_route_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_route_1"
+    },
+    {
+      "id": "prep_carrier_receiver_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_receiver_dock"
+    },
+    {
+      "id": "prep_carrier_receiver_latch_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_receiver_latch"
     },
     {
       "id": "prep_carrier_receiver_verified",
@@ -573,6 +874,41 @@
       "frameId": "carrier_2_destination"
     },
     {
+      "id": "cooling_return_carrier_contents_remained_secured",
+      "op": "truthy",
+      "path": "objects.cooling_return_carrier.state.contentsSecured"
+    },
+    {
+      "id": "cooling_return_carrier_pickup_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_2_pickup_dock"
+    },
+    {
+      "id": "cooling_return_carrier_pickup_latch_engaged",
+      "op": "event",
+      "match": {
+        "type": "ATTACH_OBJECT",
+        "objectId": "cooling_return_carrier",
+        "effector": "secured_carrier_mount",
+        "attachmentInterface": "robobuddy-secured-carrier-v2"
+      }
+    },
+    {
+      "id": "cooling_return_carrier_safe_route_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_2_route_1"
+    },
+    {
+      "id": "cooling_return_carrier_receiver_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_2_receiver_dock"
+    },
+    {
+      "id": "cooling_return_carrier_receiver_latch_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_2_receiver_latch"
+    },
+    {
       "id": "cooling_return_carrier_receiver_verified",
       "op": "process_state",
       "processId": "receiver_verification_2",
@@ -588,6 +924,41 @@
       "op": "object_at",
       "objectId": "weighing_carrier",
       "frameId": "carrier_3_destination"
+    },
+    {
+      "id": "weighing_carrier_contents_remained_secured",
+      "op": "truthy",
+      "path": "objects.weighing_carrier.state.contentsSecured"
+    },
+    {
+      "id": "weighing_carrier_pickup_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_3_pickup_dock"
+    },
+    {
+      "id": "weighing_carrier_pickup_latch_engaged",
+      "op": "event",
+      "match": {
+        "type": "ATTACH_OBJECT",
+        "objectId": "weighing_carrier",
+        "effector": "secured_carrier_mount",
+        "attachmentInterface": "robobuddy-secured-carrier-v2"
+      }
+    },
+    {
+      "id": "weighing_carrier_safe_route_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_3_route_1"
+    },
+    {
+      "id": "weighing_carrier_receiver_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_3_receiver_dock"
+    },
+    {
+      "id": "weighing_carrier_receiver_latch_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_3_receiver_latch"
     },
     {
       "id": "weighing_carrier_receiver_verified",
@@ -609,25 +980,49 @@
       "effector": "secured_carrier_mount"
     },
     {
+      "id": "prep_carrier_contents_unsecured",
+      "op": "not",
+      "predicate": {
+        "op": "truthy",
+        "path": "objects.prep_carrier.state.contentsSecured"
+      }
+    },
+    {
       "id": "cooling_return_carrier_left_attached",
       "op": "attached_to",
       "objectId": "cooling_return_carrier",
       "effector": "secured_carrier_mount"
     },
     {
+      "id": "cooling_return_carrier_contents_unsecured",
+      "op": "not",
+      "predicate": {
+        "op": "truthy",
+        "path": "objects.cooling_return_carrier.state.contentsSecured"
+      }
+    },
+    {
       "id": "weighing_carrier_left_attached",
       "op": "attached_to",
       "objectId": "weighing_carrier",
       "effector": "secured_carrier_mount"
+    },
+    {
+      "id": "weighing_carrier_contents_unsecured",
+      "op": "not",
+      "predicate": {
+        "op": "truthy",
+        "path": "objects.weighing_carrier.state.contentsSecured"
+      }
     }
   ],
   "evidenceRequirements": [
     {
       "id": "route_observation_1",
-      "label": "Record the visible dock/latch result for carrier 1",
+      "label": "Record the visible dock and latch result for carrier 1",
       "kind": "learner-recorded",
-      "minLength": 12,
-      "valuePattern": "dock|latch|carrier",
+      "minLength": 20,
+      "valuePattern": "(?=.*dock)(?=.*latch)(?=.*carrier)",
       "availableWhen": {
         "op": "process_state",
         "processId": "receiver_verification_1",
@@ -640,10 +1035,10 @@
     },
     {
       "id": "route_observation_2",
-      "label": "Record the visible dock/latch result for carrier 2",
+      "label": "Record the visible dock and latch result for carrier 2",
       "kind": "learner-recorded",
-      "minLength": 12,
-      "valuePattern": "dock|latch|carrier",
+      "minLength": 20,
+      "valuePattern": "(?=.*dock)(?=.*latch)(?=.*carrier)",
       "availableWhen": {
         "op": "process_state",
         "processId": "receiver_verification_2",
@@ -656,10 +1051,10 @@
     },
     {
       "id": "route_observation_3",
-      "label": "Record the visible dock/latch result for carrier 3",
+      "label": "Record the visible dock and latch result for carrier 3",
       "kind": "learner-recorded",
-      "minLength": 12,
-      "valuePattern": "dock|latch|carrier",
+      "minLength": 20,
+      "valuePattern": "(?=.*dock)(?=.*latch)(?=.*carrier)",
       "availableWhen": {
         "op": "process_state",
         "processId": "receiver_verification_3",
@@ -679,16 +1074,16 @@
     },
     {
       "label": "F",
-      "claim": "The frozen v2 runtime restricts G1 to constrained waypoints, turns, docking, and the secured-carrier attachment interface.",
+      "claim": "The frozen v2 runtime restricts G1 to constrained waypoints, configured headings, docking, and the secured-carrier attachment interface.",
       "sourceRef": "lab/v2/FROZEN_INTERFACES.md"
     },
     {
       "label": "R",
-      "claim": "G1 serves only as a lab runner for standardization logistics; it does not perform bench manipulation or measurement."
+      "claim": "G1 serves only as a lab runner for standardization logistics; it does not perform free grasping, bench manipulation, measurement, or physical lifting. The required lift-role frame is planar dock clearance."
     },
     {
       "label": "C",
-      "claim": "Task frames, waypoint headings, 60 mm waypoint tolerances, dock placement, latch placement, and teacher-configured release authorization are authored educational configuration."
+      "claim": "Task frames, waypoint headings, 60 mm waypoint tolerances, safe transfer hub, dock placement, latch placement, and teacher-configured release authorization are authored educational configuration."
     }
   ],
   "modelClaim": {
@@ -724,88 +1119,129 @@
   },
   "navigation": {
     "kind": "constrained-waypoint-graph",
+    "motionBoundary": "Discrete authored waypoint and heading transitions only; no leg IK, balance, dynamics, collision recovery, force, torque, or payload model.",
     "waypointGraph": {
       "start": "home",
       "edges": {
         "home": [
+          "safe_transfer_hub"
+        ],
+        "safe_transfer_hub": [
+          "home",
           "carrier_1_approach",
           "carrier_2_approach",
-          "carrier_3_approach"
+          "carrier_3_approach",
+          "carrier_1_secondary_approach",
+          "carrier_2_secondary_approach",
+          "carrier_3_secondary_approach"
         ],
         "carrier_1_approach": [
-          "carrier_1_dock"
+          "carrier_1_pickup_dock"
         ],
-        "carrier_1_dock": [
-          "carrier_1_latch"
+        "carrier_1_secondary_approach": [
+          "carrier_1_pickup_dock"
         ],
-        "carrier_1_latch": [
+        "carrier_1_pickup_dock": [
+          "carrier_1_pickup_latch"
+        ],
+        "carrier_1_pickup_latch": [
           "carrier_1_contact"
         ],
         "carrier_1_contact": [
-          "carrier_1_clearance"
+          "carrier_1_planar_clearance"
         ],
-        "carrier_1_clearance": [
-          "carrier_1_safe_route"
+        "carrier_1_planar_clearance": [
+          "carrier_1_route_1"
         ],
-        "carrier_1_safe_route": [
+        "carrier_1_route_1": [
+          "carrier_1_route_2"
+        ],
+        "carrier_1_route_2": [
+          "carrier_1_receiver_dock"
+        ],
+        "carrier_1_receiver_dock": [
+          "carrier_1_receiver_latch"
+        ],
+        "carrier_1_receiver_latch": [
           "carrier_1_destination"
         ],
         "carrier_1_destination": [
           "carrier_1_retreat"
         ],
         "carrier_1_retreat": [
-          "carrier_2_approach",
-          "carrier_3_approach"
+          "safe_transfer_hub"
         ],
         "carrier_2_approach": [
-          "carrier_2_dock"
+          "carrier_2_pickup_dock"
         ],
-        "carrier_2_dock": [
-          "carrier_2_latch"
+        "carrier_2_secondary_approach": [
+          "carrier_2_pickup_dock"
         ],
-        "carrier_2_latch": [
+        "carrier_2_pickup_dock": [
+          "carrier_2_pickup_latch"
+        ],
+        "carrier_2_pickup_latch": [
           "carrier_2_contact"
         ],
         "carrier_2_contact": [
-          "carrier_2_clearance"
+          "carrier_2_planar_clearance"
         ],
-        "carrier_2_clearance": [
-          "carrier_2_safe_route"
+        "carrier_2_planar_clearance": [
+          "carrier_2_route_1"
         ],
-        "carrier_2_safe_route": [
+        "carrier_2_route_1": [
+          "carrier_2_route_2"
+        ],
+        "carrier_2_route_2": [
+          "carrier_2_receiver_dock"
+        ],
+        "carrier_2_receiver_dock": [
+          "carrier_2_receiver_latch"
+        ],
+        "carrier_2_receiver_latch": [
           "carrier_2_destination"
         ],
         "carrier_2_destination": [
           "carrier_2_retreat"
         ],
         "carrier_2_retreat": [
-          "carrier_1_approach",
-          "carrier_3_approach"
+          "safe_transfer_hub"
         ],
         "carrier_3_approach": [
-          "carrier_3_dock"
+          "carrier_3_pickup_dock"
         ],
-        "carrier_3_dock": [
-          "carrier_3_latch"
+        "carrier_3_secondary_approach": [
+          "carrier_3_pickup_dock"
         ],
-        "carrier_3_latch": [
+        "carrier_3_pickup_dock": [
+          "carrier_3_pickup_latch"
+        ],
+        "carrier_3_pickup_latch": [
           "carrier_3_contact"
         ],
         "carrier_3_contact": [
-          "carrier_3_clearance"
+          "carrier_3_planar_clearance"
         ],
-        "carrier_3_clearance": [
-          "carrier_3_safe_route"
+        "carrier_3_planar_clearance": [
+          "carrier_3_route_1"
         ],
-        "carrier_3_safe_route": [
+        "carrier_3_route_1": [
+          "carrier_3_route_2"
+        ],
+        "carrier_3_route_2": [
+          "carrier_3_receiver_dock"
+        ],
+        "carrier_3_receiver_dock": [
+          "carrier_3_receiver_latch"
+        ],
+        "carrier_3_receiver_latch": [
           "carrier_3_destination"
         ],
         "carrier_3_destination": [
           "carrier_3_retreat"
         ],
         "carrier_3_retreat": [
-          "carrier_1_approach",
-          "carrier_2_approach"
+          "safe_transfer_hub"
         ]
       }
     },
@@ -814,7 +1250,7 @@
   "validation": {
     "referenceExecutions": [
       {
-        "id": "reference-secured-route",
+        "id": "reference-secured-route-and-return-home",
         "calls": [
           {
             "method": "skills.transport",
@@ -822,7 +1258,7 @@
               "objectId": "prep_carrier",
               "approachFrame": "carrier_1_approach",
               "contactFrame": "carrier_1_contact",
-              "liftFrame": "carrier_1_clearance",
+              "liftFrame": "carrier_1_planar_clearance",
               "destinationFrame": "carrier_1_destination",
               "placeFrame": "carrier_1_destination",
               "retreatFrame": "carrier_1_retreat",
@@ -835,7 +1271,7 @@
             "args": {
               "processId": "receiver_verification_1",
               "objectId": "prep_carrier",
-              "fixtureId": "receiver_dock_1",
+              "fixtureId": "receiver_latch_1",
               "value": "verified"
             }
           },
@@ -843,7 +1279,7 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_observation_1",
-              "value": "Carrier 1 dock and latch visibly verified."
+              "value": "Carrier 1 receiver dock and latch visibly verified."
             }
           },
           {
@@ -852,7 +1288,7 @@
               "objectId": "cooling_return_carrier",
               "approachFrame": "carrier_2_approach",
               "contactFrame": "carrier_2_contact",
-              "liftFrame": "carrier_2_clearance",
+              "liftFrame": "carrier_2_planar_clearance",
               "destinationFrame": "carrier_2_destination",
               "placeFrame": "carrier_2_destination",
               "retreatFrame": "carrier_2_retreat",
@@ -865,7 +1301,7 @@
             "args": {
               "processId": "receiver_verification_2",
               "objectId": "cooling_return_carrier",
-              "fixtureId": "receiver_dock_2",
+              "fixtureId": "receiver_latch_2",
               "value": "verified"
             }
           },
@@ -873,7 +1309,7 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_observation_2",
-              "value": "Carrier 2 dock and latch visibly verified."
+              "value": "Carrier 2 receiver dock and latch visibly verified."
             }
           },
           {
@@ -882,7 +1318,7 @@
               "objectId": "weighing_carrier",
               "approachFrame": "carrier_3_approach",
               "contactFrame": "carrier_3_contact",
-              "liftFrame": "carrier_3_clearance",
+              "liftFrame": "carrier_3_planar_clearance",
               "destinationFrame": "carrier_3_destination",
               "placeFrame": "carrier_3_destination",
               "retreatFrame": "carrier_3_retreat",
@@ -895,7 +1331,7 @@
             "args": {
               "processId": "receiver_verification_3",
               "objectId": "weighing_carrier",
-              "fixtureId": "receiver_dock_3",
+              "fixtureId": "receiver_latch_3",
               "value": "verified"
             }
           },
@@ -903,7 +1339,13 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_observation_3",
-              "value": "Carrier 3 dock and latch visibly verified."
+              "value": "Carrier 3 receiver dock and latch visibly verified."
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home"
             }
           }
         ]
@@ -911,15 +1353,21 @@
     ],
     "acceptedAlternates": [
       {
-        "id": "alternate-safe-order-and-dock-api",
+        "id": "alternate-safe-order-and-approaches",
         "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "carrier_3_secondary_approach"
+            }
+          },
           {
             "method": "robot.dock",
             "args": {
               "objectId": "weighing_carrier",
-              "approachFrame": "carrier_3_approach",
+              "approachFrame": "carrier_3_secondary_approach",
               "contactFrame": "carrier_3_contact",
-              "liftFrame": "carrier_3_clearance",
+              "liftFrame": "carrier_3_planar_clearance",
               "destinationFrame": "carrier_3_destination",
               "placeFrame": "carrier_3_destination",
               "retreatFrame": "carrier_3_retreat",
@@ -932,7 +1380,7 @@
             "args": {
               "processId": "receiver_verification_3",
               "objectId": "weighing_carrier",
-              "fixtureId": "receiver_dock_3",
+              "fixtureId": "receiver_latch_3",
               "value": "verified"
             }
           },
@@ -940,16 +1388,22 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_observation_3",
-              "value": "Carrier 3 dock and latch visibly verified."
+              "value": "Carrier 3 alternate approach, dock, and latch verified."
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "carrier_2_secondary_approach"
             }
           },
           {
             "method": "robot.dock",
             "args": {
               "objectId": "cooling_return_carrier",
-              "approachFrame": "carrier_2_approach",
+              "approachFrame": "carrier_2_secondary_approach",
               "contactFrame": "carrier_2_contact",
-              "liftFrame": "carrier_2_clearance",
+              "liftFrame": "carrier_2_planar_clearance",
               "destinationFrame": "carrier_2_destination",
               "placeFrame": "carrier_2_destination",
               "retreatFrame": "carrier_2_retreat",
@@ -962,7 +1416,7 @@
             "args": {
               "processId": "receiver_verification_2",
               "objectId": "cooling_return_carrier",
-              "fixtureId": "receiver_dock_2",
+              "fixtureId": "receiver_latch_2",
               "value": "verified"
             }
           },
@@ -970,16 +1424,22 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_observation_2",
-              "value": "Carrier 2 dock and latch visibly verified."
+              "value": "Carrier 2 alternate approach, dock, and latch verified."
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "carrier_1_secondary_approach"
             }
           },
           {
             "method": "robot.dock",
             "args": {
               "objectId": "prep_carrier",
-              "approachFrame": "carrier_1_approach",
+              "approachFrame": "carrier_1_secondary_approach",
               "contactFrame": "carrier_1_contact",
-              "liftFrame": "carrier_1_clearance",
+              "liftFrame": "carrier_1_planar_clearance",
               "destinationFrame": "carrier_1_destination",
               "placeFrame": "carrier_1_destination",
               "retreatFrame": "carrier_1_retreat",
@@ -992,7 +1452,7 @@
             "args": {
               "processId": "receiver_verification_1",
               "objectId": "prep_carrier",
-              "fixtureId": "receiver_dock_1",
+              "fixtureId": "receiver_latch_1",
               "value": "verified"
             }
           },
@@ -1000,7 +1460,13 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_observation_1",
-              "value": "Carrier 1 dock and latch visibly verified."
+              "value": "Carrier 1 alternate approach, dock, and latch verified."
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home"
             }
           }
         ]
@@ -1008,7 +1474,7 @@
     ],
     "negativeCases": [
       {
-        "id": "missing-learner-evidence",
+        "id": "missing-learner-evidence-only",
         "expectedFailureKind": "evidence",
         "calls": [
           {
@@ -1017,7 +1483,7 @@
               "objectId": "prep_carrier",
               "approachFrame": "carrier_1_approach",
               "contactFrame": "carrier_1_contact",
-              "liftFrame": "carrier_1_clearance",
+              "liftFrame": "carrier_1_planar_clearance",
               "destinationFrame": "carrier_1_destination",
               "placeFrame": "carrier_1_destination",
               "retreatFrame": "carrier_1_retreat",
@@ -1030,7 +1496,7 @@
             "args": {
               "processId": "receiver_verification_1",
               "objectId": "prep_carrier",
-              "fixtureId": "receiver_dock_1",
+              "fixtureId": "receiver_latch_1",
               "value": "verified"
             }
           },
@@ -1040,7 +1506,7 @@
               "objectId": "cooling_return_carrier",
               "approachFrame": "carrier_2_approach",
               "contactFrame": "carrier_2_contact",
-              "liftFrame": "carrier_2_clearance",
+              "liftFrame": "carrier_2_planar_clearance",
               "destinationFrame": "carrier_2_destination",
               "placeFrame": "carrier_2_destination",
               "retreatFrame": "carrier_2_retreat",
@@ -1053,7 +1519,7 @@
             "args": {
               "processId": "receiver_verification_2",
               "objectId": "cooling_return_carrier",
-              "fixtureId": "receiver_dock_2",
+              "fixtureId": "receiver_latch_2",
               "value": "verified"
             }
           },
@@ -1063,7 +1529,7 @@
               "objectId": "weighing_carrier",
               "approachFrame": "carrier_3_approach",
               "contactFrame": "carrier_3_contact",
-              "liftFrame": "carrier_3_clearance",
+              "liftFrame": "carrier_3_planar_clearance",
               "destinationFrame": "carrier_3_destination",
               "placeFrame": "carrier_3_destination",
               "retreatFrame": "carrier_3_retreat",
@@ -1076,8 +1542,14 @@
             "args": {
               "processId": "receiver_verification_3",
               "objectId": "weighing_carrier",
-              "fixtureId": "receiver_dock_3",
+              "fixtureId": "receiver_latch_3",
               "value": "verified"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home"
             }
           }
         ]
@@ -1085,14 +1557,20 @@
       {
         "id": "reject-non-carrier-apparatus",
         "expectedFailureKind": "causal",
+        "expectedCode": "MORPHOLOGY_LIMIT",
         "calls": [
           {
             "method": "skills.transport",
             "args": {
               "objectId": "bench_apparatus_object",
+              "approachFrame": "carrier_1_approach",
               "contactFrame": "carrier_1_contact",
+              "liftFrame": "carrier_1_planar_clearance",
               "destinationFrame": "carrier_1_destination",
-              "retreatFrame": "carrier_1_retreat"
+              "placeFrame": "carrier_1_destination",
+              "retreatFrame": "carrier_1_retreat",
+              "securedCarrier": true,
+              "attachmentInterface": "robobuddy-secured-carrier-v2"
             }
           }
         ]
