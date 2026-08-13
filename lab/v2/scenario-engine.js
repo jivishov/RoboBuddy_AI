@@ -1,7 +1,7 @@
 import { assertApiMethod } from "./api-contract.js";
 import { evaluateEvidenceRequirement, gradeScenario } from "./grading.js";
 import { inverseKinematics } from "./kinematics.js";
-import { deepClone } from "./math.js";
+import { deepClone, distance3 } from "./math.js";
 import { planJointPath, planOccupancyGridAStar, requireStowedForDrive } from "./planner.js";
 import { homeJointState, loadRobotModel } from "./robot-model-catalog.js";
 import { assertScenarioV2 } from "./scenario-schema.js";
@@ -381,7 +381,18 @@ export class ScenarioV2Engine {
       const lift = await segment(args.liftFrame, 2);
       const transfer = await segment(args.destinationFrame, 3);
       const placeFrame = args.placeFrame || args.destinationFrame;
-      const place = placeFrame === args.destinationFrame ? [cursor] : await segment(placeFrame, 4);
+      const placeTarget = this.frame(placeFrame);
+      const destinationTarget = this.frame(args.destinationFrame);
+      const samePhysicalTarget = placeFrame === args.destinationFrame
+        || (
+          (placeTarget.chainId || "default") === (destinationTarget.chainId || "default")
+          && distance3(placeTarget.positionMm, destinationTarget.positionMm) <= Math.max(
+            Number(placeTarget.tolerance?.positionMm || 0),
+            Number(destinationTarget.tolerance?.positionMm || 0),
+            0.001
+          )
+        );
+      const place = samePhysicalTarget ? [cursor] : await segment(placeFrame, 4);
       const retreat = await segment(args.retreatFrame, 5);
       const placeEvents = [
         { type: "PLACE_CONTACT", objectId: args.objectId, frameId: placeFrame },
@@ -485,7 +496,8 @@ export class ScenarioV2Engine {
     if (object.currentFrame !== args.contactFrame) {
       return failure("OBJECT_NOT_AT_CONTACT", `${object.id} is at ${object.currentFrame || "an unknown frame"}, not ${args.contactFrame}.`);
     }
-    if (object.compatibleEffectors?.length && !object.compatibleEffectors.includes(args.effector)) {
+    const compatibleEffectors = object.compatibleEffectors || object.allowedEffectors || [];
+    if (compatibleEffectors.length && !compatibleEffectors.includes(args.effector)) {
       return failure("EFFECTOR_INCOMPATIBLE", `${args.effector} is not configured for ${object.id}.`);
     }
     const configured = this.definition.grasps.filter((grasp) => grasp.objectId === object.id);

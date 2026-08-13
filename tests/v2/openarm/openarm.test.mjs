@@ -247,10 +247,6 @@ for (const definition of definitions) {
   for (const execution of definition.validation.negativeCases) {
     const run = await (await ScenarioV2Engine.create(definition)).executeProgram(execution.calls);
     assert.equal(run.grade.passed, false, `${definition.id}/${execution.id}: negative must fail`);
-    if (execution.expectedFailureKind === "prohibited") {
-      assert.equal(run.ok, true, `${definition.id}/${execution.id}: wrong-arm call should execute but be rejected by observable grading`);
-      assert.ok(run.grade.prohibited.some((item) => item.id === "morphology_invalid_cross_arm_contact" && item.triggered));
-    }
     if (execution.expectedFailureKind === "evidence") {
       assert.equal(run.ok, true, `${definition.id}/${execution.id}: omitted evidence is a grade failure, not an API failure`);
       assert.ok(run.grade.goals.every((item) => item.passed));
@@ -258,7 +254,12 @@ for (const definition of definitions) {
     }
     if (execution.expectedFailureKind === "causal") {
       assert.equal(run.ok, false);
-      assert.ok(run.results.some((item) => item.code === "PROCESS_PREREQUISITE"));
+      if (execution.id === "negative-cross-arm-effector") {
+        assert.ok(run.results.some((item) => item.code === "EFFECTOR_INCOMPATIBLE"));
+        assert.equal(run.state.eventLog.length, 0, "wrong-arm transport must be rejected before contact or mutation");
+      } else {
+        assert.ok(run.results.some((item) => item.code === "PROCESS_PREREQUISITE"));
+      }
       assert.equal(run.state.eventLog.some((item) => item.type === "PROCESS_COMMIT"), false);
     }
     negatives += 1;

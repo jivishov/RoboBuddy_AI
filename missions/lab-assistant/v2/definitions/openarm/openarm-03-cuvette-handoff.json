@@ -812,7 +812,7 @@
               "placeFrame": "left_place_contact",
               "retreatFrame": "left_retreat",
               "effector": "left",
-              "seed": 20
+              "seed": 18
             }
           },
           {
@@ -826,7 +826,7 @@
               "placeFrame": "right_place_contact",
               "retreatFrame": "right_retreat",
               "effector": "right",
-              "seed": 40
+              "seed": 38
             }
           },
           {
@@ -864,7 +864,7 @@
               "placeFrame": "right_place_contact",
               "retreatFrame": "right_retreat",
               "effector": "right",
-              "seed": 74
+              "seed": 72
             }
           },
           {
@@ -878,7 +878,7 @@
               "placeFrame": "left_place_contact",
               "retreatFrame": "left_retreat",
               "effector": "left",
-              "seed": 100
+              "seed": 101
             }
           },
           {
@@ -903,8 +903,8 @@
     "negativeCases": [
       {
         "id": "negative-cross-arm-effector",
-        "description": "The left-lane object is deliberately tagged to the right effector; the observable morphology prohibition must trigger.",
-        "expectedFailureKind": "prohibited",
+        "description": "The left-lane object is deliberately assigned to the right effector and must be rejected before contact or mutation.",
+        "expectedFailureKind": "causal",
         "calls": [
           {
             "method": "skills.transport",
@@ -938,7 +938,7 @@
               "placeFrame": "left_place_contact",
               "retreatFrame": "left_retreat",
               "effector": "left",
-              "seed": 254
+              "seed": 18
             }
           },
           {
@@ -952,7 +952,7 @@
               "placeFrame": "right_place_contact",
               "retreatFrame": "right_retreat",
               "effector": "right",
-              "seed": 274
+              "seed": 38
             }
           },
           {
