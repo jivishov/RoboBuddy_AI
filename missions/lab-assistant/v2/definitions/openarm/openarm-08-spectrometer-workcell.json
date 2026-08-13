@@ -1,0 +1,769 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "openarm-08-spectrometer-workcell",
+  "title": "Fixture-Assisted Spectrometer Workcell",
+  "brief": "Replace unsupported phase separation with coordinated handling of capped sample and reference cuvette carriers.",
+  "robotId": "openarm_v2_bimanual",
+  "canonicalModelId": "openarm_v2_bimanual",
+  "rank": 8,
+  "supersedes": "openarm-08-separatory-funnel",
+  "assistanceLevel": "Challenge",
+  "migration": {
+    "class": "B",
+    "legacyLearningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence."
+  },
+  "legacyClassification": "B",
+  "canonicalModel": {
+    "id": "openarm_v2_bimanual",
+    "sourceRevision": "6c7b720f1ba48e8bafa3a3dc752c45f397b42221"
+  },
+  "coordination": {
+    "rootTranslationAllowed": false,
+    "sharedJointId": "base_yaw",
+    "armScheduling": "sequential_collision_checked",
+    "simultaneousPlansAllowed": false,
+    "acceptedSafeOrderings": [
+      "left_then_right",
+      "right_then_left"
+    ],
+    "claimBoundary": "The frozen planner checks each per-arm path while both arms share one base state; this does not claim collision recovery, force control, or dynamics."
+  },
+  "frames": {
+    "home": {
+      "label": "Shared-base home observation frame",
+      "positionMm": [
+        284.6,
+        433.3,
+        -311.8
+      ],
+      "role": "retreat",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_approach": {
+      "label": "Left-arm approach frame",
+      "positionMm": [
+        265.3,
+        549.2,
+        -422.2
+      ],
+      "role": "approach",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_contact": {
+      "label": "Left-arm pickup contact frame",
+      "positionMm": [
+        225.4,
+        530.6,
+        -318.9
+      ],
+      "role": "contact",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_lift": {
+      "label": "Left-arm lift frame",
+      "positionMm": [
+        142.9,
+        721.7,
+        -366
+      ],
+      "role": "lift",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_handoff": {
+      "label": "Left-arm handoff destination frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        -322.1
+      ],
+      "role": "destination",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_place_contact": {
+      "label": "Left-arm handoff contact frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        -322.1
+      ],
+      "role": "contact",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_retreat": {
+      "label": "Left-arm retreat frame",
+      "positionMm": [
+        284.6,
+        433.3,
+        -311.8
+      ],
+      "role": "retreat",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_approach": {
+      "label": "Right-arm approach frame",
+      "positionMm": [
+        265.3,
+        549.2,
+        422.2
+      ],
+      "role": "approach",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_contact": {
+      "label": "Right-arm pickup contact frame",
+      "positionMm": [
+        225.4,
+        530.6,
+        318.9
+      ],
+      "role": "contact",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_lift": {
+      "label": "Right-arm lift frame",
+      "positionMm": [
+        142.9,
+        721.7,
+        366
+      ],
+      "role": "lift",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_handoff": {
+      "label": "Right-arm handoff destination frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        322.1
+      ],
+      "role": "destination",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_place_contact": {
+      "label": "Right-arm handoff contact frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        322.1
+      ],
+      "role": "contact",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_retreat": {
+      "label": "Right-arm retreat frame",
+      "positionMm": [
+        284.6,
+        433.3,
+        311.8
+      ],
+      "role": "retreat",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "spectrometer_cuvette_fixture",
+      "label": "spectrometer cuvette fixture",
+      "type": "configured_visible_alignment_fixture",
+      "visible": true,
+      "frameId": "left_handoff",
+      "pairedFrameId": "right_handoff",
+      "configuredByTeacher": true,
+      "claimBoundary": "Fixture presence and placement zones are authored configuration; no calibration, force, fluid, thermal, or dynamics behavior is claimed."
+    }
+  ],
+  "objects": [
+    {
+      "id": "capped_sample_cuvette",
+      "label": "Capped sample cuvette carrier",
+      "initialFrame": "left_contact",
+      "visible": true,
+      "transportable": true,
+      "allowedEffectors": [
+        "left"
+      ],
+      "initialState": {
+        "sealedOrDry": true
+      }
+    },
+    {
+      "id": "capped_reference_cuvette",
+      "label": "Capped reference cuvette carrier",
+      "initialFrame": "right_contact",
+      "visible": true,
+      "transportable": true,
+      "allowedEffectors": [
+        "right"
+      ],
+      "initialState": {
+        "sealedOrDry": true
+      }
+    }
+  ],
+  "grasps": [
+    {
+      "id": "capped_sample_cuvette_left_grasp",
+      "objectId": "capped_sample_cuvette",
+      "effector": "left",
+      "chainId": "left",
+      "mode": "configured_parallel_grasp",
+      "contactFrame": "left_contact",
+      "visible": true
+    },
+    {
+      "id": "capped_reference_cuvette_right_grasp",
+      "objectId": "capped_reference_cuvette",
+      "effector": "right",
+      "chainId": "right",
+      "mode": "configured_parallel_grasp",
+      "contactFrame": "right_contact",
+      "visible": true
+    }
+  ],
+  "processModels": [
+    {
+      "id": "cuvette_fixture_seated",
+      "label": "Commit the discrete seated state after both capped carriers reach their visible fixture positions.",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "ready",
+      "completeState": "confirmed",
+      "fixtureId": "spectrometer_cuvette_fixture",
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "capped_sample_cuvette",
+          "frameId": "left_handoff"
+        },
+        {
+          "op": "object_at",
+          "objectId": "capped_reference_cuvette",
+          "frameId": "right_handoff"
+        }
+      ],
+      "unsupportedContinuity": "No continuous material, force, fluid, thermal, or instrument-response model is implied."
+    }
+  ],
+  "goalPredicates": [
+    {
+      "id": "left_item_delivered",
+      "op": "object_at",
+      "objectId": "capped_sample_cuvette",
+      "frameId": "left_handoff"
+    },
+    {
+      "id": "right_item_delivered",
+      "op": "object_at",
+      "objectId": "capped_reference_cuvette",
+      "frameId": "right_handoff"
+    },
+    {
+      "id": "workcell_confirmation_complete",
+      "op": "process_state",
+      "processId": "cuvette_fixture_seated",
+      "value": "confirmed"
+    },
+    {
+      "id": "left_retreat_observed",
+      "op": "frame_visited",
+      "frameId": "left_retreat"
+    },
+    {
+      "id": "right_retreat_observed",
+      "op": "frame_visited",
+      "frameId": "right_retreat"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "fixed_base_moved",
+      "op": "truthy",
+      "path": "fixedRootViolation"
+    },
+    {
+      "id": "object_remains_attached",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "truthy",
+          "path": "objects.capped_sample_cuvette.attachedTo"
+        },
+        {
+          "op": "truthy",
+          "path": "objects.capped_reference_cuvette.attachedTo"
+        }
+      ]
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "observable_confirmation",
+      "label": "After the visible fixture-contact event, record whether both items are released in their named handoff frames.",
+      "availableWhen": {
+        "op": "process_state",
+        "processId": "cuvette_fixture_seated",
+        "value": "confirmed"
+      },
+      "requiresEvent": {
+        "type": "PROCESS_COMMIT",
+        "processId": "cuvette_fixture_seated",
+        "value": "confirmed"
+      },
+      "allowedValues": [
+        "confirmed"
+      ]
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The scenario uses the canonical OpenArm bimanual chain and collision meshes at the frozen source revision.",
+      "sourceRef": "https://github.com/enactic/openarm_description/tree/6c7b720f1ba48e8bafa3a3dc752c45f397b42221"
+    },
+    {
+      "label": "F",
+      "claim": "Rank 8 and the legacy learning objective are preserved from openarm-08-separatory-funnel.",
+      "sourceRef": "missions/lab-assistant/v1/openarm-08-separatory-funnel.json"
+    },
+    {
+      "label": "R",
+      "claim": "Separate left/right approach, contact, lift, handoff, and retreat frames encode bimanual morphology while retaining one fixed shared base."
+    },
+    {
+      "label": "C",
+      "claim": "Frame coordinates, 10 mm tolerances, visible fixture locations, grasp assignments, seeds, and the confirmation value are educational configuration."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "openarm_v2_bimanual",
+    "source": {
+      "kind": "official collision meshes and baked chain",
+      "revision": "6c7b720f1ba48e8bafa3a3dc752c45f397b42221",
+      "url": "https://github.com/enactic/openarm_description/tree/6c7b720f1ba48e8bafa3a3dc752c45f397b42221",
+      "provenance": "M",
+      "notes": "Official arm collision meshes; 550 mm stand and shared turntable are configured RoboBuddy modifications."
+    },
+    "joints": [
+      {
+        "id": "base_yaw",
+        "min": -180,
+        "max": 180,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j1",
+        "min": -200,
+        "max": 80,
+        "home": -25,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j2",
+        "min": -190,
+        "max": 10,
+        "home": -35,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j3",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j4",
+        "min": 0,
+        "max": 140,
+        "home": 75,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j5",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j6",
+        "min": -45,
+        "max": 45,
+        "home": -5,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j7",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_gripper",
+        "min": 0,
+        "max": 45,
+        "home": 12,
+        "unit": "deg",
+        "type": "gripper",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j1",
+        "min": -80,
+        "max": 200,
+        "home": 25,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j2",
+        "min": -10,
+        "max": 190,
+        "home": 35,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j3",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j4",
+        "min": 0,
+        "max": 140,
+        "home": 75,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j5",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j6",
+        "min": -45,
+        "max": 45,
+        "home": 5,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j7",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_gripper",
+        "min": 0,
+        "max": 45,
+        "home": 12,
+        "unit": "deg",
+        "type": "gripper",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      }
+    ],
+    "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration.",
+    "frames": [
+      "base_yaw",
+      "left_mount",
+      "left_mount",
+      "left_j1",
+      "left_j2",
+      "left_j3",
+      "left_j4",
+      "left_j5",
+      "left_j6",
+      "left_j7",
+      "base_yaw",
+      "right_mount",
+      "right_mount",
+      "right_j1",
+      "right_j2",
+      "right_j3",
+      "right_j4",
+      "right_j5",
+      "right_j6",
+      "right_j7"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots",
+      "C: conservative configured stand envelope"
+    ],
+    "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+    "unsupportedPhysics": [
+      "torque control",
+      "force control",
+      "payload claim",
+      "certified mechanical stand"
+    ]
+  },
+  "api": {
+    "level": "challenge",
+    "starterEvidenceValues": {}
+  },
+  "validation": {
+    "referenceExecutions": [
+      {
+        "id": "reference-left-then-right",
+        "description": "Validation-only left then right transport with post-event evidence.",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_sample_cuvette",
+              "approachFrame": "left_approach",
+              "contactFrame": "left_contact",
+              "liftFrame": "left_lift",
+              "destinationFrame": "left_handoff",
+              "placeFrame": "left_place_contact",
+              "retreatFrame": "left_retreat",
+              "effector": "left",
+              "seed": 25
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_reference_cuvette",
+              "approachFrame": "right_approach",
+              "contactFrame": "right_contact",
+              "liftFrame": "right_lift",
+              "destinationFrame": "right_handoff",
+              "placeFrame": "right_place_contact",
+              "retreatFrame": "right_retreat",
+              "effector": "right",
+              "seed": 45
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "cuvette_fixture_seated",
+              "objectId": "capped_sample_cuvette",
+              "fixtureId": "spectrometer_cuvette_fixture",
+              "value": "confirmed"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "observable_confirmation",
+              "value": "confirmed"
+            }
+          }
+        ]
+      }
+    ],
+    "acceptedAlternates": [
+      {
+        "id": "alternate-right-then-left-seeds",
+        "description": "Causally safe reversed arm order with different deterministic IK seeds.",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_reference_cuvette",
+              "approachFrame": "right_approach",
+              "contactFrame": "right_contact",
+              "liftFrame": "right_lift",
+              "destinationFrame": "right_handoff",
+              "placeFrame": "right_place_contact",
+              "retreatFrame": "right_retreat",
+              "effector": "right",
+              "seed": 79
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_sample_cuvette",
+              "approachFrame": "left_approach",
+              "contactFrame": "left_contact",
+              "liftFrame": "left_lift",
+              "destinationFrame": "left_handoff",
+              "placeFrame": "left_place_contact",
+              "retreatFrame": "left_retreat",
+              "effector": "left",
+              "seed": 105
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "cuvette_fixture_seated",
+              "objectId": "capped_sample_cuvette",
+              "fixtureId": "spectrometer_cuvette_fixture",
+              "value": "confirmed"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "observable_confirmation",
+              "value": "confirmed"
+            }
+          }
+        ]
+      }
+    ],
+    "negativeCases": [
+      {
+        "id": "negative-incomplete-goal",
+        "description": "Only the left item is delivered; the right outcome and process remain incomplete.",
+        "expectedFailureKind": "goal",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_sample_cuvette",
+              "approachFrame": "left_approach",
+              "contactFrame": "left_contact",
+              "liftFrame": "left_lift",
+              "destinationFrame": "left_handoff",
+              "placeFrame": "left_place_contact",
+              "retreatFrame": "left_retreat",
+              "effector": "left",
+              "seed": 219
+            }
+          }
+        ]
+      },
+      {
+        "id": "negative-missing-evidence",
+        "description": "Both outcomes and the process complete, but learner evidence is deliberately omitted.",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_sample_cuvette",
+              "approachFrame": "left_approach",
+              "contactFrame": "left_contact",
+              "liftFrame": "left_lift",
+              "destinationFrame": "left_handoff",
+              "placeFrame": "left_place_contact",
+              "retreatFrame": "left_retreat",
+              "effector": "left",
+              "seed": 259
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_reference_cuvette",
+              "approachFrame": "right_approach",
+              "contactFrame": "right_contact",
+              "liftFrame": "right_lift",
+              "destinationFrame": "right_handoff",
+              "placeFrame": "right_place_contact",
+              "retreatFrame": "right_retreat",
+              "effector": "right",
+              "seed": 279
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "cuvette_fixture_seated",
+              "objectId": "capped_sample_cuvette",
+              "fixtureId": "spectrometer_cuvette_fixture",
+              "value": "confirmed"
+            }
+          }
+        ]
+      },
+      {
+        "id": "negative-process-before-placement",
+        "description": "The contact-gated fixture process is attempted before its observable placement prerequisites.",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "cuvette_fixture_seated",
+              "objectId": "capped_sample_cuvette",
+              "fixtureId": "spectrometer_cuvette_fixture",
+              "value": "confirmed"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
