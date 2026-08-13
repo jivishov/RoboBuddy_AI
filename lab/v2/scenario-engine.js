@@ -1,5 +1,5 @@
 import { assertApiMethod } from "./api-contract.js";
-import { gradeScenario } from "./grading.js";
+import { evaluateEvidenceRequirement, gradeScenario } from "./grading.js";
 import { inverseKinematics } from "./kinematics.js";
 import { deepClone } from "./math.js";
 import { planJointPath, planOccupancyGridAStar, requireStowedForDrive } from "./planner.js";
@@ -61,7 +61,9 @@ function appendEventsToFinal(path, events = [], phase = "motion") {
 
 export class ScenarioV2Engine {
   static async create(definition, options = {}) {
-    assertScenarioV2(definition);
+    // Generated browser scenarios intentionally omit validation-only reference
+    // executions. Authored sources still use the strict default validator.
+    assertScenarioV2(definition, { requireValidation: definition.validationAvailable !== true });
     const model = await loadRobotModel(definition.robotId);
     if (definition.canonicalModel.sourceRevision !== model.source.revision) {
       throw new Error(`Scenario model revision ${definition.canonicalModel.sourceRevision} does not match ${model.source.revision}.`);
@@ -460,7 +462,11 @@ export class ScenarioV2Engine {
     const requirement = this.definition.evidenceRequirements.find((item) => item.id === args.requirementId);
     if (!requirement) return failure("UNKNOWN_EVIDENCE", `Unknown evidence requirement ${args.requirementId}.`);
     if (!String(args.value ?? "").trim()) return failure("EMPTY_EVIDENCE", "Evidence must be non-empty.");
-    this.state.evidence.push({ requirementId: args.requirementId, value: String(args.value), source: "learner-recorded" });
+    const entry = { requirementId: args.requirementId, value: String(args.value), source: "learner-recorded", eventSequence: this.state.eventLog.length };
+    if (!evaluateEvidenceRequirement(this.state, requirement, entry)) {
+      return failure("EVIDENCE_NOT_AVAILABLE", "The evidence value or its observable event/predicate prerequisite is not satisfied.");
+    }
+    this.state.evidence.push(entry);
     return success("EVIDENCE_RECORDED", `${args.requirementId} recorded.`);
   }
 

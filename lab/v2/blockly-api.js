@@ -2,7 +2,8 @@ import { API_LEVELS } from "./api-contract.js";
 
 const BLOCKS = Object.freeze([
   { type: "v2_observe", level: "guided", message0: "observe lab state", previousStatement: null, nextStatement: null, colour: 165 },
-  { type: "v2_transport", level: "guided", message0: "transport object %1 approach %2 contact %3 lift %4 destination %5 retreat %6", args0: ["OBJECT", "APPROACH", "CONTACT", "LIFT", "DESTINATION", "RETREAT"].map((name) => ({ type: "field_input", name, text: name.toLowerCase() })), previousStatement: null, nextStatement: null, colour: 165 },
+  { type: "v2_transport", level: "guided", message0: "transport object %1 approach %2 contact %3 lift %4 destination %5 retreat %6 effector %7", args0: ["OBJECT", "APPROACH", "CONTACT", "LIFT", "DESTINATION", "RETREAT", "EFFECTOR"].map((name) => ({ type: "field_input", name, text: name === "EFFECTOR" ? "default" : name.toLowerCase() })), previousStatement: null, nextStatement: null, colour: 165 },
+  { type: "v2_fixture_operation", level: "guided", message0: "operate process %1 with object %2 at fixture %3", args0: [{ type: "field_input", name: "PROCESS", text: "process_id" }, { type: "field_input", name: "OBJECT", text: "object_id" }, { type: "field_input", name: "FIXTURE", text: "fixture_id" }], previousStatement: null, nextStatement: null, colour: 165 },
   { type: "v2_record_evidence", level: "guided", message0: "record evidence %1 value %2", args0: [{ type: "field_input", name: "REQUIREMENT", text: "evidence_id" }, { type: "field_input", name: "VALUE", text: "visible observation" }], previousStatement: null, nextStatement: null, colour: 165 },
   { type: "v2_plan_frame", level: "builder", message0: "plan to frame %1 seed %2", args0: [{ type: "field_input", name: "FRAME", text: "frame_id" }, { type: "field_number", name: "SEED", value: 17, min: 0, precision: 1 }], previousStatement: null, nextStatement: null, colour: 210 },
   { type: "v2_execute_last_plan", level: "builder", message0: "execute last plan", previousStatement: null, nextStatement: null, colour: 210 },
@@ -44,7 +45,8 @@ function blockLine(block, indent, context) {
   const pad = "    ".repeat(indent);
   const field = (name) => block.getFieldValue(name);
   if (block.type === "v2_observe") return [`${pad}observation = await lab.observe()`];
-  if (block.type === "v2_transport") return [`${pad}await robot.transport(${quote(field("OBJECT"))}, approach_frame=${quote(field("APPROACH"))}, contact_frame=${quote(field("CONTACT"))}, lift_frame=${quote(field("LIFT"))}, destination_frame=${quote(field("DESTINATION"))}, retreat_frame=${quote(field("RETREAT"))})`];
+  if (block.type === "v2_transport") return [`${pad}await robot.transport(${quote(field("OBJECT"))}, approach_frame=${quote(field("APPROACH"))}, contact_frame=${quote(field("CONTACT"))}, lift_frame=${quote(field("LIFT"))}, destination_frame=${quote(field("DESTINATION"))}, retreat_frame=${quote(field("RETREAT"))}, effector=${quote(field("EFFECTOR") || "default")})`];
+  if (block.type === "v2_fixture_operation") return [`${pad}await lab.fixture_operation(${quote(field("PROCESS"))}, object_id=${quote(field("OBJECT"))}, fixture_id=${quote(field("FIXTURE"))})`];
   if (block.type === "v2_record_evidence") return [`${pad}await lab.record_evidence(${quote(field("REQUIREMENT"))}, ${quote(field("VALUE"))})`];
   if (block.type === "v2_plan_frame") return [`${pad}${context.planVariable} = await robot.plan_to_frame(${quote(field("FRAME"))}, seed=${Number(field("SEED")) || 0})`];
   if (block.type === "v2_execute_last_plan") return [`${pad}await robot.execute(${context.planVariable}["planId"])`];

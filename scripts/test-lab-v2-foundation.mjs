@@ -24,6 +24,7 @@ import {
   withinJointLimits
 } from "../lab/v2/index.js";
 import { V2_BLOCK_DEFINITIONS, createV2Toolbox } from "../lab/v2/blockly-api.js";
+import { stripValidationForClient } from "../lab/v2/scenario-schema.js";
 import { ARM_RIG_CONFIG } from "../simulator/js/arm-rig-config.js";
 import { ROBOT_RIG_PREVIEW_CONFIGS } from "../simulator/js/robot-rig-configs.js";
 
@@ -71,7 +72,7 @@ function fixtureScenario(model) {
       { id: "retreated", op: "frame_visited", frameId: "retreat" }
     ],
     prohibitedStates: [{ id: "still-held", op: "attached_to", objectId: "sample", effector: "default" }],
-    evidenceRequirements: [{ id: "placement_observation", label: "Placement observation", kind: "learner-recorded" }],
+    evidenceRequirements: [{ id: "placement_observation", label: "Placement observation", kind: "learner-recorded", minLength: 8, availableWhen: { op: "object_at", objectId: "sample", frameId: "destination" }, requiresEvent: { type: "DETACH_OBJECT", objectId: "sample" } }],
     provenance: [
       { label: "M", claim: "Arduino chain comes from the CAD-derived canonical rig.", sourceRef: "simulator/js/arm-rig-config.js" },
       { label: "R", claim: "Fixed-base manipulator role." },
@@ -180,6 +181,14 @@ await check("ScenarioV2 validation, contact-gated outcomes, alternates, perturba
   const model = await loadRobotModel("arduino_arm");
   const definition = fixtureScenario(model);
   assert.equal(validateScenarioV2(definition).ok, true);
+  const clientDefinition = stripValidationForClient(definition);
+  assert.equal(validateScenarioV2(clientDefinition).ok, false, "strict source validation still requires reference executions");
+  assert.equal(validateScenarioV2(clientDefinition, { requireValidation: false }).ok, true, "generated client scenarios omit validation-only data");
+  const clientEngine = await ScenarioV2Engine.create(clientDefinition);
+  assert.equal(clientEngine.snapshot().scenarioId, definition.id);
+  const prematureEvidence = await clientEngine.call("lab.record_evidence", { requirementId: "placement_observation", value: "Sample appears seated." });
+  assert.equal(prematureEvidence.ok, false);
+  assert.equal(prematureEvidence.code, "EVIDENCE_NOT_AVAILABLE");
   const directGate = await ScenarioV2Engine.create(definition);
   assert.throws(() => directGate.applyEvent({ type: "ATTACH_OBJECT", objectId: "sample", effector: "default" }), /before contact/);
   await assert.rejects(() => directGate.applyTrajectorySample({ rootPose: { positionMm: [10, 0, 0], headingDeg: 0 } }, 0), /Fixed robot root/);
@@ -256,11 +265,12 @@ await check("layered Blockly surface and camera toggle regression", async () => 
   assert.ok(V2_BLOCK_DEFINITIONS.some((block) => block.level === "guided"));
   assert.ok(V2_BLOCK_DEFINITIONS.some((block) => block.level === "builder"));
   assert.ok(V2_BLOCK_DEFINITIONS.some((block) => block.level === "challenge"));
+  assert.ok(V2_BLOCK_DEFINITIONS.some((block) => block.type === "v2_fixture_operation"));
   assert.equal(createV2Toolbox("guided").contents.length, 1);
   assert.equal(createV2Toolbox("builder").contents.length, 2);
   assert.equal(createV2Toolbox("challenge").contents.length, 3);
   const html = await readFile(new URL("../lab-workbench.html", import.meta.url), "utf8");
-  const workbench = await readFile(new URL("../lab/js/workbench.js", import.meta.url), "utf8");
+  const workbench = await readFile(new URL("../lab/js/workbench-v2.js", import.meta.url), "utf8");
   assert.match(html, /id="labCameraMovement"/);
   assert.match(html, /id="labCameraZoom"/);
   assert.match(workbench, /setCameraMovementEnabled/);

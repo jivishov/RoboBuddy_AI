@@ -100,6 +100,7 @@
           <div class="lab-editor-actions">
             <button class="lab-button" id="labLoadStarter" type="button"><i data-lucide="file-input" aria-hidden="true"></i>Load Starter</button>
             <button class="lab-button" id="labSaveDraft" type="button" aria-keyshortcuts="Control+S"><i data-lucide="save" aria-hidden="true"></i>Save Draft</button>
+            <button class="lab-button" id="labExportLegacy" type="button"><i data-lucide="archive" aria-hidden="true"></i>Export legacy v1</button>
             <button class="lab-button" id="labGeneratePython" type="button"><i data-lucide="arrow-right-left" aria-hidden="true"></i>Generate Python</button>
           </div>
         </header>
@@ -107,7 +108,7 @@
           <section class="lab-code-panel" id="labBlocklyPanel" role="tabpanel" aria-label="Blockly editor"><div id="labBlocklyEditor"></div></section>
           <section class="lab-code-panel" id="labPythonPanel" role="tabpanel" aria-label="Python editor" hidden>
             <label class="visually-hidden" for="labPythonEditor">Python robot program</label>
-            <p class="lab-editor-note">Supported <code>robot.command(...)</code> subset only; this page does not execute arbitrary Python.</p>
+            <p class="lab-editor-note">Runs a real <code>async main(robot, lab)</code> in Pyodide. The exposed API is bounded by this task's Guided, Builder, or Challenge level.</p>
             <textarea id="labPythonEditor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="# One simulation command per line&#10;robot.move_to_pose(&quot;supply_zone&quot;)&#10;robot.grasp(&quot;watch_glass&quot;)" aria-describedby="labEditorStatus"></textarea>
           </section>
         </div>
@@ -167,7 +168,7 @@
   <script src="lab/js/simulation-safety.js?v=20260812-lab-fidelity-1"></script>
   <script src="robots/adapters/simulation/simulation.js?v=20260812-openarm-g1-solu-1"></script>
   <script type="module" src="simulator/js/arm-preview-3d.js?v=20260812-g1-registration-fix-2"></script>
-  <script type="module" src="lab/js/workbench.js?v=20260812-lab-fidelity-14"></script>
+  <script type="module" src="lab/js/workbench-v2.js?v=20260812-scenario-v2-1"></script>
   <script>document.addEventListener("DOMContentLoaded", function () { window.lucide?.createIcons(); });</script>
 </body>
 </html>

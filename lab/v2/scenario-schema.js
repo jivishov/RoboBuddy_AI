@@ -51,6 +51,14 @@ export function validateScenarioV2(definition, options = {}) {
   });
   add((definition.goalPredicates || []).length > 0, "goalPredicates", "must contain observable outcome predicates");
   add((definition.evidenceRequirements || []).length > 0, "evidenceRequirements", "must require learner evidence");
+  (definition.evidenceRequirements || []).forEach((requirement, index) => {
+    add(nonEmpty(requirement.id), `evidenceRequirements.${index}.id`, "must identify the evidence requirement");
+    add(nonEmpty(requirement.label || requirement.prompt), `evidenceRequirements.${index}.label`, "must provide a visible label or prompt");
+    if (requirement.minLength !== undefined) add(Number.isInteger(requirement.minLength) && requirement.minLength > 0, `evidenceRequirements.${index}.minLength`, "must be a positive integer");
+    if (requirement.allowedValues !== undefined) add(Array.isArray(requirement.allowedValues) && requirement.allowedValues.length > 0, `evidenceRequirements.${index}.allowedValues`, "must be a non-empty array");
+    if (requirement.availableWhen !== undefined) add(object(requirement.availableWhen), `evidenceRequirements.${index}.availableWhen`, "must be an observable predicate");
+    if (requirement.requiresEvent !== undefined) add(object(requirement.requiresEvent), `evidenceRequirements.${index}.requiresEvent`, "must be an event match object");
+  });
   (definition.provenance || []).forEach((entry, index) => {
     add(PROVENANCE_LABELS.includes(entry.label), `provenance.${index}.label`, "must be M, F, R, or C");
     add(nonEmpty(entry.claim), `provenance.${index}.claim`, "must state the bounded claim");
@@ -59,10 +67,12 @@ export function validateScenarioV2(definition, options = {}) {
   add(object(definition.modelClaim), "modelClaim", "must include a model claim");
   ["source", "joints", "frames", "collisionProxyProvenance", "supportedFidelity", "unsupportedPhysics"].forEach((key) => add(definition.modelClaim?.[key] !== undefined, `modelClaim.${key}`, "is required"));
   add(object(definition.api) && ["guided", "builder", "challenge"].includes(definition.api?.level), "api.level", "must select guided, builder, or challenge");
-  add(object(definition.validation), "validation", "must include validation-only executions");
-  add(Array.isArray(definition.validation?.referenceExecutions) && definition.validation.referenceExecutions.length > 0, "validation.referenceExecutions", "must include a reference execution");
-  add(Array.isArray(definition.validation?.acceptedAlternates) && definition.validation.acceptedAlternates.length > 0, "validation.acceptedAlternates", "must include an accepted alternate algorithm/seed/order");
-  add(Array.isArray(definition.validation?.negativeCases) && definition.validation.negativeCases.length > 0, "validation.negativeCases", "must include negative cases");
+  if (options.requireValidation !== false) {
+    add(object(definition.validation), "validation", "must include validation-only executions");
+    add(Array.isArray(definition.validation?.referenceExecutions) && definition.validation.referenceExecutions.length > 0, "validation.referenceExecutions", "must include a reference execution");
+    add(Array.isArray(definition.validation?.acceptedAlternates) && definition.validation.acceptedAlternates.length > 0, "validation.acceptedAlternates", "must include an accepted alternate algorithm/seed/order");
+    add(Array.isArray(definition.validation?.negativeCases) && definition.validation.negativeCases.length > 0, "validation.negativeCases", "must include negative cases");
+  }
   if (options.expectedRobotId) add(definition.robotId === options.expectedRobotId, "robotId", `must equal ${options.expectedRobotId}`);
   return { ok: errors.length === 0, errors };
 }

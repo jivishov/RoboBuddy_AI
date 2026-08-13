@@ -31,7 +31,7 @@
   <header class="topbar">
     <div class="lab-topbar__identity">
       <h1>Chemistry Lab Assistant Tasks</h1>
-      <p>Choose one of 50 simulation-only robot-programming scenarios grounded in reviewed Lab Studio techniques.</p>
+      <p>Choose one of 50 fidelity-bounded ScenarioV2 successors assessed by observable outcomes, safety constraints, and learner evidence.</p>
     </div>
     <div class="topbar__controls">
       <span class="lab-status-chip"><i data-lucide="monitor-check" aria-hidden="true"></i>Simulation only</span>
@@ -51,7 +51,7 @@
       </div>
       <div class="lab-boundary">
         <strong>Handling model</strong>
-        <p>Discrete apparatus state and kinematic robot motion. No fluid, torque, or dynamic-balance claim.</p>
+        <p>Canonical kinematics, conservative collision proxies, and contact-gated discrete state. Unsupported physics is stated per robot and task.</p>
       </div>
     </section>
 
@@ -62,7 +62,7 @@
       </div>
       <div class="lab-search">
         <label for="labTaskSearch">Search current robot</label>
-        <input id="labTaskSearch" type="search" autocomplete="off" placeholder="Technique, skill, or task title">
+        <input id="labTaskSearch" type="search" autocomplete="off" placeholder="Objective, API level, class, or task title">
       </div>
       <div class="lab-inline-error" id="labCatalogError" role="alert" hidden>
         <strong>Scenario catalog unavailable</strong>
@@ -77,7 +77,7 @@
   </main>
 
   <div class="visually-hidden" id="labCatalogLive" aria-live="polite" aria-atomic="true"></div>
-  <script type="module" src="lab/js/catalog.js?v=20260812-lab-scenarios-2"></script>
+  <script type="module" src="lab/js/catalog.js?v=20260812-scenario-v2-1"></script>
   <script>document.addEventListener("DOMContentLoaded", function () { window.lucide?.createIcons(); });</script>
 </body>
 </html>

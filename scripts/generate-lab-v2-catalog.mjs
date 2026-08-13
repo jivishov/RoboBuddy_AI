@@ -58,8 +58,12 @@ const tasks = definitions.sort((a, b) => ROBOT_ORDER.indexOf(a.robotId) - ROBOT_
   title: item.title,
   brief: item.brief,
   assistanceLevel: item.assistanceLevel,
+  apiLevel: item.api.level,
   migrationClass: item.migration.class,
   supersedes: item.supersedes,
+  learningObjective: item.migration.legacyLearningObjective,
+  provenanceLabels: [...new Set(item.provenance.map((entry) => entry.label))],
+  supportedFidelity: item.modelClaim.supportedFidelity,
   limitations: item.modelClaim.unsupportedPhysics.join("; "),
   definition: clientScenarioPath(item)
 }));

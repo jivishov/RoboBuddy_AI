@@ -13,11 +13,11 @@ export function renderCatalogRows(container, tasks, selectedId) {
       <span class="lab-task-row__rank" data-readout>${task.rank}</span>
       <span class="lab-task-row__main">
         <strong>${escapeHtml(task.title)}</strong>
-        <span>${escapeHtml(task.techniques.join(" · "))}</span>
+        <span>${escapeHtml(`${task.apiLevel || "guided"} · class ${task.migrationClass || "A"} · ${(task.provenanceLabels || []).join("/")}`)}</span>
       </span>
       <span class="lab-task-row__meta">
         <span>${escapeHtml(task.assistanceLevel)}</span>
-        <span>${escapeHtml(task.complexity)}</span>
+        <span>${escapeHtml(task.supportedFidelity || "bounded kinematics")}</span>
       </span>
     </button>
   `).join("");
@@ -38,9 +38,12 @@ export function renderCatalogDetails(container, task) {
     </header>
     <dl class="lab-definition-list">
       <div><dt>Robot</dt><dd>${escapeHtml(robot)}</dd></div>
-      <div><dt>Technique basis</dt><dd>${task.techniques.map((id) => `<code>${escapeHtml(id)}</code>`).join(" ")}</dd></div>
-      <div><dt>Skills</dt><dd>${task.skills.map(escapeHtml).join(", ")}</dd></div>
+      <div><dt>Migration</dt><dd>Class ${escapeHtml(task.migrationClass || "A")} successor to <code>${escapeHtml(task.supersedes || "legacy task")}</code></dd></div>
+      <div><dt>Learning objective</dt><dd>${escapeHtml(task.learningObjective || task.brief)}</dd></div>
+      <div><dt>API level</dt><dd>${escapeHtml(task.apiLevel || "guided")}</dd></div>
+      <div><dt>Evidence basis</dt><dd>${(task.provenanceLabels || []).map((id) => `<code>${escapeHtml(id)}</code>`).join(" ")}</dd></div>
       <div><dt>Assistance</dt><dd>${escapeHtml(assistanceCopy(task.assistanceLevel))}</dd></div>
+      <div><dt>Supported fidelity</dt><dd>${escapeHtml(task.supportedFidelity || "Bounded kinematic simulation")}</dd></div>
       <div><dt>Simulation limit</dt><dd>${escapeHtml(task.limitations)}</dd></div>
     </dl>
     <section class="lab-boundary" aria-label="Safety boundary">

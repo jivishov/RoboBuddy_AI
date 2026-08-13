@@ -24,7 +24,7 @@ function visibleTasks() {
   const query = state.query.trim().toLowerCase();
   return state.catalog.tasks
     .filter((task) => task.robotId === state.robotId)
-    .filter((task) => !query || [task.title, task.brief, ...task.techniques, ...task.skills].join(" ").toLowerCase().includes(query))
+    .filter((task) => !query || [task.title, task.brief, task.learningObjective, task.supportedFidelity, task.apiLevel, task.migrationClass, ...(task.provenanceLabels || [])].filter(Boolean).join(" ").toLowerCase().includes(query))
     .sort((a, b) => a.rank - b.rank);
 }
 
@@ -112,13 +112,13 @@ async function init() {
   renderLoadingRows(elements.list);
   elements.search.value = state.query;
   try {
-    const response = await fetch("missions/lab-assistant/index.json", { cache: "no-store" });
+    const response = await fetch("missions/lab-assistant/v2/index.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`Catalog request returned ${response.status}.`);
     state.catalog = await response.json();
     if (!state.catalog.robots.some((robot) => robot.id === state.robotId)) state.robotId = state.catalog.robots[0].id;
     elements.filters.innerHTML = state.catalog.robots.map((robot) => `
       <button type="button" data-robot-id="${robot.id}" aria-pressed="false">
-        <span>${robot.label}</span><small data-readout>${robot.taskCount}</small>
+        <span>${ROBOT_LABELS[robot.id] || robot.id}</span><small data-readout>${robot.taskCount}</small>
       </button>
     `).join("");
     bindEvents();

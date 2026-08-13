@@ -40,12 +40,24 @@ export function causalViolations(state) {
   return violations;
 }
 
+export function evaluateEvidenceRequirement(state, requirement, entry) {
+  if (!entry || String(entry.value ?? "").trim().length < Math.max(1, Number(requirement.minLength || 1))) return false;
+  if (Array.isArray(requirement.allowedValues) && !requirement.allowedValues.map(String).includes(String(entry.value))) return false;
+  if (requirement.valuePattern) {
+    try { if (!new RegExp(requirement.valuePattern, "i").test(String(entry.value))) return false; }
+    catch { return false; }
+  }
+  if (requirement.availableWhen && !evaluatePredicate(state, requirement.availableWhen)) return false;
+  if (requirement.requiresEvent && eventIndex(state.eventLog || [], requirement.requiresEvent) < 0) return false;
+  return true;
+}
+
 export function gradeScenario(definition, state) {
   const goals = (definition.goalPredicates || []).map((predicate, index) => ({ id: predicate.id || `goal-${index + 1}`, passed: evaluatePredicate(state, predicate), predicate }));
   const prohibited = (definition.prohibitedStates || []).map((predicate, index) => ({ id: predicate.id || `prohibited-${index + 1}`, triggered: evaluatePredicate(state, predicate), predicate }));
   const evidence = (definition.evidenceRequirements || []).map((requirement) => ({
     id: requirement.id,
-    passed: (state.evidence || []).some((entry) => entry.requirementId === requirement.id && String(entry.value ?? "").trim().length > 0),
+    passed: (state.evidence || []).some((entry) => entry.requirementId === requirement.id && evaluateEvidenceRequirement(state, requirement, entry)),
     requirement
   }));
   const causal = causalViolations(state);
