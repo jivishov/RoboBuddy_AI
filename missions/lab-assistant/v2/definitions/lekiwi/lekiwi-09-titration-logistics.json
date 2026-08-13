@@ -57,9 +57,9 @@
     },
     "pickup_approach": {
       "positionMm": [
-        30.1095,
-        95.572,
-        261.1935
+        250,
+        270,
+        145
       ],
       "role": "approach",
       "chainId": "default",
@@ -69,9 +69,9 @@
     },
     "pickup_contact": {
       "positionMm": [
-        38.6873,
-        113.2101,
-        241.0337
+        250,
+        250,
+        145
       ],
       "role": "contact",
       "chainId": "default",
@@ -82,9 +82,9 @@
     },
     "pickup_lift": {
       "positionMm": [
-        39.3334,
-        144.6633,
-        263.1541
+        250,
+        290,
+        145
       ],
       "role": "lift",
       "chainId": "default",
@@ -94,9 +94,9 @@
     },
     "delivery": {
       "positionMm": [
-        41.06,
-        102.6235,
-        421.5069
+        235,
+        260,
+        150
       ],
       "role": "destination",
       "chainId": "default",
@@ -106,9 +106,9 @@
     },
     "delivery_contact": {
       "positionMm": [
-        52.5323,
-        123.4691,
-        440.1244
+        235,
+        250,
+        150
       ],
       "role": "contact",
       "chainId": "default",
@@ -119,9 +119,9 @@
     },
     "delivery_retreat": {
       "positionMm": [
-        30.9786,
-        99.5207,
-        401.8011
+        235,
+        290,
+        150
       ],
       "role": "retreat",
       "chainId": "default",
@@ -131,9 +131,9 @@
     },
     "forbidden_drop": {
       "positionMm": [
-        68,
-        118,
-        405
+        265,
+        260,
+        140
       ],
       "role": "destination",
       "chainId": "default",
@@ -394,15 +394,16 @@
     ],
     "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds.",
     "frames": [
-      "shoulderPan",
-      "shoulderLift",
-      "elbowFlex",
-      "wristFlex",
-      "wristRoll",
-      "gripperRoot"
+      "shoulder_pan",
+      "shoulder_lift",
+      "elbow_flex",
+      "wrist_flex",
+      "wrist_roll",
+      "gripper_jaw"
     ],
     "collisionProxyProvenance": [
-      "C: conservative link envelope around canonical joint pivots"
+      "C: conservative link envelope around canonical joint pivots",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
     ],
     "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
     "unsupportedPhysics": [

@@ -90,8 +90,9 @@ for (const definition of definitions) {
   assert.equal(moved.ok, true, moved.message);
   const types = causalProbe.snapshot().eventLog.map((event) => event.type);
   assert.ok(types.indexOf("CONTACT") < types.indexOf("ATTACH_OBJECT"));
+  assert.ok(types.indexOf("PLACE_CONTACT") < types.indexOf("DETACH_OBJECT"));
+  assert.ok(types.indexOf("DETACH_OBJECT") < types.indexOf("PROCESS_CONTACT"));
   assert.ok(types.indexOf("PROCESS_CONTACT") < types.indexOf("PROCESS_COMMIT"));
-  assert.ok(types.indexOf("PROCESS_COMMIT") < types.indexOf("DETACH_OBJECT"));
 
   for (const execution of definition.validation.referenceExecutions) {
     const engine = await ScenarioV2Engine.create(definition);
