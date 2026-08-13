@@ -65,7 +65,7 @@ export function validateScenarioV2(definition, options = {}) {
     if (["M", "F"].includes(entry.label)) add(nonEmpty(entry.sourceRef), `provenance.${index}.sourceRef`, "M/F claims require a source reference");
   });
   add(object(definition.modelClaim), "modelClaim", "must include a model claim");
-  ["source", "joints", "frames", "collisionProxyProvenance", "supportedFidelity", "unsupportedPhysics"].forEach((key) => add(definition.modelClaim?.[key] !== undefined, `modelClaim.${key}`, "is required"));
+  ["source", "joints", "frames", "limitProvenance", "collisionProxyProvenance", "supportedFidelity", "unsupportedPhysics"].forEach((key) => add(definition.modelClaim?.[key] !== undefined, `modelClaim.${key}`, "is required"));
   add(object(definition.api) && ["guided", "builder", "challenge"].includes(definition.api?.level), "api.level", "must select guided, builder, or challenge");
   if (options.requireValidation !== false) {
     add(object(definition.validation), "validation", "must include validation-only executions");

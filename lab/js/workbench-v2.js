@@ -119,6 +119,9 @@ function initializeSimulation(manifest) {
   }
   const preview = activePreview();
   if (!preview?.scene) throw new Error("Canonical robot preview scene is unavailable.");
+  if (preview.canonicalModelRevision !== app.definition.canonicalModel.sourceRevision) {
+    throw new Error(`Renderer model revision ${preview.canonicalModelRevision || "missing"} does not match ScenarioV2 revision ${app.definition.canonicalModel.sourceRevision}.`);
+  }
   app.equipment = new ScenarioV2EquipmentScene(preview, app.definition);
   elements.preview.setAttribute("aria-label", `${manifest.shortName || manifest.name} canonical model and ScenarioV2 task geometry`);
   applyCameraPreferences();

@@ -277,6 +277,19 @@ await check("layered Blockly surface and camera toggle regression", async () => 
   assert.match(workbench, /setCameraZoomEnabled/);
 });
 
+await check("v2 browser entrypoint excludes legacy fabricated execution", async () => {
+  const html = await readFile(new URL("../lab-workbench.html", import.meta.url), "utf8");
+  const workbench = await readFile(new URL("../lab/js/workbench-v2.js", import.meta.url), "utf8");
+  const catalog = await readFile(new URL("../lab/js/catalog.js", import.meta.url), "utf8");
+  assert.match(html, /workbench-v2\.js/);
+  assert.doesNotMatch(html, /lab\/js\/workbench\.js/);
+  assert.match(workbench, /ScenarioV2Engine/);
+  assert.match(workbench, /PythonRpcClient/);
+  assert.match(workbench, /compileV2BlocklyProgram/);
+  assert.doesNotMatch(workbench, /actions\.js|steps\.js|interactions\.js|equipment\.js|parsePythonProgram/);
+  assert.match(catalog, /missions\/lab-assistant\/v2\/index\.json/);
+});
+
 console.log("RoboBuddy v2 foundation checks passed:");
 checks.forEach((name) => console.log(`- ${name}`));
 console.log(`- ${checks.length} focused foundation groups`);

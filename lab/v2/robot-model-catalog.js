@@ -49,7 +49,7 @@ function previewChain(robotId) {
   }));
 }
 
-const ARM_JOINTS = {
+const ARM_JOINTS_RAW = {
   arduino_arm: [
     joint("base", 20, 130, 90), joint("shoulder", 15, 165, 90), joint("elbow", 0, 180, 90),
     joint("wrist_rot", 0, 180, 90), joint("wrist_tilt", 0, 180, 90), joint("gripper", 25, 130, 90, { type: "gripper", open: 50, close: 120 })
@@ -69,6 +69,19 @@ const ARM_JOINTS = {
   ],
   unitree_g1_29dof: []
 };
+
+const LIMIT_PROVENANCE = Object.freeze({
+  arduino_arm: "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration.",
+  so101_follower: "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
+  lekiwi_sim: "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds.",
+  openarm_v2_bimanual: "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration.",
+  unitree_g1_29dof: "C: no learner joint-limit control is exposed; motion is restricted to authored waypoint, turn, dock, and latch frames."
+});
+
+const ARM_JOINTS = Object.freeze(Object.fromEntries(Object.entries(ARM_JOINTS_RAW).map(([robotId, joints]) => [
+  robotId,
+  joints.map((item) => ({ ...item, limitProvenance: LIMIT_PROVENANCE[robotId] }))
+])));
 
 const SOURCES = {
   arduino_arm: {
@@ -296,7 +309,8 @@ export function modelClaim(robotId) {
   return deepClone({
     modelId: model.id,
     source: model.source,
-    joints: model.joints.map(({ id, min, max, home, unit, type }) => ({ id, min, max, home, unit, type: type || "revolute" })),
+    joints: model.joints.map(({ id, min, max, home, unit, type, limitProvenance }) => ({ id, min, max, home, unit, type: type || "revolute", limitProvenance })),
+    limitProvenance: LIMIT_PROVENANCE[robotId],
     frames: Object.values(model.chains).flatMap((chain) => chain.joints.map((item) => item.id)),
     collisionProxyProvenance: [...new Set(model.collisionProxies.map((item) => item.provenance))],
     supportedFidelity: model.fidelity,

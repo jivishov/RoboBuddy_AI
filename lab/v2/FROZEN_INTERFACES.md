@@ -21,6 +21,8 @@ Every authored source is JSON with `schema: "robobuddy.lab-scenario.v2"` and the
 
 All tasks require frame roles `approach`, `contact`, `lift`, `destination`, and `retreat`. G1 tasks additionally require `dock` and `latch`. Frames contain world positions—not hidden target joint tuples. The engine runs deterministic multi-start IK and collision-checked planning against these frames.
 
+Each evidence requirement must include a visible `label` or `prompt` and must be gated by `availableWhen` (an observable predicate) or `requiresEvent` (an event-match object). Optional `minLength`, `allowedValues`, and `valuePattern` constraints are enforced both when evidence is recorded and during grading. Starter programs leave evidence values blank for the learner; validation reference executions provide explicit observations only after their evidence gate is satisfied.
+
 ## Predicate contract
 
 Supported predicates are `equal`, `not_equal`, `truthy`, `object_at`, `attached_to`, `process_state`, `frame_visited`, `event`, `evidence`, `all`, `any`, and `not`. Grading is outcome/evidence based; source/reference call order is not graded.
@@ -63,6 +65,7 @@ OpenArm uses `effector: "left"` or `"right"` and frames with `chainId: "left"` o
 - `unitree_g1_29dof`: `dd4fa6866e523ad61324f658d63736e4eda3a6e4`
 
 Use the exact `modelClaim(robotId)` output represented in JSON; do not weaken the unsupported-physics list.
+The model claim includes numeric joint limits plus explicit `limitProvenance`; SO-101 and LeKiwi distinguish official-model joints from configured educational bounds, Arduino identifies firmware-configured bounds without claiming calibration, OpenArm distinguishes the baked official chain from configured shared-base bounds, and G1 exposes no learner joint-limit control.
 
 ## Worker-owned paths
 

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadRobotModel, validateProxyEnclosure, validateScenarioV2 } from "../lab/v2/index.js";
+import { loadRobotModel, modelClaim, validateProxyEnclosure, validateScenarioV2 } from "../lab/v2/index.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFINITIONS = resolve(ROOT, "missions", "lab-assistant", "v2", "definitions");
@@ -33,6 +33,7 @@ for (const robotId of ROBOTS) {
   tasks.forEach((task) => {
     assert.equal(task.canonicalModel.sourceRevision, model.source.revision, `${task.id} model revision`);
     assert.equal(task.modelClaim.supportedFidelity, model.fidelity, `${task.id} fidelity claim`);
+    assert.equal(task.modelClaim.limitProvenance, modelClaim(robotId).limitProvenance, `${task.id} limit provenance`);
     model.unsupportedPhysics.forEach((claim) => assert.ok(task.modelClaim.unsupportedPhysics.includes(claim), `${task.id} must preserve unsupported-physics claim: ${claim}`));
     assert.ok(task.evidenceRequirements.every((requirement) => requirement.availableWhen || requirement.requiresEvent), `${task.id} evidence must be gated by an observable predicate or event`);
     assert.ok(task.validation.negativeCases.every((item) => ["goal", "evidence", "prohibited", "causal"].includes(item.expectedFailureKind)), `${task.id} negative cases must declare a supported failure kind`);
