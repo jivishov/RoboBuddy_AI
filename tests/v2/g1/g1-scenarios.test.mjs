@@ -55,9 +55,19 @@ for (const definition of definitions) {
 
   for (const execution of definition.validation.referenceExecutions) {
     const engine = await ScenarioV2Engine.create(definition);
+    const firstCall = execution.calls.find((call) => call.method === "skills.transport");
+    const configuredObject = engine.snapshot().objects[firstCall.args.objectId];
+    assert.equal(configuredObject.configuredAttachmentInterface, canonical.configured.carrierInterface);
+    assert.equal(configuredObject.attachmentInterface, "", "a compatible carrier starts detached");
     const run = await engine.executeProgram(execution.calls);
     assert.equal(run.ok, true, `${definition.id}/${execution.id}: ${run.results.find((item) => !item.ok)?.code || "execution failed"}`);
     assert.equal(run.grade.passed, true, `${definition.id}/${execution.id}: reference must satisfy outcomes and evidence`);
+    for (const key of ["approachFrame", "contactFrame", "liftFrame", "destinationFrame", "retreatFrame"]) {
+      assert.ok(run.state.visitedFrames.includes(firstCall.args[key]), `${definition.id}: ${key} must be executed`);
+    }
+    const eventTypes = run.state.eventLog.map((event) => event.type);
+    assert.ok(eventTypes.indexOf("CONTACT") < eventTypes.indexOf("ATTACH_OBJECT"));
+    assert.ok(eventTypes.indexOf("ATTACH_OBJECT") < eventTypes.indexOf("DETACH_OBJECT"));
   }
   for (const execution of definition.validation.acceptedAlternates) {
     const engine = await ScenarioV2Engine.create(definition);

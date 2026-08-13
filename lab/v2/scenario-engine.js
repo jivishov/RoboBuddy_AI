@@ -16,6 +16,7 @@ function objectMap(definition) {
     ...deepClone(item),
     currentFrame: item.initialFrame,
     attachedTo: "",
+    configuredAttachmentInterface: item.attachmentInterface || "",
     attachmentInterface: "",
     state: deepClone(item.initialState || {})
   }]));
@@ -405,32 +406,45 @@ export class ScenarioV2Engine {
   }
 
   async g1Transport(args) {
+    const required = ["objectId", "approachFrame", "contactFrame", "liftFrame", "destinationFrame", "retreatFrame"];
+    const missing = required.filter((key) => !args[key]);
+    if (missing.length) return failure("INVALID_TRANSPORT", `Secured-carrier transport requires ${missing.join(", ")}.`);
     const object = this.state.objects[args.objectId];
-    if (!object?.securedCarrier || object.attachmentInterface !== this.model.configured.carrierInterface) {
+    if (
+      !object?.securedCarrier
+      || object.configuredAttachmentInterface !== this.model.configured.carrierInterface
+      || object.state?.contentsSecured !== true
+    ) {
       return failure("MORPHOLOGY_LIMIT", "G1 can transport only mechanically compatible secured carriers.");
     }
+    const approachFrame = args.approachFrame;
     const pickupFrame = args.contactFrame;
+    const clearanceFrame = args.liftFrame;
     const destinationFrame = args.destinationFrame;
     const retreatFrame = args.retreatFrame;
-    for (const frameId of [pickupFrame, destinationFrame, retreatFrame]) this.frame(frameId);
-    const pickup = this.planG1Waypoint(pickupFrame);
-    if (!pickup.ok) return pickup;
-    let response = await this.executePlan(pickup.planId, { events: [
+    for (const frameId of [approachFrame, pickupFrame, clearanceFrame, destinationFrame, retreatFrame]) this.frame(frameId);
+    const executeWaypoint = async (frameId, events = []) => {
+      const planned = this.planG1Waypoint(frameId);
+      if (!planned.ok) return planned;
+      return this.executePlan(planned.planId, { events, intervalMs: args.intervalMs });
+    };
+    let response = await executeWaypoint(approachFrame);
+    if (!response.ok) return response;
+    response = await executeWaypoint(pickupFrame, [
       { type: "CONTACT", objectId: args.objectId, frameId: pickupFrame },
       { type: "DOCK_CONTACT", objectId: args.objectId, frameId: pickupFrame },
+      { type: "LATCH_ENGAGED", objectId: args.objectId, frameId: pickupFrame },
       { type: "ATTACH_OBJECT", objectId: args.objectId, effector: "secured_carrier_mount", attachmentInterface: this.model.configured.carrierInterface }
-    ], intervalMs: args.intervalMs });
+    ]);
     if (!response.ok) return response;
-    const delivery = this.planG1Waypoint(destinationFrame);
-    if (!delivery.ok) return delivery;
-    response = await this.executePlan(delivery.planId, { events: [
+    response = await executeWaypoint(clearanceFrame);
+    if (!response.ok) return response;
+    response = await executeWaypoint(destinationFrame, [
       { type: "DOCK_CONTACT", objectId: args.objectId, frameId: destinationFrame },
       { type: "DETACH_OBJECT", objectId: args.objectId, frameId: destinationFrame }
-    ], intervalMs: args.intervalMs });
+    ]);
     if (!response.ok) return response;
-    const retreat = this.planG1Waypoint(retreatFrame);
-    if (!retreat.ok) return retreat;
-    response = await this.executePlan(retreat.planId, { intervalMs: args.intervalMs });
+    response = await executeWaypoint(retreatFrame);
     return response.ok ? success("LOGISTICS_COMPLETE", `${args.objectId} delivered by constrained docking and latch sequence.`) : response;
   }
 

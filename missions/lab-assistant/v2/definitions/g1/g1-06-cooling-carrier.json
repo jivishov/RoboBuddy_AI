@@ -297,7 +297,8 @@
     "frames": [],
     "collisionProxyProvenance": [
       "C: conservative full-body waypoint envelope",
-      "C: configured locked-carrier envelope"
+      "C: configured locked-carrier envelope",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
     ],
     "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
     "unsupportedPhysics": [
