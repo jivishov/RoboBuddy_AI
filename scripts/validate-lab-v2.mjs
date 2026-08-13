@@ -34,14 +34,23 @@ for (const robotId of ROBOTS) {
     assert.equal(task.canonicalModel.sourceRevision, model.source.revision, `${task.id} model revision`);
     assert.equal(task.modelClaim.supportedFidelity, model.fidelity, `${task.id} fidelity claim`);
     model.unsupportedPhysics.forEach((claim) => assert.ok(task.modelClaim.unsupportedPhysics.includes(claim), `${task.id} must preserve unsupported-physics claim: ${claim}`));
+    assert.ok(task.evidenceRequirements.every((requirement) => requirement.availableWhen || requirement.requiresEvent), `${task.id} evidence must be gated by an observable predicate or event`);
+    assert.ok(task.validation.negativeCases.every((item) => ["goal", "evidence", "prohibited", "causal"].includes(item.expectedFailureKind)), `${task.id} negative cases must declare a supported failure kind`);
+    task.validation.acceptedAlternates.forEach((alternate) => {
+      assert.ok(task.validation.referenceExecutions.every((reference) => JSON.stringify(reference.calls) !== JSON.stringify(alternate.calls)), `${task.id}/${alternate.id} must differ from every reference execution`);
+    });
+    if (task.migration.class === "B") assert.ok(task.fixtures.length > 0, `${task.id} class B requires an explicit visible fixture`);
     if (robotId === "unitree_g1_29dof") {
+      assert.ok(task.frames && Object.values(task.frames).some((frame) => frame.role === "dock") && Object.values(task.frames).some((frame) => frame.role === "latch"), `${task.id} G1 needs dock and latch frames`);
+      assert.ok(task.objects.some((item) => item.securedCarrier && item.attachmentInterface === model.configured.carrierInterface), `${task.id} G1 requires a compatible secured carrier`);
       assert.ok(task.objects.every((item) => !item.transportable || (item.securedCarrier && item.attachmentInterface === model.configured.carrierInterface)), `${task.id} G1 transport objects must use secured carriers`);
       assert.ok(!task.grasps.some((grasp) => grasp.mode === "free"), `${task.id} G1 cannot expose free grasps`);
     }
+    if (robotId === "lekiwi_sim") assert.ok(task.navigation?.occupancyGrid, `${task.id} LeKiwi requires an occupancy grid`);
   });
 }
 
 console.log("ScenarioV2 validation passed:");
 console.log("- 50 unique successors; every v1 id mapped exactly once");
 console.log("- 10 ranks per robot family");
-console.log("- canonical revisions, model claims, collision enclosure, and G1 logistics boundary verified");
+console.log("- canonical revisions, model claims, collision enclosure, evidence gates, alternates, fixtures, LeKiwi grids, and G1 logistics boundary verified");

@@ -1,4 +1,5 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertScenarioV2, clientScenarioPath, stripValidationForClient } from "../lab/v2/scenario-schema.js";
@@ -79,7 +80,16 @@ const migration = { schema: "robobuddy.lab-migration-map.v2", mappings: tasks.ma
 
 const v1Files = (await readdir(resolve(ROOT, "missions", "lab-assistant", "v1"))).filter((name) => name.endsWith(".json")).sort();
 if (v1Files.length !== 50) throw new Error(`Expected 50 immutable v1 definitions; found ${v1Files.length}.`);
-const legacy = { schema: "robobuddy.legacy-v1-export-manifest.v1", readOnly: true, reinterpretAsV2: false, files: v1Files.map((name) => `missions/lab-assistant/v1/${name}`) };
+const legacyFiles = [];
+for (const name of v1Files) {
+  const content = await readFile(resolve(ROOT, "missions", "lab-assistant", "v1", name));
+  legacyFiles.push({
+    path: `missions/lab-assistant/v1/${name}`,
+    bytes: content.byteLength,
+    sha256: createHash("sha256").update(content).digest("hex")
+  });
+}
+const legacy = { schema: "robobuddy.legacy-v1-export-manifest.v1", readOnly: true, reinterpretAsV2: false, files: legacyFiles };
 
 await writeFile(resolve(V2, "index.json"), `${JSON.stringify(index, null, 2)}\n`, "utf8");
 await writeFile(resolve(V2, "migration-map.json"), `${JSON.stringify(migration, null, 2)}\n`, "utf8");

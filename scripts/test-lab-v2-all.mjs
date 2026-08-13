@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +17,15 @@ for (const family of (await readdir(DEFINITIONS, { withFileTypes: true })).filte
 }
 
 assert.equal(definitions.length, 50);
+const legacyManifest = JSON.parse(await readFile(resolve(ROOT, "missions", "lab-assistant", "v2", "legacy-v1-export.json"), "utf8"));
+assert.equal(legacyManifest.readOnly, true);
+assert.equal(legacyManifest.reinterpretAsV2, false);
+assert.equal(legacyManifest.files.length, 50);
+for (const entry of legacyManifest.files) {
+  const content = await readFile(resolve(ROOT, entry.path));
+  assert.equal(content.byteLength, entry.bytes, `${entry.path} legacy byte count`);
+  assert.equal(createHash("sha256").update(content).digest("hex"), entry.sha256, `${entry.path} legacy digest`);
+}
 let references = 0;
 let alternates = 0;
 let negatives = 0;
@@ -50,3 +60,4 @@ console.log("ScenarioV2 execution acceptance passed:");
 console.log(`- ${references} validation-only reference executions passed`);
 console.log(`- ${alternates} legitimate alternate executions passed`);
 console.log(`- ${negatives} negative perturbations failed for their declared category`);
+console.log("- 50 v1 definitions matched the read-only export manifest byte counts and SHA-256 digests");
