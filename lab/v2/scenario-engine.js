@@ -6,6 +6,47 @@ import { planJointPath, planOccupancyGridAStar, requireStowedForDrive } from "./
 import { homeJointState, loadRobotModel } from "./robot-model-catalog.js";
 import { assertScenarioV2 } from "./scenario-schema.js";
 import { buildContactSequence, TrajectoryExecutor } from "./trajectory-executor.js";
+import { G1_CARRY_ARMS, G1_NEUTRAL_LEGS, gaitPose } from "../../simulator/js/unitree-g1/steps.js?v=20260812-g1-registration-fix-2";
+
+const G1_NEUTRAL_ARMS = Object.freeze(Object.fromEntries(Object.keys(G1_CARRY_ARMS).map((jointId) => [jointId, 0])));
+
+function g1LogisticsPose({ walking, turning, leftLead, carrying, turnDirection }) {
+  const arms = carrying ? G1_CARRY_ARMS : G1_NEUTRAL_ARMS;
+  if (walking) {
+    const pose = gaitPose(leftLead, carrying);
+    const strideScale = 0.55;
+    return {
+      ...pose,
+      ...arms,
+      left_hip_pitch_joint: pose.left_hip_pitch_joint * strideScale,
+      left_knee_joint: pose.left_knee_joint * strideScale,
+      left_ankle_pitch_joint: pose.left_ankle_pitch_joint * strideScale,
+      left_hip_roll_joint: pose.left_hip_roll_joint * strideScale,
+      right_hip_pitch_joint: pose.right_hip_pitch_joint * strideScale,
+      right_knee_joint: pose.right_knee_joint * strideScale,
+      right_ankle_pitch_joint: pose.right_ankle_pitch_joint * strideScale,
+      right_hip_roll_joint: pose.right_hip_roll_joint * strideScale,
+      waist_yaw_joint: pose.waist_yaw_joint * strideScale,
+      ...(carrying ? {} : {
+        left_shoulder_pitch_joint: pose.left_shoulder_pitch_joint * 0.5,
+        right_shoulder_pitch_joint: pose.right_shoulder_pitch_joint * 0.5,
+        left_elbow_joint: 5,
+        right_elbow_joint: 5
+      })
+    };
+  }
+  if (turning) return {
+    ...G1_NEUTRAL_LEGS,
+    ...arms,
+    left_knee_joint: 14,
+    right_knee_joint: 14,
+    left_hip_yaw_joint: turnDirection >= 0 ? -22 : 22,
+    right_hip_yaw_joint: turnDirection >= 0 ? 22 : -22,
+    left_ankle_pitch_joint: -5,
+    right_ankle_pitch_joint: -5
+  };
+  return { ...G1_NEUTRAL_LEGS, ...arms };
+}
 
 function result(ok, code, message, extra = {}) { return { ok, code, message, ...extra }; }
 function failure(code, message, extra = {}) { return result(false, code, message, extra); }
@@ -266,6 +307,8 @@ export class ScenarioV2Engine {
     else if (plan.kind === "g1-waypoint") {
       samples = [];
       let startPose = deepClone(this.state.rootPose);
+      const currentlyCarrying = Object.values(this.state.objects).some((object) => object.attachedTo === "secured_carrier_mount");
+      const attachingAtDestination = (args.events || []).some((event) => event.type === "ATTACH_OBJECT");
       plan.path.slice(1).forEach((frameId) => {
         const frame = this.frame(frameId);
         const targetPosition = [...frame.positionMm];
@@ -273,11 +316,16 @@ export class ScenarioV2Engine {
         const dx = targetPosition[0] - startPose.positionMm[0];
         const dz = targetPosition[2] - startPose.positionMm[2];
         const rawHeadingDelta = ((targetHeading - startPose.headingDeg + 540) % 360) - 180;
-        // Interpolation makes configured waypoint logistics visibly inspectable.
-        // It is not a claim of gait, balance, wheel slip, or dynamic locomotion.
+        const walking = Math.hypot(dx, dz) > 1;
+        const turning = Math.abs(rawHeadingDelta) > 1;
+        // Root interpolation is paired with a fixed, authored joint cycle so the
+        // robot never appears to slide in a static pose. This remains a waypoint
+        // visualization, not leg IK, balance, foot-contact, or dynamics output.
         const stepCount = Math.max(4, Math.min(18, Math.ceil(Math.hypot(dx, dz) / 75)));
         for (let step = 1; step <= stepCount; step += 1) {
           const progress = step / stepCount;
+          const finalSample = step === stepCount;
+          const carrying = currentlyCarrying || (attachingAtDestination && finalSample);
           samples.push({
             rootPose: {
               positionMm: [
@@ -285,10 +333,13 @@ export class ScenarioV2Engine {
                 startPose.positionMm[1] + (targetPosition[1] - startPose.positionMm[1]) * progress,
                 startPose.positionMm[2] + dz * progress
               ],
-              headingDeg: startPose.headingDeg + rawHeadingDelta * progress
+              headingDeg: finalSample ? targetHeading : startPose.headingDeg + rawHeadingDelta * progress
             },
-            reachedFrame: step === stepCount ? frameId : undefined,
-            phase: "waypoint_logistics"
+            jointState: finalSample
+              ? { ...G1_NEUTRAL_LEGS, ...(carrying ? G1_CARRY_ARMS : G1_NEUTRAL_ARMS) }
+              : g1LogisticsPose({ walking, turning, leftLead: (samples.length + step) % 2 === 0, carrying, turnDirection: rawHeadingDelta }),
+            reachedFrame: finalSample ? frameId : undefined,
+            phase: "waypoint_logistics_kinematic_cycle"
           });
         }
         startPose = { positionMm: targetPosition, headingDeg: targetHeading };
@@ -298,7 +349,9 @@ export class ScenarioV2Engine {
     const trajectory = { schema: "robobuddy.trajectory.v2", kind: plan.kind, samples: samples || [] };
     this.executor.load(trajectory);
     this.state.runState = "running";
-    const executed = await this.executor.run({ intervalMs: Number(args.intervalMs ?? this.options.intervalMs ?? 0) });
+    const configuredIntervalMs = Number(args.intervalMs ?? this.options.intervalMs ?? 0);
+    const intervalMs = plan.kind === "g1-waypoint" && configuredIntervalMs > 0 ? Math.max(80, configuredIntervalMs) : configuredIntervalMs;
+    const executed = await this.executor.run({ intervalMs });
     this.state.runState = executed.status === "complete" ? "ready" : executed.status;
     if (executed.status === "stopped") return failure("STOPPED", "Trajectory stopped at the last executed sample.", { executor: executed });
     this.state.lastReachedFrame = plan.frameId;

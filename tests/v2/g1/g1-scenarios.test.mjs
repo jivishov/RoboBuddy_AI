@@ -16,6 +16,7 @@ const files = (await readdir(FAMILY)).filter((name) => name.endsWith(".json")).s
 const definitions = await Promise.all(files.map(async (name) => JSON.parse(await readFile(resolve(FAMILY, name), "utf8"))));
 const canonical = await loadRobotModel("unitree_g1_29dof");
 const canonicalClaim = modelClaim("unitree_g1_29dof");
+const rendererJointLimits = new Map(canonical.rendererChain.filter((joint) => joint.jointId && joint.limitsDeg).map((joint) => [joint.jointId, joint.limitsDeg]));
 const expectedIds = [
   "g1-01-empty-tray",
   "g1-02-glassware-carrier",
@@ -287,9 +288,20 @@ for (const definition of definitions) {
     assert.equal(run.grade.passed, true, `${definition.id}/${execution.id}: reference must satisfy outcome plus evidence`);
     assert.equal(run.state.lastReachedFrame, "home");
     assert.ok(
-      samples.some((item) => item.sample.phase === "waypoint_logistics" && !item.sample.reachedFrame),
+      samples.some((item) => item.sample.phase === "waypoint_logistics_kinematic_cycle" && !item.sample.reachedFrame),
       `${definition.id}/${execution.id}: configured waypoint edges need intermediate visual samples`
     );
+    assert.ok(
+      samples.some((item) => item.sample.phase === "waypoint_logistics_kinematic_cycle" && Math.abs(item.sample.jointState?.left_hip_pitch_joint || 0) > 0),
+      `${definition.id}/${execution.id}: root travel cannot be rendered as a static-pose slide`
+    );
+    for (const item of samples) {
+      for (const [jointId, value] of Object.entries(item.sample.jointState || {})) {
+        const limits = rendererJointLimits.get(jointId);
+        if (limits) assert.ok(value >= limits[0] && value <= limits[1], `${definition.id}/${jointId}: authored logistics cycle exceeds canonical limits`);
+      }
+    }
+    assert.ok(Object.values(run.state.jointState).every((value) => Math.abs(value) < 1e-9), `${definition.id}: home return must end in the neutral authored pose`);
     for (const item of samples.filter((entry) => entry.sample.reachedFrame)) {
       assert.equal(item.sample.rootPose?.headingDeg, definition.frames[item.sample.reachedFrame].headingDeg, `${definition.id}/${item.sample.reachedFrame}: executed turn state must match the authored heading`);
     }
