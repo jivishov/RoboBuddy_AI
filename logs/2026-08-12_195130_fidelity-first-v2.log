@@ -4,3 +4,6 @@
 2026-08-12 19:52:18 -05:00 - Verified the project had no internal .git directory; the enclosing Projects repository was not modified.
 2026-08-12 19:52:18 -05:00 - Verified configured Git identity: Emil Jivishov <97884055+jivishov@users.noreply.github.com>.
 2026-08-12 19:52:18 -05:00 - Initialized a standalone local repository on codex/robobuddy-v2-foundation with no remote.
+2026-08-12 20:10:00 -05:00 - Added the isolated ScenarioV2 foundation: canonical models, FK/DLS IK, collision/path planning, event-gated trajectory execution, Pyodide RPC, layered APIs, outcome/evidence grading, and separate v2 storage.
+2026-08-12 20:14:00 -05:00 - Ran npm run test:v2:foundation: 9 focused groups passed, including model/renderer bindings, FK/IK/limits, proxy enclosure/path checks, A*/stow, contact/STOP/reset, ScenarioV2 outcomes, legacy storage separation, Python RPC behaviors, layered Blockly, and camera-toggle regression.
+2026-08-12 20:15:00 -05:00 - Froze worker-facing ScenarioV2 and API interfaces in lab/v2/FROZEN_INTERFACES.md.

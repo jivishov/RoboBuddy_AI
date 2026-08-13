@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ARM_PREVIEW_MESH_DATA } from "./arm-preview-mesh-data.js?v=20260611-meshdata";
 import { ARM_RIG_CONFIG } from "./arm-rig-config.js?v=20260611-meshdata";
 import { ROBOT_RIG_PREVIEW_CONFIGS } from "./robot-rig-configs.js?v=20260812-g1-registration-fix-1";
+import { bindMeshRendererModel, bindStaticRendererModel } from "../../lab/v2/renderer-binding.js";
 import { G1_SIMULATION } from "./unitree-g1/index.js?v=20260812-g1-registration-fix-2";
 
 const NS = (window.RoboAdmin = window.RoboAdmin || {});
@@ -22,6 +23,7 @@ class ArmPreview3D {
     this.hostElement = hostElement;
     this.options = options;
     this.config = ARM_RIG_CONFIG;
+    bindStaticRendererModel("arduino_arm", this);
     this.jointLimits = Array.isArray(options.jointLimits) ? options.jointLimits : this.config.firmware.limits;
     this.angles = this._sanitizeAngles(options.initialAngles || this.config.firmware.home || DEFAULT_HOME);
     this.groups = {};
@@ -773,6 +775,7 @@ class RobotRigPreview3D {
     this.manifest = options.manifest || null;
     this.state = options.state || null;
     this.config = options.config || ROBOT_RIG_PREVIEW_CONFIGS[this.manifest ? this.manifest.id : ""];
+    if (this.manifest?.id) bindStaticRendererModel(this.manifest.id, this);
     this.onStatus = typeof options.onStatus === "function" ? options.onStatus : null;
     this.onUnavailable = typeof options.onUnavailable === "function" ? options.onUnavailable : null;
     this.groups = {};
@@ -1070,7 +1073,8 @@ class RobotRigPreview3D {
     try {
       const version = meshConfig.version ? `?v=${encodeURIComponent(meshConfig.version)}` : "";
       const module = await import(`${meshConfig.module}${version}`);
-      const meshData = module.ROBOT_RIG_MESH_DATA || module.default;
+      const sourceMeshData = module.ROBOT_RIG_MESH_DATA || module.default;
+      const meshData = await bindMeshRendererModel(this.manifest?.id, this, sourceMeshData);
       if (this.disposed) {
         return;
       }

@@ -1,0 +1,10 @@
+{
+  "name": "robobuddy-ai-lab-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:v2:foundation": "node scripts/test-lab-v2-foundation.mjs",
+    "validate:v2": "node scripts/validate-lab-v2.mjs",
+    "test:v2:all": "node scripts/test-lab-v2-all.mjs"
+  }
+}
