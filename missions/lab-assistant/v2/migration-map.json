@@ -1,0 +1,355 @@
+{
+  "schema": "robobuddy.lab-migration-map.v2",
+  "mappings": [
+    {
+      "legacyId": "arduino-arm-01-balance-placement",
+      "successorId": "arduino-arm-01-balance-placement-v2",
+      "robotId": "arduino_arm",
+      "rank": 1,
+      "class": "B"
+    },
+    {
+      "legacyId": "arduino-arm-02-volume-staging",
+      "successorId": "arduino-arm-02-volume-staging-v2",
+      "robotId": "arduino_arm",
+      "rank": 2,
+      "class": "A"
+    },
+    {
+      "legacyId": "arduino-arm-03-cuvette-insertion",
+      "successorId": "arduino-arm-03-cuvette-insertion-v2",
+      "robotId": "arduino_arm",
+      "rank": 3,
+      "class": "B"
+    },
+    {
+      "legacyId": "arduino-arm-04-filter-paper-setup",
+      "successorId": "arduino-arm-04-filter-paper-setup-v2",
+      "robotId": "arduino_arm",
+      "rank": 4,
+      "class": "B"
+    },
+    {
+      "legacyId": "arduino-arm-05-flask-under-burette",
+      "successorId": "arduino-arm-05-flask-under-burette-v2",
+      "robotId": "arduino_arm",
+      "rank": 5,
+      "class": "A"
+    },
+    {
+      "legacyId": "arduino-arm-06-cool-then-weigh",
+      "successorId": "arduino-arm-06-cool-then-weigh-v2",
+      "robotId": "arduino_arm",
+      "rank": 6,
+      "class": "B"
+    },
+    {
+      "legacyId": "arduino-arm-07-chromatography-paper",
+      "successorId": "arduino-arm-07-chromatography-paper-v2",
+      "robotId": "arduino_arm",
+      "rank": 7,
+      "class": "B"
+    },
+    {
+      "legacyId": "arduino-arm-08-blank-read-return",
+      "successorId": "arduino-arm-08-blank-read-return-v2",
+      "robotId": "arduino_arm",
+      "rank": 8,
+      "class": "B"
+    },
+    {
+      "legacyId": "arduino-arm-09-burette-condition-fill",
+      "successorId": "arduino-arm-09-burette-condition-fill-v2",
+      "robotId": "arduino_arm",
+      "rank": 9,
+      "class": "C"
+    },
+    {
+      "legacyId": "arduino-arm-10-two-stage-drying",
+      "successorId": "arduino-arm-10-two-stage-drying-v2",
+      "robotId": "arduino_arm",
+      "rank": 10,
+      "class": "C"
+    },
+    {
+      "legacyId": "so101-01-weigh-boat",
+      "successorId": "so101-v2-01-weigh-boat",
+      "robotId": "so101_follower",
+      "rank": 1,
+      "class": "B"
+    },
+    {
+      "legacyId": "so101-02-mixing-station",
+      "successorId": "so101-v2-02-mixing-station",
+      "robotId": "so101_follower",
+      "rank": 2,
+      "class": "B"
+    },
+    {
+      "legacyId": "so101-03-cuvette-orientation",
+      "successorId": "so101-v2-03-cuvette-orientation",
+      "robotId": "so101_follower",
+      "rank": 3,
+      "class": "C"
+    },
+    {
+      "legacyId": "so101-04-filter-assembly",
+      "successorId": "so101-v2-04-filter-assembly",
+      "robotId": "so101_follower",
+      "rank": 4,
+      "class": "B"
+    },
+    {
+      "legacyId": "so101-05-pipette-pump",
+      "successorId": "so101-v2-05-pipette-pump",
+      "robotId": "so101_follower",
+      "rank": 5,
+      "class": "B"
+    },
+    {
+      "legacyId": "so101-06-quantitative-transfer",
+      "successorId": "so101-v2-06-quantitative-transfer",
+      "robotId": "so101_follower",
+      "rank": 6,
+      "class": "C"
+    },
+    {
+      "legacyId": "so101-07-chromatography-spotting",
+      "successorId": "so101-v2-07-chromatography-spotting",
+      "robotId": "so101_follower",
+      "rank": 7,
+      "class": "C"
+    },
+    {
+      "legacyId": "so101-08-burette-initial-reading",
+      "successorId": "so101-v2-08-burette-initial-reading",
+      "robotId": "so101_follower",
+      "rank": 8,
+      "class": "C"
+    },
+    {
+      "legacyId": "so101-09-vacuum-filtration",
+      "successorId": "so101-v2-09-vacuum-filtration",
+      "robotId": "so101_follower",
+      "rank": 9,
+      "class": "C"
+    },
+    {
+      "legacyId": "so101-10-endpoint-assistant",
+      "successorId": "so101-v2-10-endpoint-assistant",
+      "robotId": "so101_follower",
+      "rank": 10,
+      "class": "C"
+    },
+    {
+      "legacyId": "lekiwi-01-beaker-courier",
+      "successorId": "lekiwi-01-beaker-courier",
+      "robotId": "lekiwi_sim",
+      "rank": 1,
+      "class": "A"
+    },
+    {
+      "legacyId": "lekiwi-02-sample-fetch",
+      "successorId": "lekiwi-02-glassware-route",
+      "robotId": "lekiwi_sim",
+      "rank": 2,
+      "class": "B"
+    },
+    {
+      "legacyId": "lekiwi-03-mobile-weighing",
+      "successorId": "lekiwi-03-sample-delivery",
+      "robotId": "lekiwi_sim",
+      "rank": 3,
+      "class": "B"
+    },
+    {
+      "legacyId": "lekiwi-04-cuvette-rack",
+      "successorId": "lekiwi-04-filter-station-run",
+      "robotId": "lekiwi_sim",
+      "rank": 4,
+      "class": "B"
+    },
+    {
+      "legacyId": "lekiwi-05-waste-return",
+      "successorId": "lekiwi-05-reagent-shuttle",
+      "robotId": "lekiwi_sim",
+      "rank": 5,
+      "class": "B"
+    },
+    {
+      "legacyId": "lekiwi-06-dilution-route",
+      "successorId": "lekiwi-06-cooling-rack-route",
+      "robotId": "lekiwi_sim",
+      "rank": 6,
+      "class": "C"
+    },
+    {
+      "legacyId": "lekiwi-07-filtration-supply",
+      "successorId": "lekiwi-07-chromatography-route",
+      "robotId": "lekiwi_sim",
+      "rank": 7,
+      "class": "C"
+    },
+    {
+      "legacyId": "lekiwi-08-cooled-precipitate",
+      "successorId": "lekiwi-08-spectrometer-route",
+      "robotId": "lekiwi_sim",
+      "rank": 8,
+      "class": "C"
+    },
+    {
+      "legacyId": "lekiwi-09-spectro-route",
+      "successorId": "lekiwi-09-titration-logistics",
+      "robotId": "lekiwi_sim",
+      "rank": 9,
+      "class": "C"
+    },
+    {
+      "legacyId": "lekiwi-10-hard-water-logistics",
+      "successorId": "lekiwi-10-hard-water-logistics",
+      "robotId": "lekiwi_sim",
+      "rank": 10,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-01-weighing-handoff",
+      "successorId": "openarm-01-weighing-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 1,
+      "class": "A"
+    },
+    {
+      "legacyId": "openarm-02-stabilized-solvent-addition",
+      "successorId": "openarm-02-glassware-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 2,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-03-stopper-and-mix",
+      "successorId": "openarm-03-cuvette-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 3,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-04-pipette-loading",
+      "successorId": "openarm-04-filtration-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 4,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-05-filter-assembly",
+      "successorId": "openarm-05-titration-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 5,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-06-controlled-pour",
+      "successorId": "openarm-06-cooling-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 6,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-07-buchner-station",
+      "successorId": "openarm-07-chromatography-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 7,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-08-separatory-funnel",
+      "successorId": "openarm-08-spectrometer-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 8,
+      "class": "C"
+    },
+    {
+      "legacyId": "openarm-09-titration-coordination",
+      "successorId": "openarm-09-standardization-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 9,
+      "class": "B"
+    },
+    {
+      "legacyId": "openarm-10-gravimetric-workcell",
+      "successorId": "openarm-10-gravimetric-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 10,
+      "class": "B"
+    },
+    {
+      "legacyId": "g1-01-empty-tray",
+      "successorId": "g1-01-empty-tray",
+      "robotId": "unitree_g1_29dof",
+      "rank": 1,
+      "class": "A"
+    },
+    {
+      "legacyId": "g1-02-sealed-sample",
+      "successorId": "g1-02-glassware-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 2,
+      "class": "B"
+    },
+    {
+      "legacyId": "g1-03-cuvette-rack",
+      "successorId": "g1-03-sample-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 3,
+      "class": "B"
+    },
+    {
+      "legacyId": "g1-04-filtration-kit",
+      "successorId": "g1-04-filtration-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 4,
+      "class": "B"
+    },
+    {
+      "legacyId": "g1-05-waste-carrier",
+      "successorId": "g1-05-titration-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 5,
+      "class": "C"
+    },
+    {
+      "legacyId": "g1-06-cooled-sample-tray",
+      "successorId": "g1-06-cooling-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 6,
+      "class": "C"
+    },
+    {
+      "legacyId": "g1-07-reagent-tote",
+      "successorId": "g1-07-chromatography-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 7,
+      "class": "C"
+    },
+    {
+      "legacyId": "g1-08-spectro-courier-loop",
+      "successorId": "g1-08-spectrometer-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 8,
+      "class": "C"
+    },
+    {
+      "legacyId": "g1-09-gravimetry-logistics",
+      "successorId": "g1-09-standardization-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 9,
+      "class": "C"
+    },
+    {
+      "legacyId": "g1-10-lab-runner-shift",
+      "successorId": "g1-10-lab-runner-shift",
+      "robotId": "unitree_g1_29dof",
+      "rank": 10,
+      "class": "C"
+    }
+  ]
+}

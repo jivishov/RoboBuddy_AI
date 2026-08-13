@@ -1,0 +1,360 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "arduino-arm-02-volume-staging-v2",
+  "title": "Volume Station Setup v2",
+  "brief": "Stage a graduated cylinder and sealed sample bottle in separate configured measuring slots.",
+  "robotId": "arduino_arm",
+  "canonicalModelId": "arduino_arm",
+  "rank": 2,
+  "supersedes": "arduino-arm-02-volume-staging",
+  "assistanceLevel": "Guided",
+  "legacyClassification": "A",
+  "migration": {
+    "class": "A",
+    "legacyLearningObjective": "Program Arduino Arm to complete the observable handling sequence."
+  },
+  "canonicalModel": {
+    "id": "arduino_arm",
+    "sourceRevision": "ARM_RIG_CONFIG 2026-06-11"
+  },
+  "frames": {
+    "pickup_approach": {
+      "positionMm": [
+        -125.999,
+        260.838,
+        -187.047
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    },
+    "pickup_contact": {
+      "positionMm": [
+        -104.136,
+        372.605,
+        -82.021
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    },
+    "pickup_lift": {
+      "positionMm": [
+        8.33,
+        411.121,
+        1.912
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    },
+    "cylinder_station": {
+      "positionMm": [
+        254.195,
+        105.104,
+        135.629
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      },
+      "contactFixtureId": "cylinder_measuring_slot"
+    },
+    "destination_retreat": {
+      "positionMm": [
+        56.012,
+        393.389,
+        -21.503
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    },
+    "second_pickup_approach": {
+      "positionMm": [
+        -181.28,
+        327.308,
+        51.748
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    },
+    "second_pickup_contact": {
+      "positionMm": [
+        55.143,
+        341.27,
+        26.26
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    },
+    "bottle_station": {
+      "positionMm": [
+        58.964,
+        346.37,
+        -36.675
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      },
+      "contactFixtureId": "bottle_measuring_slot"
+    },
+    "second_destination_retreat": {
+      "positionMm": [
+        162.509,
+        312.831,
+        172.817
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 3
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "cylinder_measuring_slot",
+      "label": "Graduated-cylinder measuring slot",
+      "frameId": "cylinder_station",
+      "purpose": "Keeps the staged cylinder visibly upright; it does not measure volume.",
+      "visible": true,
+      "configured": true
+    },
+    {
+      "id": "bottle_measuring_slot",
+      "label": "Sealed-bottle measuring slot",
+      "frameId": "bottle_station",
+      "purpose": "Keeps the sealed sample bottle visibly separate from the cylinder; it does not measure volume.",
+      "visible": true,
+      "configured": true
+    }
+  ],
+  "objects": [
+    {
+      "id": "graduated_cylinder",
+      "label": "Graduated cylinder",
+      "initialFrame": "pickup_contact",
+      "transportable": true,
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "sealed_sample_bottle",
+      "label": "Sealed sample bottle",
+      "initialFrame": "second_pickup_contact",
+      "transportable": true,
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "grasps": [
+    {
+      "id": "cylinder-linkage-pinch",
+      "objectId": "graduated_cylinder",
+      "effector": "default",
+      "mode": "linkage-pinch",
+      "linkageAware": true,
+      "contactFrame": "pickup_contact"
+    },
+    {
+      "id": "bottle-linkage-pinch",
+      "objectId": "sealed_sample_bottle",
+      "effector": "default",
+      "mode": "linkage-pinch",
+      "linkageAware": true,
+      "contactFrame": "second_pickup_contact"
+    }
+  ],
+  "processModels": [],
+  "goalPredicates": [
+    {
+      "id": "cylinder-staged",
+      "op": "object_at",
+      "objectId": "graduated_cylinder",
+      "frameId": "cylinder_station"
+    },
+    {
+      "id": "bottle-staged",
+      "op": "object_at",
+      "objectId": "sealed_sample_bottle",
+      "frameId": "bottle_station"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "graduated_cylinder-must-not-remain-held",
+      "op": "attached_to",
+      "objectId": "graduated_cylinder",
+      "effector": "default"
+    },
+    {
+      "id": "sealed_sample_bottle-must-not-remain-held",
+      "op": "attached_to",
+      "objectId": "sealed_sample_bottle",
+      "effector": "default"
+    },
+    {
+      "id": "fixed-root-must-not-move",
+      "op": "truthy",
+      "path": "fixedRootViolation"
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "staging_observation",
+      "label": "Confirm both items are visibly seated in their named measuring slots.",
+      "kind": "learner-recorded",
+      "allowedValues": [
+        "both configured slots occupied"
+      ],
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "object_at",
+            "objectId": "graduated_cylinder",
+            "frameId": "cylinder_station"
+          },
+          {
+            "op": "object_at",
+            "objectId": "sealed_sample_bottle",
+            "frameId": "bottle_station"
+          }
+        ]
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The v1 measuring-volume staging task establishes the bounded procedural intent preserved here.",
+      "sourceRef": "missions/lab-assistant/v1/arduino-arm-02-volume-staging.json"
+    },
+    {
+      "label": "F",
+      "claim": "Reachability and motion use the frozen CAD-derived ARM_RIG_CONFIG fixed-base chain.",
+      "sourceRef": "simulator/js/arm-rig-config.js"
+    },
+    {
+      "label": "R",
+      "claim": "The fixed-base linkage gripper is assigned only transport, placement, or fixture-assisted insertion roles supported by its morphology."
+    },
+    {
+      "label": "C",
+      "claim": "Named task frames, 3 mm validation tolerances, fixture state, and any displayed readout are authored educational configuration."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "arduino_arm",
+    "source": {
+      "kind": "CAD-derived configured chain",
+      "revision": "ARM_RIG_CONFIG 2026-06-11",
+      "path": "simulator/js/arm-rig-config.js",
+      "provenance": "M",
+      "notes": "Measured STEP assembly pivots and firmware limits; not certified calibration."
+    },
+    "joints": [
+      {
+        "id": "base",
+        "min": 20,
+        "max": 130,
+        "home": 90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration."
+      },
+      {
+        "id": "shoulder",
+        "min": 15,
+        "max": 165,
+        "home": 90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration."
+      },
+      {
+        "id": "elbow",
+        "min": 0,
+        "max": 180,
+        "home": 90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration."
+      },
+      {
+        "id": "wrist_rot",
+        "min": 0,
+        "max": 180,
+        "home": 90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration."
+      },
+      {
+        "id": "wrist_tilt",
+        "min": 0,
+        "max": 180,
+        "home": 90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration."
+      },
+      {
+        "id": "gripper",
+        "min": 25,
+        "max": 130,
+        "home": 90,
+        "unit": "deg",
+        "type": "gripper",
+        "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration."
+      }
+    ],
+    "limitProvenance": "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration.",
+    "frames": [
+      "baseYaw",
+      "shoulderPitch",
+      "elbowPitch",
+      "wristRotate",
+      "wristTilt",
+      "tool"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots",
+      "M/C: CAD-derived renderer bounds and configured linkage sweep padding"
+    ],
+    "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+    "unsupportedPhysics": [
+      "certified calibration",
+      "servo dynamics",
+      "force control",
+      "payload certification"
+    ]
+  },
+  "api": {
+    "level": "guided",
+    "namedFramesDiscoverable": true,
+    "starterEvidencePrefilled": false
+  },
+  "validationAvailable": true
+}

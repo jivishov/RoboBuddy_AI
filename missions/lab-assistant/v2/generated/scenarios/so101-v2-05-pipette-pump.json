@@ -1,0 +1,369 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "so101-v2-05-pipette-pump",
+  "title": "Pipette Pump Coupling",
+  "brief": "Place the dry practice pump in a keyed coupling cradle and commit the discrete coupled state.",
+  "robotId": "so101_follower",
+  "rank": 5,
+  "supersedes": "so101-05-pipette-pump",
+  "assistanceLevel": "Builder",
+  "legacyClassification": "B",
+  "migration": {
+    "class": "B",
+    "legacyLearningObjective": "Program the pump-to-pipette coupling sequence with compatibility feedback and observable confirmation."
+  },
+  "canonicalModel": {
+    "id": "so101_follower",
+    "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
+  },
+  "frames": {
+    "pipette_pump_approach": {
+      "positionMm": [
+        50,
+        180,
+        -250
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "pipette_pump_pickup_adapter"
+    },
+    "pipette_pump_contact": {
+      "positionMm": [
+        50,
+        80,
+        -250
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "pipette_pump_pickup_adapter"
+    },
+    "pipette_pump_lift": {
+      "positionMm": [
+        50,
+        220,
+        -250
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "pipette_pump_pickup_adapter"
+    },
+    "pipette_pump_destination": {
+      "positionMm": [
+        300,
+        80,
+        150
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "pipette_pump_destination_slot"
+    },
+    "pipette_pump_retreat": {
+      "positionMm": [
+        300,
+        220,
+        150
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "pipette_pump_destination_slot"
+    }
+  },
+  "fixtures": [
+    {
+      "id": "pipette_pump_pickup_adapter",
+      "label": "Dry practice pipette pump pickup adapter",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "pipette_pump_contact",
+      "positionMm": [
+        50,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          50,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "pipette_pump_destination_slot",
+      "label": "Dry practice pipette pump destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "pipette_pump_destination",
+      "positionMm": [
+        300,
+        72,
+        150
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          300,
+          72,
+          150
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
+    }
+  ],
+  "objects": [
+    {
+      "id": "pipette_pump",
+      "label": "Dry practice pipette pump",
+      "initialFrame": "pipette_pump_contact",
+      "transportable": true,
+      "visible": true,
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
+      "compatibleEffectors": [
+        "default"
+      ],
+      "visual": {
+        "type": "pipette_pump",
+        "scale": 0.56
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
+    }
+  ],
+  "grasps": [
+    {
+      "id": "pipette_pump_fixture_grasp",
+      "objectId": "pipette_pump",
+      "effector": "default",
+      "mode": "fixture-assisted",
+      "contactFrame": "pipette_pump_contact",
+      "fixtureId": "pipette_pump_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
+    }
+  ],
+  "processModels": [],
+  "goalPredicates": [
+    {
+      "id": "pipette_pump_placed",
+      "label": "Dry practice pipette pump visibly seated in its named destination slot",
+      "op": "object_at",
+      "objectId": "pipette_pump",
+      "frameId": "pipette_pump_destination"
+    },
+    {
+      "id": "pipette_pump_approach_visited",
+      "label": "Approach frame visited for Dry practice pipette pump",
+      "op": "frame_visited",
+      "frameId": "pipette_pump_approach"
+    },
+    {
+      "id": "pipette_pump_contact_visited",
+      "label": "Contact frame visited for Dry practice pipette pump",
+      "op": "frame_visited",
+      "frameId": "pipette_pump_contact"
+    },
+    {
+      "id": "pipette_pump_lift_visited",
+      "label": "Lift frame visited for Dry practice pipette pump",
+      "op": "frame_visited",
+      "frameId": "pipette_pump_lift"
+    },
+    {
+      "id": "pipette_pump_retreat_visited",
+      "label": "Retreat frame visited for Dry practice pipette pump",
+      "op": "frame_visited",
+      "frameId": "pipette_pump_retreat"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "object_left_attached",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "attached_to",
+          "objectId": "pipette_pump",
+          "effector": "default"
+        }
+      ]
+    },
+    {
+      "id": "fixed_base_moved",
+      "op": "truthy",
+      "path": "fixedRootViolation"
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "completion_observation",
+      "label": "After placement and retreat, select the visible seating-and-clearance observation.",
+      "kind": "learner-recorded",
+      "allowedValues": [
+        "Visible destination seating confirmed with the robot clear."
+      ],
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "object_at",
+            "objectId": "pipette_pump",
+            "frameId": "pipette_pump_destination"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "pipette_pump_retreat"
+          }
+        ]
+      },
+      "requiresEvent": {
+        "type": "DETACH_OBJECT",
+        "objectId": "pipette_pump",
+        "frameId": "pipette_pump_destination"
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The kinematic chain follows the baked official SO-101 model revision.",
+      "sourceRef": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf"
+    },
+    {
+      "label": "F",
+      "claim": "The successor preserves the bounded procedural objective from so101-05-pipette-pump (blue1-standard-dilutions/pipette-transfer).",
+      "sourceRef": "missions/lab-assistant/v1/so101-05-pipette-pump.json"
+    },
+    {
+      "label": "R",
+      "claim": "Fixture-assisted manipulation matches the fixed-base SO-101 morphology and available kinematic contact sequence."
+    },
+    {
+      "label": "C",
+      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "so101_follower",
+    "source": {
+      "kind": "official URDF baked model",
+      "revision": "SO101 official main snapshot baked 2026-07-02",
+      "url": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf",
+      "provenance": "M",
+      "notes": "Official joint chain; configured educational limits are explicitly separate from calibrated hardware limits."
+    },
+    "joints": [
+      {
+        "id": "shoulder_pan",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "shoulder_lift",
+        "min": -90,
+        "max": 90,
+        "home": -90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "elbow_flex",
+        "min": -120,
+        "max": 120,
+        "home": 85,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "wrist_flex",
+        "min": -90,
+        "max": 90,
+        "home": 72,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "wrist_roll",
+        "min": -180,
+        "max": 180,
+        "home": 88,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "gripper",
+        "min": 0,
+        "max": 100,
+        "home": 85,
+        "unit": "percent",
+        "type": "gripper",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      }
+    ],
+    "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
+    "frames": [
+      "shoulder_pan",
+      "shoulder_lift",
+      "elbow_flex",
+      "wrist_flex",
+      "wrist_roll",
+      "gripper_jaw"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
+    ],
+    "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+    "unsupportedPhysics": [
+      "force sensing",
+      "payload claim",
+      "servo dynamics",
+      "certified calibrated limits"
+    ]
+  },
+  "api": {
+    "level": "builder",
+    "namedFramesDiscoverable": true
+  },
+  "navigation": {
+    "fixedBase": true
+  },
+  "validationAvailable": true
+}

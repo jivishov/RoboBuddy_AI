@@ -1,0 +1,520 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "g1-05-titration-carrier",
+  "title": "Titration Station Carrier Exchange",
+  "brief": "Serve as the lab runner for a closed titration supply carrier; all bench manipulation remains outside G1's role.",
+  "robotId": "unitree_g1_29dof",
+  "rank": 5,
+  "supersedes": "g1-05-waste-carrier",
+  "assistanceLevel": "Builder",
+  "legacyClassification": "C",
+  "migration": {
+    "class": "C",
+    "legacyLearningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+    "redesignRationale": "The legacy objective is preserved as observable lab logistics: G1 transports only mechanically secured carriers while people or compatible bench equipment perform manipulation and measurement."
+  },
+  "canonicalModel": {
+    "id": "unitree_g1_29dof",
+    "sourceRevision": "dd4fa6866e523ad61324f658d63736e4eda3a6e4"
+  },
+  "frames": {
+    "home": {
+      "label": "Home waypoint",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "headingDeg": 0,
+      "role": "home",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "safe_transfer_hub": {
+      "label": "Visible safe transfer hub",
+      "positionMm": [
+        0,
+        0,
+        -600
+      ],
+      "headingDeg": 180,
+      "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_approach": {
+      "label": "Closed Titration Supply Carrier primary approach waypoint",
+      "positionMm": [
+        -1900,
+        0,
+        -580
+      ],
+      "headingDeg": 54,
+      "role": "approach",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_secondary_approach": {
+      "label": "Closed Titration Supply Carrier alternate safe approach waypoint",
+      "positionMm": [
+        -1900,
+        0,
+        -220
+      ],
+      "headingDeg": 152,
+      "role": "approach",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_pickup_dock": {
+      "label": "Closed Titration Supply Carrier visible pickup dock",
+      "positionMm": [
+        -1760,
+        0,
+        -480
+      ],
+      "headingDeg": 63,
+      "role": "dock",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_pickup_latch": {
+      "label": "Closed Titration Supply Carrier visible pickup latch alignment",
+      "positionMm": [
+        -1680,
+        0,
+        -440
+      ],
+      "headingDeg": 63,
+      "role": "latch",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_contact": {
+      "label": "Closed Titration Supply Carrier secured-carrier contact",
+      "positionMm": [
+        -1600,
+        0,
+        -400
+      ],
+      "headingDeg": 63,
+      "role": "contact",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_planar_clearance": {
+      "label": "Closed Titration Supply Carrier planar dock-clearance waypoint; schema lift role does not imply arm lifting",
+      "positionMm": [
+        -1440,
+        0,
+        -300
+      ],
+      "headingDeg": 58,
+      "role": "lift",
+      "tolerance": {
+        "positionMm": 60
+      },
+      "motionMeaning": "planar secured-carrier clearance only; no arm lift or leg IK"
+    },
+    "carrier_1_route_1": {
+      "label": "Closed Titration Supply Carrier constrained safe-route waypoint 1",
+      "positionMm": [
+        -585,
+        0,
+        -947
+      ],
+      "headingDeg": 103,
+      "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_route_2": {
+      "label": "Closed Titration Supply Carrier constrained safe-route waypoint 2",
+      "positionMm": [
+        430,
+        0,
+        -1175
+      ],
+      "headingDeg": 91,
+      "role": "route",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_receiver_dock": {
+      "label": "Closed Titration Supply Carrier visible receiver dock",
+      "positionMm": [
+        1080,
+        0,
+        -1190
+      ],
+      "headingDeg": 56,
+      "role": "dock",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_receiver_latch": {
+      "label": "Closed Titration Supply Carrier visible receiver latch alignment",
+      "positionMm": [
+        1200,
+        0,
+        -1110
+      ],
+      "headingDeg": 59,
+      "role": "latch",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_destination": {
+      "label": "Closed Titration Supply Carrier receiver destination",
+      "positionMm": [
+        1300,
+        0,
+        -1050
+      ],
+      "headingDeg": 59,
+      "role": "destination",
+      "tolerance": {
+        "positionMm": 60
+      }
+    },
+    "carrier_1_retreat": {
+      "label": "Closed Titration Supply Carrier receiver retreat waypoint",
+      "positionMm": [
+        1040,
+        0,
+        -830
+      ],
+      "headingDeg": -50,
+      "role": "retreat",
+      "tolerance": {
+        "positionMm": 60
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "pickup_dock_1",
+      "label": "Visible pickup dock 1",
+      "visible": true,
+      "frameId": "carrier_1_pickup_dock",
+      "type": "secured-carrier-dock",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "pickup_latch_1",
+      "label": "Visible pickup latch 1",
+      "visible": true,
+      "frameId": "carrier_1_pickup_latch",
+      "type": "carrier-latch",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "receiver_dock_1",
+      "label": "Visible receiver dock 1",
+      "visible": true,
+      "frameId": "carrier_1_receiver_dock",
+      "type": "secured-carrier-receiver",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "receiver_latch_1",
+      "label": "Visible receiver latch 1",
+      "visible": true,
+      "frameId": "carrier_1_receiver_latch",
+      "type": "receiver-latch",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    },
+    {
+      "id": "bench_apparatus",
+      "label": "Visible titration logistics bench apparatus - not transportable by G1",
+      "visible": true,
+      "frameId": "carrier_1_destination",
+      "type": "bench-apparatus"
+    }
+  ],
+  "objects": [
+    {
+      "id": "titration_carrier",
+      "label": "Closed Titration Supply Carrier",
+      "initialFrame": "carrier_1_contact",
+      "transportable": true,
+      "securedCarrier": true,
+      "attachmentInterface": "robobuddy-secured-carrier-v2",
+      "initialState": {
+        "contentsSecured": true,
+        "contentsStatus": "secured before any loaded motion",
+        "releaseAuthorization": "visible configured simulation authorization"
+      }
+    },
+    {
+      "id": "bench_apparatus_object",
+      "label": "Non-carrier bench apparatus",
+      "initialFrame": "carrier_1_destination",
+      "transportable": false,
+      "securedCarrier": false,
+      "attachmentInterface": "none",
+      "initialState": {
+        "sceneOnly": true
+      }
+    }
+  ],
+  "grasps": [
+    {
+      "id": "titration_carrier_latch",
+      "objectId": "titration_carrier",
+      "mode": "secured-carrier-latch",
+      "effector": "secured_carrier_mount",
+      "approachFrame": "carrier_1_approach",
+      "contactFrame": "carrier_1_contact",
+      "latchFrame": "carrier_1_pickup_latch",
+      "attachmentInterface": "robobuddy-secured-carrier-v2"
+    }
+  ],
+  "processModels": [
+    {
+      "id": "receiver_verification_1",
+      "label": "Receiver 1 dock and latch verification",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "ready",
+      "completeState": "verified",
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "titration_carrier",
+          "frameId": "carrier_1_destination"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_1_receiver_dock"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "carrier_1_receiver_latch"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "titration_carrier",
+            "frameId": "carrier_1_destination"
+          }
+        }
+      ],
+      "fixtureId": "receiver_latch_1",
+      "contactFrame": "carrier_1_receiver_latch"
+    }
+  ],
+  "goalPredicates": [
+    {
+      "id": "returned_home",
+      "op": "equal",
+      "path": "lastReachedFrame",
+      "value": "home"
+    },
+    {
+      "id": "titration_carrier_delivered",
+      "op": "object_at",
+      "objectId": "titration_carrier",
+      "frameId": "carrier_1_destination"
+    },
+    {
+      "id": "titration_carrier_contents_remained_secured",
+      "op": "truthy",
+      "path": "objects.titration_carrier.state.contentsSecured"
+    },
+    {
+      "id": "titration_carrier_pickup_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_pickup_dock"
+    },
+    {
+      "id": "titration_carrier_pickup_latch_engaged",
+      "op": "event",
+      "match": {
+        "type": "ATTACH_OBJECT",
+        "objectId": "titration_carrier",
+        "effector": "secured_carrier_mount",
+        "attachmentInterface": "robobuddy-secured-carrier-v2"
+      }
+    },
+    {
+      "id": "titration_carrier_safe_route_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_route_1"
+    },
+    {
+      "id": "titration_carrier_receiver_dock_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_receiver_dock"
+    },
+    {
+      "id": "titration_carrier_receiver_latch_visited",
+      "op": "frame_visited",
+      "frameId": "carrier_1_receiver_latch"
+    },
+    {
+      "id": "titration_carrier_receiver_verified",
+      "op": "process_state",
+      "processId": "receiver_verification_1",
+      "value": "verified"
+    },
+    {
+      "id": "titration_carrier_retreated",
+      "op": "frame_visited",
+      "frameId": "carrier_1_retreat"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "titration_carrier_left_attached",
+      "op": "attached_to",
+      "objectId": "titration_carrier",
+      "effector": "secured_carrier_mount"
+    },
+    {
+      "id": "titration_carrier_contents_unsecured",
+      "op": "not",
+      "predicate": {
+        "op": "truthy",
+        "path": "objects.titration_carrier.state.contentsSecured"
+      }
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "route_observation_1",
+      "label": "Record the visible dock and latch result for carrier 1",
+      "kind": "learner-recorded",
+      "minLength": 20,
+      "valuePattern": "(?=.*dock)(?=.*latch)(?=.*carrier)",
+      "availableWhen": {
+        "op": "process_state",
+        "processId": "receiver_verification_1",
+        "value": "verified"
+      },
+      "requiresEvent": {
+        "type": "PROCESS_COMMIT",
+        "processId": "receiver_verification_1"
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The displayed G1 visual chain uses the frozen official-URDF-derived model revision.",
+      "sourceRef": "simulator/js/robot-mesh-data-unitree-g1.js"
+    },
+    {
+      "label": "F",
+      "claim": "The frozen v2 runtime restricts G1 to constrained waypoints, configured headings, docking, and the secured-carrier attachment interface.",
+      "sourceRef": "lab/v2/FROZEN_INTERFACES.md"
+    },
+    {
+      "label": "R",
+      "claim": "G1 serves only as a lab runner for titration logistics; it does not perform free grasping, bench manipulation, measurement, or physical lifting. The required lift-role frame is planar dock clearance."
+    },
+    {
+      "label": "C",
+      "claim": "Task frames, waypoint headings, 60 mm waypoint tolerances, safe transfer hub, dock placement, latch placement, and simulation release authorization are authored educational configuration."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "unitree_g1_29dof",
+    "source": {
+      "kind": "official URDF baked model",
+      "revision": "dd4fa6866e523ad61324f658d63736e4eda3a6e4",
+      "url": "https://github.com/unitreerobotics/unitree_ros/blob/dd4fa6866e523ad61324f658d63736e4eda3a6e4/robots/g1_description/g1_29dof.urdf",
+      "provenance": "M",
+      "notes": "Official visual chain used only for constrained waypoint logistics visualization."
+    },
+    "joints": [],
+    "limitProvenance": "C: no learner joint-limit control is exposed; motion is restricted to authored waypoint, turn, dock, and latch frames.",
+    "frames": [],
+    "collisionProxyProvenance": [
+      "C: conservative full-body waypoint envelope",
+      "C: configured locked-carrier envelope",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
+    ],
+    "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+    "unsupportedPhysics": [
+      "free grasping",
+      "leg IK",
+      "dynamic balance",
+      "collision recovery",
+      "dynamic locomotion",
+      "force control"
+    ]
+  },
+  "api": {
+    "level": "builder",
+    "namedFramesDiscoverable": true
+  },
+  "navigation": {
+    "kind": "constrained-waypoint-graph",
+    "motionBoundary": "Discrete authored waypoint and heading transitions only; no leg IK, balance, dynamics, collision recovery, force, torque, or payload model.",
+    "waypointGraph": {
+      "start": "home",
+      "edges": {
+        "home": [
+          "safe_transfer_hub"
+        ],
+        "safe_transfer_hub": [
+          "home",
+          "carrier_1_approach",
+          "carrier_1_secondary_approach"
+        ],
+        "carrier_1_approach": [
+          "carrier_1_pickup_dock"
+        ],
+        "carrier_1_secondary_approach": [
+          "carrier_1_pickup_dock"
+        ],
+        "carrier_1_pickup_dock": [
+          "carrier_1_pickup_latch"
+        ],
+        "carrier_1_pickup_latch": [
+          "carrier_1_contact"
+        ],
+        "carrier_1_contact": [
+          "carrier_1_planar_clearance"
+        ],
+        "carrier_1_planar_clearance": [
+          "carrier_1_route_1"
+        ],
+        "carrier_1_route_1": [
+          "carrier_1_route_2"
+        ],
+        "carrier_1_route_2": [
+          "carrier_1_receiver_dock"
+        ],
+        "carrier_1_receiver_dock": [
+          "carrier_1_receiver_latch"
+        ],
+        "carrier_1_receiver_latch": [
+          "carrier_1_destination"
+        ],
+        "carrier_1_destination": [
+          "carrier_1_retreat"
+        ],
+        "carrier_1_retreat": [
+          "safe_transfer_hub"
+        ]
+      }
+    },
+    "restrictedFrames": []
+  },
+  "validationAvailable": true
+}

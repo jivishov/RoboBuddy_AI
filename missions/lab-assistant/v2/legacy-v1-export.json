@@ -1,0 +1,257 @@
+{
+  "schema": "robobuddy.legacy-v1-export-manifest.v1",
+  "readOnly": true,
+  "reinterpretAsV2": false,
+  "files": [
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-01-balance-placement.json",
+      "bytes": 12284,
+      "sha256": "d129415626f8a46296068524180f937495ac94936c35dd75f87eb4d031f8d495"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-02-volume-staging.json",
+      "bytes": 14482,
+      "sha256": "5ba1d4788fd898344a992d179573405ba942bc9164da75c5373d083219b03890"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-03-cuvette-insertion.json",
+      "bytes": 13983,
+      "sha256": "03c75f62648819a0bf399cab50857f4977ffb02423d492d48d55d5ae78dbd282"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-04-filter-paper-setup.json",
+      "bytes": 15465,
+      "sha256": "07400f6024f0ec3e416be50926dc255eb447b9dd0f86ff8a1c33f2da3d1fa1aa"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-05-flask-under-burette.json",
+      "bytes": 12899,
+      "sha256": "1ebe773376088924749896022f355303ffbebdae2d5a6aca7d348c2bd4b725c1"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-06-cool-then-weigh.json",
+      "bytes": 15640,
+      "sha256": "7cba78c74cc1c95e5403ef39e4334f879d445eb1191478d3edd828e23c87c4aa"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-07-chromatography-paper.json",
+      "bytes": 13111,
+      "sha256": "f8c79242bf94923453368fceee94348a1d2ce1330502f00deb51d5cdfa65f71b"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-08-blank-read-return.json",
+      "bytes": 16468,
+      "sha256": "b97a712ce9b24d19f9a726b6d89296c0a9fd840b3704f5af44ef7817ccf711e4"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-09-burette-condition-fill.json",
+      "bytes": 17353,
+      "sha256": "3f1abea3ef8d91f9bf65e778b8fe2bbd1de6dad3d57f0fe4a4b5678b1790467b"
+    },
+    {
+      "path": "missions/lab-assistant/v1/arduino-arm-10-two-stage-drying.json",
+      "bytes": 20196,
+      "sha256": "3eadc4e69ee414f21ae815ac5ead91a29697cebdfdc899feb7e713d1cef60794"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-01-empty-tray.json",
+      "bytes": 12027,
+      "sha256": "4ec492737ceb5fa2c374d58e07b7170cd9c96f273ad5ed5b514f2934b47fdeba"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-02-sealed-sample.json",
+      "bytes": 12246,
+      "sha256": "35bec0a5bc101d46fb535ad1cb2a3e68e24cfebc567864e002adb01208df2528"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-03-cuvette-rack.json",
+      "bytes": 13428,
+      "sha256": "6940784c0d45c0110c39ec390e577271c025183758d893df3e57a21ab88cb7bb"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-04-filtration-kit.json",
+      "bytes": 12411,
+      "sha256": "ec882b0c77806412371b2620f7a191759ab9ee5b246958edc542b7313fa4fbc1"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-05-waste-carrier.json",
+      "bytes": 13529,
+      "sha256": "98a3ea0c26be638ef2b7d4ec7d45b0c17114c393ed33f3ff923c136ed5d28744"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-06-cooled-sample-tray.json",
+      "bytes": 15663,
+      "sha256": "254f11a813dc9a67038bd9092100cfb927baf4608fd986d43e3b0b468124eeb8"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-07-reagent-tote.json",
+      "bytes": 13087,
+      "sha256": "267863083ccaa3953173eda50b557d049706dad7c02e3a1afae53fff256b8f52"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-08-spectro-courier-loop.json",
+      "bytes": 16754,
+      "sha256": "2efe42242370c15a20e97c4af3035d5d913521573deb6396fd4b78b1d16b29ba"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-09-gravimetry-logistics.json",
+      "bytes": 24737,
+      "sha256": "0a96185e09cbfecd06c9159b54c50fa1e4ab548af008c2d08e9a3da9ac8b43a5"
+    },
+    {
+      "path": "missions/lab-assistant/v1/g1-10-lab-runner-shift.json",
+      "bytes": 22868,
+      "sha256": "444ebde0664bd82b162887d2f6986867468a7025b7a78f4baadc9bb88e813eaf"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-01-beaker-courier.json",
+      "bytes": 11383,
+      "sha256": "729f9a866d3dfe6915c906711c29c10fb6d53405962c05c9f64d7fa6bd9bbed0"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-02-sample-fetch.json",
+      "bytes": 11616,
+      "sha256": "ca6189777888bc9dd4432c951224160a8022a517d2d230091369cb610a39f957"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-03-mobile-weighing.json",
+      "bytes": 12409,
+      "sha256": "5d7220e444ca449641c87c1e43ec08c85c242627714d1ce75d55633ef493756d"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-04-cuvette-rack.json",
+      "bytes": 12881,
+      "sha256": "1cf9bf6eb5393e5b7bb0065345fc2373f1924ce7a58d930206d3122130bcdb09"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-05-waste-return.json",
+      "bytes": 12753,
+      "sha256": "eea6c86e4b326d3fc73bfb5d9b516a947f75e357ce47e7d2b9f08638acb4188d"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-06-dilution-route.json",
+      "bytes": 17364,
+      "sha256": "505b02c05d3b94f708a709b76dd86c3fca95ab6dcffbb08826ab3a0bd768318c"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-07-filtration-supply.json",
+      "bytes": 20033,
+      "sha256": "7eea76bdca9af71e947829b7851b0d00924ff79fa2c15b0a33dff55763950c26"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-08-cooled-precipitate.json",
+      "bytes": 15099,
+      "sha256": "b40a4a1318a2c1e4e12cf2048e094546e2c100ddbcfdbf36895866aa1de83f15"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-09-spectro-route.json",
+      "bytes": 17306,
+      "sha256": "96797ff41da112bfb7779643af4adef95c07aaa3f20cc6b73d2811e5e79e4b21"
+    },
+    {
+      "path": "missions/lab-assistant/v1/lekiwi-10-hard-water-logistics.json",
+      "bytes": 23479,
+      "sha256": "f91ca479613db2f3dcd1caa43f27c709b49c90918a4dcc0c64ae0353d348c12e"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-01-weighing-handoff.json",
+      "bytes": 16421,
+      "sha256": "aac5446f5f2f24a040dd68f12d1de51c3a3b222a3250e1347d23f053d6a3c246"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-02-stabilized-solvent-addition.json",
+      "bytes": 16715,
+      "sha256": "87915bc18ddfc411fa01bb482e2c13eaf2ea25c2351a64f1ea7b7f2b0bf7d491"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-03-stopper-and-mix.json",
+      "bytes": 16756,
+      "sha256": "167e503c57f458fa0325d40e4cd2765756251857bd22024922c26e267afc6cc4"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-04-pipette-loading.json",
+      "bytes": 15853,
+      "sha256": "ee0013691b6872d4c4137b753ab734525ec6b1735e91d5455a47170db6407b11"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-05-filter-assembly.json",
+      "bytes": 19408,
+      "sha256": "96425bf1041f4435e741cf0a39c8f3fa7d734d637e8bdb5068d8bc5245f484eb"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-06-controlled-pour.json",
+      "bytes": 18921,
+      "sha256": "28e244e292107837f7128989fff80f56c40bd5f9dc068a6169492b357524d935"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-07-buchner-station.json",
+      "bytes": 24647,
+      "sha256": "8f5b40a1e51bbbba9db9acc84fc3ff8d8b69131e76b9ff4e275cdf2574f3d45f"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-08-separatory-funnel.json",
+      "bytes": 18130,
+      "sha256": "3f53f775002d2ad537b93a568431c741e1508721c91ba4ebbdb5560600e28791"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-09-titration-coordination.json",
+      "bytes": 22075,
+      "sha256": "0526206f2d3dfe0131a7985e900c78727077066b1b680305ca4900582997a848"
+    },
+    {
+      "path": "missions/lab-assistant/v1/openarm-10-gravimetric-workcell.json",
+      "bytes": 47191,
+      "sha256": "f107f1a19953748d3fe177620fc3e6b2a427a91ee4b9aca10a06db86038c8183"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-01-weigh-boat.json",
+      "bytes": 12367,
+      "sha256": "798b479a1650d6289d165d07f2efc83ca4975f93a3a15af53189f8881e61a609"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-02-mixing-station.json",
+      "bytes": 13805,
+      "sha256": "0f9f22de5c8f084c6b8168df09eccaf2c176cf0a86a690c4ea5fd019ba6c03ea"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-03-cuvette-orientation.json",
+      "bytes": 16500,
+      "sha256": "ad617550b6b2b2d57feee94f96f04afadacfacfeb4f2604032ef852fba928b85"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-04-filter-assembly.json",
+      "bytes": 18624,
+      "sha256": "87ff65591d001523dc759d657796b37ccf43dcc90dc0daddd865e8c9a7c1661d"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-05-pipette-pump.json",
+      "bytes": 12963,
+      "sha256": "ab3573429e6beb90f7a460203c0891f09985629c87408eeda41b43a43790b566"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-06-quantitative-transfer.json",
+      "bytes": 14762,
+      "sha256": "96013a42eedefe51ed4a8af482c541fad10cbe2e9ab397bbbc6331b3c2e341c2"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-07-chromatography-spotting.json",
+      "bytes": 15700,
+      "sha256": "b3d384104485ccf3054afc93a1bca2b4843706f134ba002b9ead2aeda86c4aa6"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-08-burette-initial-reading.json",
+      "bytes": 19689,
+      "sha256": "09161261ab924720a6ff2f8c6a0d332e19c4f2ecf6b62e2721f0492613d09eb8"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-09-vacuum-filtration.json",
+      "bytes": 26040,
+      "sha256": "4e2599a1102c999789eb49dda15cb55b5c5af5e09b7853636a0cecbce4820dd3"
+    },
+    {
+      "path": "missions/lab-assistant/v1/so101-10-endpoint-assistant.json",
+      "bytes": 18494,
+      "sha256": "5736dbe24fb19b2a60f56b7c4f14d4dbb709a55da1283c48bf9e7a478bef7707"
+    }
+  ]
+}

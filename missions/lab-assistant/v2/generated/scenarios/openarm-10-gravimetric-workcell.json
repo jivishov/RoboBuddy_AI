@@ -1,0 +1,799 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "openarm-10-gravimetric-workcell",
+  "title": "Fixture-Assisted Gravimetric Workcell",
+  "brief": "Coordinate an empty filter-flask carrier and secured dry-tray carrier through a visible gravimetric handoff fixture.",
+  "robotId": "openarm_v2_bimanual",
+  "canonicalModelId": "openarm_v2_bimanual",
+  "rank": 10,
+  "supersedes": "openarm-10-gravimetric-workcell",
+  "assistanceLevel": "Challenge",
+  "migration": {
+    "class": "B",
+    "legacyLearningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence."
+  },
+  "legacyClassification": "B",
+  "canonicalModel": {
+    "id": "openarm_v2_bimanual",
+    "sourceRevision": "6c7b720f1ba48e8bafa3a3dc752c45f397b42221"
+  },
+  "coordination": {
+    "rootTranslationAllowed": false,
+    "sharedJointId": "base_yaw",
+    "armScheduling": "sequential_shared_state_fixture_checked",
+    "simultaneousPlansAllowed": false,
+    "layoutTemplateId": "openarm-separated-dual-lane-v2",
+    "sharedJointPolicy": "carry_forward_executed_base_yaw",
+    "orderSafetyPrerequisite": "Each transport must complete placement contact, detachment, and retreat before the other arm begins.",
+    "minimumConfiguredEffectorSeparationMm": 300,
+    "acceptedSafeOrderings": [
+      "left_then_right",
+      "right_then_left"
+    ],
+    "claimBoundary": "Each arm is scheduled sequentially from the live shared-joint state against the visible fixture proxy. The 300 mm inter-effector separation floor is configured validation, not a force, payload, dynamics, full-mesh collision, or collision-recovery claim."
+  },
+  "frames": {
+    "home": {
+      "label": "Shared-base home observation frame",
+      "positionMm": [
+        284.6,
+        433.3,
+        -311.8
+      ],
+      "role": "retreat",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_approach": {
+      "label": "Left-arm approach frame",
+      "positionMm": [
+        265.3,
+        549.2,
+        -422.2
+      ],
+      "role": "approach",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_contact": {
+      "label": "Left-arm pickup contact frame",
+      "positionMm": [
+        225.4,
+        530.6,
+        -318.9
+      ],
+      "role": "contact",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_lift": {
+      "label": "Left-arm lift frame",
+      "positionMm": [
+        142.9,
+        721.7,
+        -366
+      ],
+      "role": "lift",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_handoff": {
+      "label": "Left-arm handoff destination frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        -322.1
+      ],
+      "role": "destination",
+      "chainId": "left",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_place_contact": {
+      "label": "Left-arm handoff contact frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        -322.1
+      ],
+      "role": "contact",
+      "chainId": "left",
+      "coincidentWith": "left_handoff",
+      "coincidenceRationale": "The frozen runtime stores a detached object at destinationFrame; coincidence prevents a post-contact visual teleport.",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "left_retreat": {
+      "label": "Left-arm retreat frame",
+      "positionMm": [
+        284.6,
+        433.3,
+        -311.8
+      ],
+      "role": "retreat",
+      "chainId": "left",
+      "coincidentWith": "home",
+      "coincidenceRationale": "The left arm returns to the configured shared-base home endpoint after detachment.",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_approach": {
+      "label": "Right-arm approach frame",
+      "positionMm": [
+        265.3,
+        549.2,
+        422.2
+      ],
+      "role": "approach",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_contact": {
+      "label": "Right-arm pickup contact frame",
+      "positionMm": [
+        225.4,
+        530.6,
+        318.9
+      ],
+      "role": "contact",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_lift": {
+      "label": "Right-arm lift frame",
+      "positionMm": [
+        142.9,
+        721.7,
+        366
+      ],
+      "role": "lift",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_handoff": {
+      "label": "Right-arm handoff destination frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        322.1
+      ],
+      "role": "destination",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_place_contact": {
+      "label": "Right-arm handoff contact frame",
+      "positionMm": [
+        257.5,
+        731.2,
+        322.1
+      ],
+      "role": "contact",
+      "chainId": "right",
+      "coincidentWith": "right_handoff",
+      "coincidenceRationale": "The frozen runtime stores a detached object at destinationFrame; coincidence prevents a post-contact visual teleport.",
+      "tolerance": {
+        "positionMm": 10
+      }
+    },
+    "right_retreat": {
+      "label": "Right-arm retreat frame",
+      "positionMm": [
+        284.6,
+        433.3,
+        311.8
+      ],
+      "role": "retreat",
+      "chainId": "right",
+      "tolerance": {
+        "positionMm": 10
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "gravimetric_handoff_fixture",
+      "label": "gravimetric handoff fixture",
+      "type": "configured_visible_bimanual_fixture_with_center_divider",
+      "visible": true,
+      "frameId": "left_handoff",
+      "pairedFrameId": "right_handoff",
+      "contactFrames": [
+        "left_place_contact",
+        "right_place_contact"
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          350,
+          700,
+          0
+        ],
+        "halfExtentsMm": [
+          30,
+          70,
+          70
+        ],
+        "provenance": "C: conservative configured central divider between the separated arm lanes"
+      },
+      "configuredByTeacher": true,
+      "claimBoundary": "Fixture presence, lane positions, and the central divider proxy are teacher-visible authored configuration; no calibration, force, fluid, thermal, or dynamics behavior is claimed."
+    },
+    {
+      "id": "left_pickup_support",
+      "label": "Configured left pickup support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        225.4,
+        509.6,
+        -318.9
+      ],
+      "supportsFrame": "left_contact",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    },
+    {
+      "id": "right_pickup_support",
+      "label": "Configured right pickup support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        225.4,
+        509.6,
+        318.9
+      ],
+      "supportsFrame": "right_contact",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    },
+    {
+      "id": "left_handoff_support",
+      "label": "Configured left handoff support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        257.5,
+        710.2,
+        -322.1
+      ],
+      "supportsFrame": "left_handoff",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    },
+    {
+      "id": "right_handoff_support",
+      "label": "Configured right handoff support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        257.5,
+        710.2,
+        322.1
+      ],
+      "supportsFrame": "right_handoff",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    }
+  ],
+  "objects": [
+    {
+      "id": "empty_filter_flask_carrier",
+      "label": "Empty filter-flask carrier",
+      "initialFrame": "left_contact",
+      "visual": {
+        "type": "secured_carrier",
+        "approximation": "Procedural educational proxy; no dimensional or photorealistic match is claimed."
+      },
+      "visible": true,
+      "transportable": true,
+      "allowedEffectors": [
+        "left"
+      ],
+      "initialState": {
+        "contentsSimulation": "not modeled"
+      }
+    },
+    {
+      "id": "secured_dry_tray_carrier",
+      "label": "Secured dry-tray carrier",
+      "initialFrame": "right_contact",
+      "visual": {
+        "type": "secured_carrier",
+        "approximation": "Procedural educational proxy; no dimensional or photorealistic match is claimed."
+      },
+      "visible": true,
+      "transportable": true,
+      "allowedEffectors": [
+        "right"
+      ],
+      "initialState": {
+        "contentsSimulation": "not modeled"
+      }
+    }
+  ],
+  "grasps": [
+    {
+      "id": "empty_filter_flask_carrier_left_grasp",
+      "objectId": "empty_filter_flask_carrier",
+      "effector": "left",
+      "chainId": "left",
+      "mode": "configured_parallel_grasp",
+      "contactFrame": "left_contact",
+      "visible": true
+    },
+    {
+      "id": "secured_dry_tray_carrier_right_grasp",
+      "objectId": "secured_dry_tray_carrier",
+      "effector": "right",
+      "chainId": "right",
+      "mode": "configured_parallel_grasp",
+      "contactFrame": "right_contact",
+      "visible": true
+    }
+  ],
+  "processModels": [
+    {
+      "id": "gravimetric_handoff_confirmed",
+      "label": "Confirm both carriers are seated; no mass, drying, or cooling result is simulated.",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "ready",
+      "completeState": "confirmed",
+      "fixtureId": "gravimetric_handoff_fixture",
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "empty_filter_flask_carrier",
+          "frameId": "left_handoff"
+        },
+        {
+          "op": "object_at",
+          "objectId": "secured_dry_tray_carrier",
+          "frameId": "right_handoff"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "empty_filter_flask_carrier",
+            "frameId": "left_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "empty_filter_flask_carrier",
+            "effector": "left"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "empty_filter_flask_carrier",
+            "frameId": "left_place_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "empty_filter_flask_carrier",
+            "frameId": "left_handoff"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "secured_dry_tray_carrier",
+            "frameId": "right_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "secured_dry_tray_carrier",
+            "effector": "right"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "secured_dry_tray_carrier",
+            "frameId": "right_place_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "secured_dry_tray_carrier",
+            "frameId": "right_handoff"
+          }
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "left_retreat"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "right_retreat"
+        }
+      ],
+      "unsupportedContinuity": "No continuous material, force, fluid, thermal, or instrument-response model is implied.",
+      "contactFrame": "left_handoff"
+    }
+  ],
+  "goalPredicates": [
+    {
+      "id": "left_item_delivered",
+      "op": "object_at",
+      "objectId": "empty_filter_flask_carrier",
+      "frameId": "left_handoff"
+    },
+    {
+      "id": "right_item_delivered",
+      "op": "object_at",
+      "objectId": "secured_dry_tray_carrier",
+      "frameId": "right_handoff"
+    },
+    {
+      "id": "workcell_confirmation_complete",
+      "op": "process_state",
+      "processId": "gravimetric_handoff_confirmed",
+      "value": "confirmed"
+    },
+    {
+      "id": "left_retreat_observed",
+      "op": "frame_visited",
+      "frameId": "left_retreat"
+    },
+    {
+      "id": "right_retreat_observed",
+      "op": "frame_visited",
+      "frameId": "right_retreat"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "fixed_base_moved",
+      "op": "truthy",
+      "path": "fixedRootViolation"
+    },
+    {
+      "id": "object_remains_attached",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "truthy",
+          "path": "objects.empty_filter_flask_carrier.attachedTo"
+        },
+        {
+          "op": "truthy",
+          "path": "objects.secured_dry_tray_carrier.attachedTo"
+        }
+      ]
+    },
+    {
+      "id": "morphology_invalid_cross_arm_contact",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "empty_filter_flask_carrier",
+            "frameId": "right_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "empty_filter_flask_carrier",
+            "effector": "right"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "empty_filter_flask_carrier",
+            "frameId": "right_place_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "secured_dry_tray_carrier",
+            "frameId": "left_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "secured_dry_tray_carrier",
+            "effector": "left"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "secured_dry_tray_carrier",
+            "frameId": "left_place_contact"
+          }
+        }
+      ]
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "observable_confirmation",
+      "kind": "learner-recorded",
+      "prompt": "After the visible fixture-contact event, record both object ids and their observed left_handoff/right_handoff destination frames.",
+      "minLength": 40,
+      "valuePattern": "^(?=.*empty_filter_flask_carrier)(?=.*left_handoff)(?=.*secured_dry_tray_carrier)(?=.*right_handoff).{40,}$",
+      "availableWhen": {
+        "op": "process_state",
+        "processId": "gravimetric_handoff_confirmed",
+        "value": "confirmed"
+      },
+      "requiresEvent": {
+        "type": "PROCESS_COMMIT",
+        "processId": "gravimetric_handoff_confirmed",
+        "value": "confirmed"
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The scenario uses the canonical OpenArm bimanual chain and collision meshes at the frozen source revision.",
+      "sourceRef": "https://github.com/enactic/openarm_description/tree/6c7b720f1ba48e8bafa3a3dc752c45f397b42221"
+    },
+    {
+      "label": "F",
+      "claim": "Rank 10 and the legacy learning objective are preserved from openarm-10-gravimetric-workcell.",
+      "sourceRef": "missions/lab-assistant/v1/openarm-10-gravimetric-workcell.json"
+    },
+    {
+      "label": "R",
+      "claim": "Separate left/right approach, contact, lift, handoff, and retreat frames encode bimanual morphology while retaining one fixed shared base."
+    },
+    {
+      "label": "C",
+      "claim": "Frame coordinates, 10 mm tolerances, visible fixture geometry, the 300 mm coarse effector-separation floor, grasp assignments, seeds, and evidence format are teacher-visible educational configuration."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "openarm_v2_bimanual",
+    "source": {
+      "kind": "official collision meshes and baked chain",
+      "revision": "6c7b720f1ba48e8bafa3a3dc752c45f397b42221",
+      "url": "https://github.com/enactic/openarm_description/tree/6c7b720f1ba48e8bafa3a3dc752c45f397b42221",
+      "provenance": "M",
+      "notes": "Official arm collision meshes; 550 mm stand and shared turntable are configured RoboBuddy modifications."
+    },
+    "joints": [
+      {
+        "id": "base_yaw",
+        "min": -180,
+        "max": 180,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j1",
+        "min": -200,
+        "max": 80,
+        "home": -25,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j2",
+        "min": -190,
+        "max": 10,
+        "home": -35,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j3",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j4",
+        "min": 0,
+        "max": 140,
+        "home": 75,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j5",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j6",
+        "min": -45,
+        "max": 45,
+        "home": -5,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_j7",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "left_gripper",
+        "min": 0,
+        "max": 45,
+        "home": 12,
+        "unit": "deg",
+        "type": "gripper",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j1",
+        "min": -80,
+        "max": 200,
+        "home": 25,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j2",
+        "min": -10,
+        "max": 190,
+        "home": 35,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j3",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j4",
+        "min": 0,
+        "max": 140,
+        "home": 75,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j5",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j6",
+        "min": -45,
+        "max": 45,
+        "home": 5,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_j7",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      },
+      {
+        "id": "right_gripper",
+        "min": 0,
+        "max": 45,
+        "home": 12,
+        "unit": "deg",
+        "type": "gripper",
+        "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration."
+      }
+    ],
+    "limitProvenance": "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration.",
+    "frames": [
+      "base_yaw",
+      "left_mount",
+      "left_j1",
+      "left_j2",
+      "left_j3",
+      "left_j4",
+      "left_j5",
+      "left_j6",
+      "left_j7",
+      "base_yaw",
+      "right_mount",
+      "right_j1",
+      "right_j2",
+      "right_j3",
+      "right_j4",
+      "right_j5",
+      "right_j6",
+      "right_j7"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots",
+      "C: conservative configured stand envelope",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
+    ],
+    "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+    "unsupportedPhysics": [
+      "torque control",
+      "force control",
+      "payload claim",
+      "certified mechanical stand"
+    ]
+  },
+  "api": {
+    "level": "challenge",
+    "starterEvidenceValues": {}
+  },
+  "validationAvailable": true
+}

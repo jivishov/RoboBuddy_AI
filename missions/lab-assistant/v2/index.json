@@ -1,0 +1,1080 @@
+{
+  "schema": "robobuddy.lab-catalog.v2",
+  "version": 2,
+  "freshProgressRequired": true,
+  "legacyV1ReadOnly": true,
+  "robots": [
+    {
+      "id": "arduino_arm",
+      "taskCount": 10
+    },
+    {
+      "id": "so101_follower",
+      "taskCount": 10
+    },
+    {
+      "id": "lekiwi_sim",
+      "taskCount": 10
+    },
+    {
+      "id": "openarm_v2_bimanual",
+      "taskCount": 10
+    },
+    {
+      "id": "unitree_g1_29dof",
+      "taskCount": 10
+    }
+  ],
+  "tasks": [
+    {
+      "id": "arduino-arm-01-balance-placement-v2",
+      "robotId": "arduino_arm",
+      "rank": 1,
+      "title": "Balance Placement v2",
+      "brief": "Place a dry watch glass on the configured balance target and visibly retreat.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "B",
+      "supersedes": "arduino-arm-01-balance-placement",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-01-balance-placement-v2.json"
+    },
+    {
+      "id": "arduino-arm-02-volume-staging-v2",
+      "robotId": "arduino_arm",
+      "rank": 2,
+      "title": "Volume Station Setup v2",
+      "brief": "Stage a graduated cylinder and sealed sample bottle in separate configured measuring slots.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "A",
+      "supersedes": "arduino-arm-02-volume-staging",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-02-volume-staging-v2.json"
+    },
+    {
+      "id": "arduino-arm-03-cuvette-insertion-v2",
+      "robotId": "arduino_arm",
+      "rank": 3,
+      "title": "Cuvette Insertion v2",
+      "brief": "Use a visible keyed carrier to seat an intact, correctly oriented cuvette in the configured instrument slot.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "B",
+      "supersedes": "arduino-arm-03-cuvette-insertion",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-03-cuvette-insertion-v2.json"
+    },
+    {
+      "id": "arduino-arm-04-filter-paper-setup-v2",
+      "robotId": "arduino_arm",
+      "rank": 4,
+      "title": "Filter Paper Setup v2",
+      "brief": "Seat tabbed filter paper in a visible funnel guide, then place the assembled funnel in a stand cradle.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "arduino-arm-04-filter-paper-setup",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-04-filter-paper-setup-v2.json"
+    },
+    {
+      "id": "arduino-arm-05-flask-under-burette-v2",
+      "robotId": "arduino_arm",
+      "rank": 5,
+      "title": "Receiver Placement v2",
+      "brief": "Place an Erlenmeyer flask in the named receiver cradle beneath a visible burette fixture.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "A",
+      "supersedes": "arduino-arm-05-flask-under-burette",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-05-flask-under-burette-v2.json"
+    },
+    {
+      "id": "arduino-arm-06-cool-then-weigh-v2",
+      "robotId": "arduino_arm",
+      "rank": 6,
+      "title": "Cool, Then Weigh v2",
+      "brief": "Wait for the configured cooling-ready state, transfer the secured watch-glass carrier, then observe the configured balance display.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "arduino-arm-06-cool-then-weigh",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-06-cool-then-weigh-v2.json"
+    },
+    {
+      "id": "arduino-arm-07-chromatography-paper-v2",
+      "robotId": "arduino_arm",
+      "rank": 7,
+      "title": "Paper Chamber Load v2",
+      "brief": "Use a keyed paper carrier and visible chamber guide so the configured origin marker remains above the configured solvent-line marker.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "arduino-arm-07-chromatography-paper",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-07-chromatography-paper-v2.json"
+    },
+    {
+      "id": "arduino-arm-08-blank-read-return-v2",
+      "robotId": "arduino_arm",
+      "rank": 8,
+      "title": "Blank, Read, Return v2",
+      "brief": "Load a blank in a keyed carrier, observe the configured instrument state, and return the carrier to its rack.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "B",
+      "supersedes": "arduino-arm-08-blank-read-return",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-08-blank-read-return-v2.json"
+    },
+    {
+      "id": "arduino-arm-09-burette-condition-fill-v2",
+      "robotId": "arduino_arm",
+      "rank": 9,
+      "title": "Condition and Fill Status Workflow v2",
+      "brief": "Handle the filling funnel around teacher-configured conditioning, fill-complete, and visible-level status events; no fluid behavior is simulated.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "arduino-arm-09-burette-condition-fill",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-09-burette-condition-fill-v2.json"
+    },
+    {
+      "id": "arduino-arm-10-two-stage-drying-v2",
+      "robotId": "arduino_arm",
+      "rank": 10,
+      "title": "Two-Stage Drying Status Cycle v2",
+      "brief": "Sequence two teacher-configured drying statuses and a cooling-ready status before transporting the secured carrier to a configured balance display.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "arduino-arm-10-two-stage-drying",
+      "learningObjective": "Program Arduino Arm to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
+      "limitations": "certified calibration; servo dynamics; force control; payload certification",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/arduino-arm-10-two-stage-drying-v2.json"
+    },
+    {
+      "id": "so101-v2-01-weigh-boat",
+      "robotId": "so101_follower",
+      "rank": 1,
+      "title": "Weigh Boat Placement",
+      "brief": "Place the configured dry-practice weigh boat into the balance-side support nest without contacting the balance mechanism.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "B",
+      "supersedes": "so101-01-weigh-boat",
+      "learningObjective": "Program the SO-101 follower to place the weigh boat at the balance station, recover from invalid sequence states, and distinguish simulated state from learner evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-01-weigh-boat.json"
+    },
+    {
+      "id": "so101-v2-02-mixing-station",
+      "robotId": "so101_follower",
+      "rank": 2,
+      "title": "Mixing Station Delivery",
+      "brief": "Stage the reagent bottle and volumetric flask in visible, morphology-compatible station nests.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "B",
+      "supersedes": "so101-02-mixing-station",
+      "learningObjective": "Program the SO-101 follower to stage the reagent bottle and volumetric flask at the mixing station while respecting sequence and compatibility feedback.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-02-mixing-station.json"
+    },
+    {
+      "id": "so101-v2-03-cuvette-orientation",
+      "robotId": "so101_follower",
+      "rank": 3,
+      "title": "Oriented Cuvette Queue Load",
+      "brief": "Load a dry practice cuvette into a keyed orientation cassette for the instrument queue; no instrument reading is simulated.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "C",
+      "supersedes": "so101-03-cuvette-orientation",
+      "learningObjective": "Program an oriented cuvette handling sequence and distinguish the configured instrument-ready state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-03-cuvette-orientation.json"
+    },
+    {
+      "id": "so101-v2-04-filter-assembly",
+      "robotId": "so101_follower",
+      "rank": 4,
+      "title": "Funnel Assembly",
+      "brief": "Place dry practice components into a visible alignment jig and commit the discrete seated-assembly state.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "so101-04-filter-assembly",
+      "learningObjective": "Program the required filter-assembly order using visible alignment support, sequence feedback, and observable evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-04-filter-assembly.json"
+    },
+    {
+      "id": "so101-v2-05-pipette-pump",
+      "robotId": "so101_follower",
+      "rank": 5,
+      "title": "Pipette Pump Coupling",
+      "brief": "Place the dry practice pump in a keyed coupling cradle and commit the discrete coupled state.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "so101-05-pipette-pump",
+      "learningObjective": "Program the pump-to-pipette coupling sequence with compatibility feedback and observable confirmation.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-05-pipette-pump.json"
+    },
+    {
+      "id": "so101-v2-06-quantitative-transfer",
+      "robotId": "so101_follower",
+      "rank": 6,
+      "title": "Transfer and Rinse Station Readiness",
+      "brief": "Stage a sealed aliquot carrier and capped rinse bottle in a visible transfer-station adapter; no liquid behavior is simulated.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "so101-06-quantitative-transfer",
+      "learningObjective": "Program the configured aliquot-transfer and rinse preparation sequence while distinguishing robot staging from unsupported liquid behavior.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-06-quantitative-transfer.json"
+    },
+    {
+      "id": "so101-v2-07-chromatography-spotting",
+      "robotId": "so101_follower",
+      "rank": 7,
+      "title": "Chromatography Spotting Station Readiness",
+      "brief": "Stage a capped spotting-tool carrier in a visible origin-line dock; no droplet or chromatographic dynamics are simulated.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "so101-07-chromatography-spotting",
+      "learningObjective": "Program the chromatography spotting preparation sequence and verify the observable station-ready state without inventing liquid deposition.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-07-chromatography-spotting.json"
+    },
+    {
+      "id": "so101-v2-08-burette-initial-reading",
+      "robotId": "so101_follower",
+      "rank": 8,
+      "title": "Burette Setup Queue",
+      "brief": "Stage a capped dry-practice burette carrier and funnel carrier in a visible setup rack; no filling or measurement is simulated.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "so101-08-burette-initial-reading",
+      "learningObjective": "Program the ordered burette setup preparation and distinguish a configured setup-ready cue from a measurement.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-08-burette-initial-reading.json"
+    },
+    {
+      "id": "so101-v2-09-vacuum-filtration",
+      "robotId": "so101_follower",
+      "rank": 9,
+      "title": "Vacuum Filtration Station Readiness",
+      "brief": "Stage sealed dry-practice filtration components in a visible rack; no vacuum, slurry, or wash dynamics are simulated.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "so101-09-vacuum-filtration",
+      "learningObjective": "Program the filtration-station preparation order while preserving sequence reasoning and excluding unsupported vacuum and fluid behavior.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-09-vacuum-filtration.json"
+    },
+    {
+      "id": "so101-v2-10-endpoint-assistant",
+      "robotId": "so101_follower",
+      "rank": 10,
+      "title": "Endpoint Assistant",
+      "brief": "Place the empty receiver flask in a visible centering cradle and mark a teacher-configured endpoint-observation-ready state; no titrant delivery is simulated.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "so101-10-endpoint-assistant",
+      "learningObjective": "Program receiver positioning and endpoint-observation readiness while distinguishing configured cues from physical titration measurements.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-10-endpoint-assistant.json"
+    },
+    {
+      "id": "lekiwi-01-beaker-courier",
+      "robotId": "lekiwi_sim",
+      "rank": 1,
+      "title": "Beaker Courier",
+      "brief": "Plan a configured free-cell base route, place an empty beaker in the visible transfer cradle, stow the arm, and return the base home.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "builder",
+      "migrationClass": "A",
+      "supersedes": "lekiwi-01-beaker-courier",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-01-beaker-courier.json"
+    },
+    {
+      "id": "lekiwi-02-glassware-route",
+      "robotId": "lekiwi_sim",
+      "rank": 2,
+      "title": "Glassware Route",
+      "brief": "Route to the measuring station, transfer the assigned sealed glassware carrier between visible cradles, stow, and return home.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "lekiwi-02-sample-fetch",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-02-glassware-route.json"
+    },
+    {
+      "id": "lekiwi-03-sample-delivery",
+      "robotId": "lekiwi_sim",
+      "rank": 3,
+      "title": "Sample Delivery",
+      "brief": "Navigate to the balance-side workcell and place a dry watch glass in its visible handling fixture without claiming a mass measurement.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "lekiwi-03-mobile-weighing",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-03-sample-delivery.json"
+    },
+    {
+      "id": "lekiwi-04-filter-station-run",
+      "robotId": "lekiwi_sim",
+      "rank": 4,
+      "title": "Filter Station Run",
+      "brief": "Choose a configured free-cell route and place the locked rack at the visible filter/instrument fixture before returning home.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "lekiwi-04-cuvette-rack",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-04-filter-station-run.json"
+    },
+    {
+      "id": "lekiwi-05-reagent-shuttle",
+      "robotId": "lekiwi_sim",
+      "rank": 5,
+      "title": "Reagent Shuttle",
+      "brief": "Shuttle a closed, teacher-labeled return carrier to its visible receiving cradle; carrier contents and payload are not simulated.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "lekiwi-05-waste-return",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-05-reagent-shuttle.json"
+    },
+    {
+      "id": "lekiwi-06-cooling-rack-route",
+      "robotId": "lekiwi_sim",
+      "rank": 6,
+      "title": "Cooling Rack Route",
+      "brief": "Visit both configured logistics stops in a safe order, deliver a teacher-released carrier, stow, and return home without simulating dilution or temperature.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "lekiwi-06-dilution-route",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-06-cooling-rack-route.json"
+    },
+    {
+      "id": "lekiwi-07-chromatography-route",
+      "robotId": "lekiwi_sim",
+      "rank": 7,
+      "title": "Chromatography Route",
+      "brief": "Deliver a sealed supply bin to the visible chromatography station fixture, stow, and return home.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "lekiwi-07-filtration-supply",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-07-chromatography-route.json"
+    },
+    {
+      "id": "lekiwi-08-spectrometer-route",
+      "robotId": "lekiwi_sim",
+      "rank": 8,
+      "title": "Spectrometer Route",
+      "brief": "Avoid configured blocked cells and deliver a teacher-released rack to the spectrometer queue before stowing and returning home.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "lekiwi-08-cooled-precipitate",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-08-spectrometer-route.json"
+    },
+    {
+      "id": "lekiwi-09-titration-logistics",
+      "robotId": "lekiwi_sim",
+      "rank": 9,
+      "title": "Titration Logistics",
+      "brief": "Visit both configured logistics stops in a causally safe order and deliver a locked rack to the visible titration queue before returning home.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "lekiwi-09-spectro-route",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-09-titration-logistics.json"
+    },
+    {
+      "id": "lekiwi-10-hard-water-logistics",
+      "robotId": "lekiwi_sim",
+      "rank": 10,
+      "title": "Hard-Water Logistics",
+      "brief": "Visit both configured logistics stops, deliver the carrier to the visible balance queue, stow, and return home without simulating filtration, drying, cooling, or mass.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "lekiwi-10-hard-water-logistics",
+      "learningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-10-hard-water-logistics.json"
+    },
+    {
+      "id": "openarm-01-weighing-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 1,
+      "title": "Two-Hand Weighing Handoff",
+      "brief": "Coordinate a watch-glass delivery and spatula return through separate, observable left/right contact sequences.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "A",
+      "supersedes": "openarm-01-weighing-handoff",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-01-weighing-handoff.json"
+    },
+    {
+      "id": "openarm-02-glassware-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 2,
+      "title": "Bimanual Glassware Handoff",
+      "brief": "Replace unsupported solvent transfer with coordinated placement of sealed glassware at a visible receiving fixture.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "C",
+      "supersedes": "openarm-02-stabilized-solvent-addition",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-02-glassware-handoff.json"
+    },
+    {
+      "id": "openarm-03-cuvette-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 3,
+      "title": "Cuvette and Reference Handoff",
+      "brief": "Replace unsupported inversion mixing with separate-arm transport of a capped cuvette carrier and reference card.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "guided",
+      "migrationClass": "C",
+      "supersedes": "openarm-03-stopper-and-mix",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-03-cuvette-handoff.json"
+    },
+    {
+      "id": "openarm-04-filtration-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 4,
+      "title": "Fixture-Assisted Filtration Workcell",
+      "brief": "Coordinate a gravity funnel carrier and filter-paper cassette at a visible assembly fixture.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "openarm-04-pipette-loading",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-04-filtration-workcell.json"
+    },
+    {
+      "id": "openarm-05-titration-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 5,
+      "title": "Fixture-Assisted Titration Workcell",
+      "brief": "Coordinate an empty receiver flask and endpoint record card at a visible burette workcell without simulating liquid delivery.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "openarm-05-filter-assembly",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-05-titration-workcell.json"
+    },
+    {
+      "id": "openarm-06-cooling-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 6,
+      "title": "Configured Cooling-Station Handoff",
+      "brief": "Replace unsupported pouring with bimanual transfer of a sealed sample carrier and station tag to a visible cooling rack.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "openarm-06-controlled-pour",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-06-cooling-handoff.json"
+    },
+    {
+      "id": "openarm-07-chromatography-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 7,
+      "title": "Fixture-Assisted Chromatography Workcell",
+      "brief": "Coordinate a dry chromatography plate carrier and chamber lid at a visible alignment fixture.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "openarm-07-buchner-station",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-07-chromatography-workcell.json"
+    },
+    {
+      "id": "openarm-08-spectrometer-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 8,
+      "title": "Fixture-Assisted Spectrometer Workcell",
+      "brief": "Replace unsupported phase separation with coordinated handling of capped sample and reference cuvette carriers.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "C",
+      "supersedes": "openarm-08-separatory-funnel",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-08-spectrometer-workcell.json"
+    },
+    {
+      "id": "openarm-09-standardization-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 9,
+      "title": "Fixture-Assisted Standardization Workcell",
+      "brief": "Coordinate a sealed standard carrier and observation card at a visible workcell without claiming endpoint measurement.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "B",
+      "supersedes": "openarm-09-titration-coordination",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-09-standardization-workcell.json"
+    },
+    {
+      "id": "openarm-10-gravimetric-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 10,
+      "title": "Fixture-Assisted Gravimetric Workcell",
+      "brief": "Coordinate an empty filter-flask carrier and secured dry-tray carrier through a visible gravimetric handoff fixture.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "challenge",
+      "migrationClass": "B",
+      "supersedes": "openarm-10-gravimetric-workcell",
+      "learningObjective": "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
+      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-10-gravimetric-workcell.json"
+    },
+    {
+      "id": "g1-01-empty-tray",
+      "robotId": "unitree_g1_29dof",
+      "rank": 1,
+      "title": "Empty Tray Docking Run",
+      "brief": "Route an empty secured carrier from the supply dock to the transfer dock and verify the receiver latch.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "builder",
+      "migrationClass": "A",
+      "supersedes": "g1-01-empty-tray",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-01-empty-tray.json"
+    },
+    {
+      "id": "g1-02-glassware-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 2,
+      "title": "Secured Glassware Carrier",
+      "brief": "Deliver a locked glassware carrier to preparation without handling any glassware directly.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "g1-02-sealed-sample",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-02-glassware-carrier.json"
+    },
+    {
+      "id": "g1-03-sample-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 3,
+      "title": "Secured Sample Rack Courier",
+      "brief": "Move a mechanically secured sample rack to the instrument receiving dock.",
+      "assistanceLevel": "Guided",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "g1-03-cuvette-rack",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-03-sample-carrier.json"
+    },
+    {
+      "id": "g1-04-filtration-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 4,
+      "title": "Filtration Supply Carrier",
+      "brief": "Deliver a closed filtration supply carrier to its visible receiver dock.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "B",
+      "supersedes": "g1-04-filtration-kit",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-04-filtration-carrier.json"
+    },
+    {
+      "id": "g1-05-titration-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 5,
+      "title": "Titration Station Carrier Exchange",
+      "brief": "Serve as the lab runner for a closed titration supply carrier; all bench manipulation remains outside G1's role.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "g1-05-waste-carrier",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-05-titration-carrier.json"
+    },
+    {
+      "id": "g1-06-cooling-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 6,
+      "title": "Teacher-Authorized Cooling Carrier",
+      "brief": "After visible teacher-configured release authorization, route a secured cooling carrier to the balance receiving dock.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "g1-06-cooled-sample-tray",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-06-cooling-carrier.json"
+    },
+    {
+      "id": "g1-07-chromatography-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 7,
+      "title": "Chromatography Supply Carrier Route",
+      "brief": "Route a sealed chromatography supply carrier along named safe waypoints while avoiding the restricted bench zone.",
+      "assistanceLevel": "Builder",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "g1-07-reagent-tote",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-07-chromatography-carrier.json"
+    },
+    {
+      "id": "g1-08-spectrometer-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 8,
+      "title": "Spectrometer Carrier Exchange",
+      "brief": "Complete an order-independent exchange of two locked carriers between storage and the spectrometer receiving dock.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "g1-08-spectro-courier-loop",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-08-spectrometer-carrier.json"
+    },
+    {
+      "id": "g1-09-standardization-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 9,
+      "title": "Standardization Carrier Circuit",
+      "brief": "Route secured carriers among three receiver docks without weighing, transferring liquid, or reading instruments.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "g1-09-gravimetry-logistics",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-09-standardization-carrier.json"
+    },
+    {
+      "id": "g1-10-lab-runner-shift",
+      "robotId": "unitree_g1_29dof",
+      "rank": 10,
+      "title": "Constrained Lab Runner Shift",
+      "brief": "Fulfill three independent secured-carrier deliveries using only named safe waypoints, docks, and latch interfaces.",
+      "assistanceLevel": "Challenge",
+      "apiLevel": "builder",
+      "migrationClass": "C",
+      "supersedes": "g1-10-lab-runner-shift",
+      "learningObjective": "Program Unitree G1 to complete the observable secured-carrier handling sequence; use checkpoint feedback for invalid proximity, sequence, or compatibility states; distinguish simulated apparatus state from learner-recorded evidence; return the runner home.",
+      "provenanceLabels": [
+        "M",
+        "F",
+        "R",
+        "C"
+      ],
+      "supportedFidelity": "Constrained waypoint logistics with discrete dock/latch events",
+      "limitations": "free grasping; leg IK; dynamic balance; collision recovery; dynamic locomotion; force control",
+      "definition": "missions/lab-assistant/v2/generated/scenarios/g1-10-lab-runner-shift.json"
+    }
+  ]
+}
