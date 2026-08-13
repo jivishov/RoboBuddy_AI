@@ -3,7 +3,7 @@
   "schemaVersion": 2,
   "id": "so101-v2-10-endpoint-assistant",
   "title": "Endpoint Assistant",
-  "brief": "Place the empty receiver flask in a visible centering cradle and expose a teacher-configured endpoint-observation cue; no titrant delivery is simulated.",
+  "brief": "Place the empty receiver flask in a visible centering cradle and mark a teacher-configured endpoint-observation-ready state; no titrant delivery is simulated.",
   "robotId": "so101_follower",
   "rank": 10,
   "supersedes": "so101-10-endpoint-assistant",
@@ -12,108 +12,152 @@
   "migration": {
     "class": "C",
     "legacyLearningObjective": "Program receiver positioning and endpoint-observation readiness while distinguishing configured cues from physical titration measurements.",
-    "redesignRationale": "Dropwise titrant delivery and endpoint measurement imply unsupported fluid, force, and measurement fidelity. The robot role is redesigned to position the receiver and enable a visibly configured observation cue."
+    "redesignRationale": "Dropwise titrant delivery and endpoint measurement imply unsupported fluid, force, and measurement fidelity. The robot role is redesigned to position the receiver and mark a visibly identified configured observation-ready state."
   },
   "canonicalModel": {
     "id": "so101_follower",
     "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
   },
   "frames": {
-    "pickup_approach": {
+    "empty_receiver_flask_approach": {
       "positionMm": [
-        123.89,
-        98.185,
-        -59.675
+        50,
+        180,
+        -250
       ],
       "role": "approach",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "empty_receiver_flask_pickup_adapter"
     },
-    "pickup_contact": {
+    "empty_receiver_flask_contact": {
       "positionMm": [
-        116.93,
-        87.125,
-        -48.862
+        50,
+        80,
+        -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "receiver_centering_cradle"
+      "contactFixtureId": "empty_receiver_flask_pickup_adapter"
     },
-    "pickup_lift": {
+    "empty_receiver_flask_lift": {
       "positionMm": [
-        140.488,
-        100.217,
-        -44.049
+        50,
+        220,
+        -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "empty_receiver_flask_pickup_adapter"
     },
-    "destination": {
+    "empty_receiver_flask_destination": {
       "positionMm": [
-        134.927,
-        89.463,
-        25.496
+        300,
+        80,
+        150
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "empty_receiver_flask_destination_slot"
     },
-    "destination_contact": {
+    "empty_receiver_flask_retreat": {
       "positionMm": [
-        110.008,
-        77.507,
-        25.439
-      ],
-      "role": "contact",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 4
-      }
-    },
-    "retreat": {
-      "positionMm": [
-        160.528,
-        108.363,
-        22.037
+        300,
+        220,
+        150
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "empty_receiver_flask_destination_slot"
     }
   },
   "fixtures": [
     {
-      "id": "receiver_centering_cradle",
-      "label": "Visible receiver centering cradle",
+      "id": "empty_receiver_flask_pickup_adapter",
+      "label": "Empty receiver flask in grip adapter pickup adapter",
       "visible": true,
       "type": "morphology_adapter",
       "configured": true,
-      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+      "atFrame": "empty_receiver_flask_contact",
+      "positionMm": [
+        50,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          50,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "empty_receiver_flask_destination_slot",
+      "label": "Empty receiver flask in grip adapter destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "empty_receiver_flask_destination",
+      "positionMm": [
+        300,
+        72,
+        150
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          300,
+          72,
+          150
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
     }
   ],
   "objects": [
     {
       "id": "empty_receiver_flask",
       "label": "Empty receiver flask in grip adapter",
-      "initialFrame": "pickup_contact",
+      "initialFrame": "empty_receiver_flask_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "flask",
+        "scale": 0.48
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     }
   ],
   "grasps": [
@@ -122,44 +166,44 @@
       "objectId": "empty_receiver_flask",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "receiver_centering_cradle"
+      "contactFrame": "empty_receiver_flask_contact",
+      "fixtureId": "empty_receiver_flask_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     }
   ],
-  "processModels": [
-    {
-      "id": "endpoint_observation_ready",
-      "label": "Configured discrete station state",
-      "discrete": true,
-      "contactGated": true,
-      "initialState": "not_ready",
-      "completeState": "configured_cue_ready",
-      "prerequisites": [
-        {
-          "op": "object_at",
-          "objectId": "empty_receiver_flask",
-          "frameId": "destination"
-        }
-      ]
-    }
-  ],
+  "processModels": [],
   "goalPredicates": [
     {
       "id": "empty_receiver_flask_placed",
+      "label": "Empty receiver flask in grip adapter visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "empty_receiver_flask",
-      "frameId": "destination"
+      "frameId": "empty_receiver_flask_destination"
     },
     {
-      "id": "safe_retreat",
+      "id": "empty_receiver_flask_approach_visited",
+      "label": "Approach frame visited for Empty receiver flask in grip adapter",
       "op": "frame_visited",
-      "frameId": "retreat"
+      "frameId": "empty_receiver_flask_approach"
     },
     {
-      "id": "station_state",
-      "op": "process_state",
-      "processId": "endpoint_observation_ready",
-      "value": "configured_cue_ready"
+      "id": "empty_receiver_flask_contact_visited",
+      "label": "Contact frame visited for Empty receiver flask in grip adapter",
+      "op": "frame_visited",
+      "frameId": "empty_receiver_flask_contact"
+    },
+    {
+      "id": "empty_receiver_flask_lift_visited",
+      "label": "Lift frame visited for Empty receiver flask in grip adapter",
+      "op": "frame_visited",
+      "frameId": "empty_receiver_flask_lift"
+    },
+    {
+      "id": "empty_receiver_flask_retreat_visited",
+      "label": "Retreat frame visited for Empty receiver flask in grip adapter",
+      "op": "frame_visited",
+      "frameId": "empty_receiver_flask_retreat"
     }
   ],
   "prohibitedStates": [
@@ -183,31 +227,29 @@
   "evidenceRequirements": [
     {
       "id": "completion_observation",
-      "label": "Record the visible configured station-ready state.",
+      "label": "After placement and retreat, select the visible seating-and-clearance observation.",
       "kind": "learner-recorded",
-      "minLength": 20,
+      "allowedValues": [
+        "Visible destination seating confirmed with the robot clear."
+      ],
       "availableWhen": {
         "op": "all",
         "predicates": [
           {
             "op": "object_at",
             "objectId": "empty_receiver_flask",
-            "frameId": "destination"
-          },
-          {
-            "op": "process_state",
-            "processId": "endpoint_observation_ready",
-            "value": "configured_cue_ready"
+            "frameId": "empty_receiver_flask_destination"
           },
           {
             "op": "frame_visited",
-            "frameId": "retreat"
+            "frameId": "empty_receiver_flask_retreat"
           }
         ]
       },
       "requiresEvent": {
-        "type": "PROCESS_COMMIT",
-        "processId": "endpoint_observation_ready"
+        "type": "DETACH_OBJECT",
+        "objectId": "empty_receiver_flask",
+        "frameId": "empty_receiver_flask_destination"
       }
     }
   ],
@@ -228,7 +270,7 @@
     },
     {
       "label": "C",
-      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
     }
   ],
   "modelClaim": {
@@ -333,30 +375,20 @@
             "method": "skills.transport",
             "args": {
               "objectId": "empty_receiver_flask",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "empty_receiver_flask_approach",
+              "contactFrame": "empty_receiver_flask_contact",
+              "liftFrame": "empty_receiver_flask_lift",
+              "destinationFrame": "empty_receiver_flask_destination",
+              "retreatFrame": "empty_receiver_flask_retreat",
               "effector": "default",
               "seed": 17
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "endpoint_observation_ready",
-              "fixtureId": "receiver_centering_cradle",
-              "objectId": "empty_receiver_flask",
-              "value": "configured_cue_ready"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -364,36 +396,26 @@
     ],
     "acceptedAlternates": [
       {
-        "id": "alternate-ik-seed",
+        "id": "alternate-ik-seeds-same-safe-order",
         "calls": [
           {
             "method": "skills.transport",
             "args": {
               "objectId": "empty_receiver_flask",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "empty_receiver_flask_approach",
+              "contactFrame": "empty_receiver_flask_contact",
+              "liftFrame": "empty_receiver_flask_lift",
+              "destinationFrame": "empty_receiver_flask_destination",
+              "retreatFrame": "empty_receiver_flask_retreat",
               "effector": "default",
               "seed": 991
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "endpoint_observation_ready",
-              "fixtureId": "receiver_centering_cradle",
-              "objectId": "empty_receiver_flask",
-              "value": "configured_cue_ready"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -401,9 +423,22 @@
     ],
     "negativeCases": [
       {
-        "id": "no-actions",
+        "id": "no-transport",
         "expectedFailureKind": "goal",
         "calls": []
+      },
+      {
+        "id": "premature-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Visible destination seating confirmed with the robot clear."
+            }
+          }
+        ]
       },
       {
         "id": "outcome-without-evidence",
@@ -413,38 +448,51 @@
             "method": "skills.transport",
             "args": {
               "objectId": "empty_receiver_flask",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "empty_receiver_flask_approach",
+              "contactFrame": "empty_receiver_flask_contact",
+              "liftFrame": "empty_receiver_flask_lift",
+              "destinationFrame": "empty_receiver_flask_destination",
+              "retreatFrame": "empty_receiver_flask_retreat",
               "effector": "default",
               "seed": 17
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "endpoint_observation_ready",
-              "fixtureId": "receiver_centering_cradle",
-              "objectId": "empty_receiver_flask",
-              "value": "configured_cue_ready"
             }
           }
         ]
       },
       {
-        "id": "process-before-placement",
+        "id": "invalid-evidence-value",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "empty_receiver_flask",
+              "approachFrame": "empty_receiver_flask_approach",
+              "contactFrame": "empty_receiver_flask_contact",
+              "liftFrame": "empty_receiver_flask_lift",
+              "destinationFrame": "empty_receiver_flask_destination",
+              "retreatFrame": "empty_receiver_flask_retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Everything probably worked."
+            }
+          }
+        ]
+      },
+      {
+        "id": "fixed-base-navigation-rejected",
         "expectedFailureKind": "causal",
         "calls": [
           {
-            "method": "skills.fixture_operation",
+            "method": "robot.navigate",
             "args": {
-              "processId": "endpoint_observation_ready",
-              "fixtureId": "receiver_centering_cradle",
-              "objectId": "empty_receiver_flask",
-              "value": "configured_cue_ready"
+              "frameId": "empty_receiver_flask_destination"
             }
           }
         ]

@@ -18,112 +18,282 @@
     "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
   },
   "frames": {
-    "pickup_approach": {
+    "filter_paper_carrier_approach": {
       "positionMm": [
-        123.89,
-        98.185,
-        -59.675
+        50,
+        180,
+        -250
       ],
       "role": "approach",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "filter_paper_carrier_pickup_adapter"
     },
-    "pickup_contact": {
+    "filter_paper_carrier_contact": {
       "positionMm": [
-        116.93,
-        87.125,
-        -48.862
+        50,
+        80,
+        -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "funnel_alignment_jig"
+      "contactFixtureId": "filter_paper_carrier_pickup_adapter"
     },
-    "pickup_lift": {
+    "filter_paper_carrier_lift": {
       "positionMm": [
-        140.488,
-        100.217,
-        -44.049
+        50,
+        220,
+        -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "filter_paper_carrier_pickup_adapter"
     },
-    "destination": {
+    "filter_paper_carrier_destination": {
       "positionMm": [
-        134.927,
-        89.463,
-        25.496
+        300,
+        80,
+        150
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "filter_paper_carrier_destination_slot"
     },
-    "destination_contact": {
+    "filter_paper_carrier_retreat": {
       "positionMm": [
-        110.008,
-        77.507,
-        25.439
-      ],
-      "role": "contact",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 4
-      }
-    },
-    "retreat": {
-      "positionMm": [
-        160.528,
-        108.363,
-        22.037
+        300,
+        220,
+        150
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "filter_paper_carrier_destination_slot"
+    },
+    "filter_flask_approach": {
+      "positionMm": [
+        250,
+        180,
+        -250
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "filter_flask_pickup_adapter"
+    },
+    "filter_flask_contact": {
+      "positionMm": [
+        250,
+        80,
+        -250
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "filter_flask_pickup_adapter"
+    },
+    "filter_flask_lift": {
+      "positionMm": [
+        250,
+        220,
+        -250
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "filter_flask_pickup_adapter"
+    },
+    "filter_flask_destination": {
+      "positionMm": [
+        -50,
+        80,
+        250
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "filter_flask_destination_slot"
+    },
+    "filter_flask_retreat": {
+      "positionMm": [
+        -50,
+        220,
+        250
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "filter_flask_destination_slot"
     }
   },
   "fixtures": [
     {
-      "id": "funnel_alignment_jig",
-      "label": "Visible funnel and paper alignment jig",
+      "id": "filter_paper_carrier_pickup_adapter",
+      "label": "Dry filter-paper carrier pickup adapter",
       "visible": true,
       "type": "morphology_adapter",
       "configured": true,
-      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+      "atFrame": "filter_paper_carrier_contact",
+      "positionMm": [
+        50,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          50,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "filter_paper_carrier_destination_slot",
+      "label": "Dry filter-paper carrier destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "filter_paper_carrier_destination",
+      "positionMm": [
+        300,
+        72,
+        150
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          300,
+          72,
+          150
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "filter_flask_pickup_adapter",
+      "label": "Empty filter flask pickup adapter",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "filter_flask_contact",
+      "positionMm": [
+        250,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          250,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "filter_flask_destination_slot",
+      "label": "Empty filter flask destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "filter_flask_destination",
+      "positionMm": [
+        -50,
+        72,
+        250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          -50,
+          72,
+          250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
     }
   ],
   "objects": [
     {
       "id": "filter_paper_carrier",
       "label": "Dry filter-paper carrier",
-      "initialFrame": "pickup_contact",
+      "initialFrame": "filter_paper_carrier_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "secured_carrier",
+        "variant": "filtration",
+        "scale": 0.42
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     },
     {
       "id": "filter_flask",
       "label": "Empty filter flask",
-      "initialFrame": "pickup_contact",
+      "initialFrame": "filter_flask_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "filter_flask",
+        "scale": 0.44
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     }
   ],
   "grasps": [
@@ -132,16 +302,20 @@
       "objectId": "filter_paper_carrier",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "funnel_alignment_jig"
+      "contactFrame": "filter_paper_carrier_contact",
+      "fixtureId": "filter_paper_carrier_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     },
     {
       "id": "filter_flask_fixture_grasp",
       "objectId": "filter_flask",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "funnel_alignment_jig"
+      "contactFrame": "filter_flask_contact",
+      "fixtureId": "filter_flask_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     }
   ],
   "processModels": [
@@ -156,36 +330,79 @@
         {
           "op": "object_at",
           "objectId": "filter_paper_carrier",
-          "frameId": "destination"
-        },
-        {
-          "op": "object_at",
-          "objectId": "filter_flask",
-          "frameId": "destination"
+          "frameId": "filter_paper_carrier_destination"
         }
-      ]
+      ],
+      "fixtureId": "filter_flask_destination_slot",
+      "contactFrame": "filter_flask_destination"
     }
   ],
   "goalPredicates": [
     {
       "id": "filter_paper_carrier_placed",
+      "label": "Dry filter-paper carrier visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "filter_paper_carrier",
-      "frameId": "destination"
+      "frameId": "filter_paper_carrier_destination"
     },
     {
       "id": "filter_flask_placed",
+      "label": "Empty filter flask visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "filter_flask",
-      "frameId": "destination"
+      "frameId": "filter_flask_destination"
     },
     {
-      "id": "safe_retreat",
+      "id": "filter_paper_carrier_approach_visited",
+      "label": "Approach frame visited for Dry filter-paper carrier",
       "op": "frame_visited",
-      "frameId": "retreat"
+      "frameId": "filter_paper_carrier_approach"
+    },
+    {
+      "id": "filter_paper_carrier_contact_visited",
+      "label": "Contact frame visited for Dry filter-paper carrier",
+      "op": "frame_visited",
+      "frameId": "filter_paper_carrier_contact"
+    },
+    {
+      "id": "filter_paper_carrier_lift_visited",
+      "label": "Lift frame visited for Dry filter-paper carrier",
+      "op": "frame_visited",
+      "frameId": "filter_paper_carrier_lift"
+    },
+    {
+      "id": "filter_paper_carrier_retreat_visited",
+      "label": "Retreat frame visited for Dry filter-paper carrier",
+      "op": "frame_visited",
+      "frameId": "filter_paper_carrier_retreat"
+    },
+    {
+      "id": "filter_flask_approach_visited",
+      "label": "Approach frame visited for Empty filter flask",
+      "op": "frame_visited",
+      "frameId": "filter_flask_approach"
+    },
+    {
+      "id": "filter_flask_contact_visited",
+      "label": "Contact frame visited for Empty filter flask",
+      "op": "frame_visited",
+      "frameId": "filter_flask_contact"
+    },
+    {
+      "id": "filter_flask_lift_visited",
+      "label": "Lift frame visited for Empty filter flask",
+      "op": "frame_visited",
+      "frameId": "filter_flask_lift"
+    },
+    {
+      "id": "filter_flask_retreat_visited",
+      "label": "Retreat frame visited for Empty filter flask",
+      "op": "frame_visited",
+      "frameId": "filter_flask_retreat"
     },
     {
       "id": "station_state",
+      "label": "Configured station-ready state committed at final placement contact",
       "op": "process_state",
       "processId": "assembly_seat",
       "value": "seated"
@@ -217,30 +434,36 @@
   "evidenceRequirements": [
     {
       "id": "completion_observation",
-      "label": "Record the visible configured station-ready state.",
+      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
       "kind": "learner-recorded",
-      "minLength": 20,
+      "allowedValues": [
+        "Visible destination seating confirmed with the robot clear."
+      ],
       "availableWhen": {
         "op": "all",
         "predicates": [
           {
             "op": "object_at",
             "objectId": "filter_paper_carrier",
-            "frameId": "destination"
+            "frameId": "filter_paper_carrier_destination"
           },
           {
             "op": "object_at",
             "objectId": "filter_flask",
-            "frameId": "destination"
+            "frameId": "filter_flask_destination"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "filter_paper_carrier_retreat"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "filter_flask_retreat"
           },
           {
             "op": "process_state",
             "processId": "assembly_seat",
             "value": "seated"
-          },
-          {
-            "op": "frame_visited",
-            "frameId": "retreat"
           }
         ]
       },
@@ -267,7 +490,7 @@
     },
     {
       "label": "C",
-      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
     }
   ],
   "modelClaim": {
@@ -372,12 +595,11 @@
             "method": "skills.transport",
             "args": {
               "objectId": "filter_paper_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "filter_paper_carrier_approach",
+              "contactFrame": "filter_paper_carrier_contact",
+              "liftFrame": "filter_paper_carrier_lift",
+              "destinationFrame": "filter_paper_carrier_destination",
+              "retreatFrame": "filter_paper_carrier_retreat",
               "effector": "default",
               "seed": 17
             }
@@ -386,30 +608,22 @@
             "method": "skills.transport",
             "args": {
               "objectId": "filter_flask",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "filter_flask_approach",
+              "contactFrame": "filter_flask_contact",
+              "liftFrame": "filter_flask_lift",
+              "destinationFrame": "filter_flask_destination",
+              "retreatFrame": "filter_flask_retreat",
               "effector": "default",
-              "seed": 34
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 34,
               "processId": "assembly_seat",
-              "fixtureId": "funnel_alignment_jig",
-              "objectId": "filter_flask",
-              "value": "seated"
+              "processValue": "seated"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -417,18 +631,17 @@
     ],
     "acceptedAlternates": [
       {
-        "id": "alternate-safe-order-and-seeds",
+        "id": "alternate-ik-seeds-same-safe-order",
         "calls": [
           {
             "method": "skills.transport",
             "args": {
-              "objectId": "filter_flask",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "objectId": "filter_paper_carrier",
+              "approachFrame": "filter_paper_carrier_approach",
+              "contactFrame": "filter_paper_carrier_contact",
+              "liftFrame": "filter_paper_carrier_lift",
+              "destinationFrame": "filter_paper_carrier_destination",
+              "retreatFrame": "filter_paper_carrier_retreat",
               "effector": "default",
               "seed": 991
             }
@@ -436,31 +649,23 @@
           {
             "method": "skills.transport",
             "args": {
-              "objectId": "filter_paper_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "objectId": "filter_flask",
+              "approachFrame": "filter_flask_approach",
+              "contactFrame": "filter_flask_contact",
+              "liftFrame": "filter_flask_lift",
+              "destinationFrame": "filter_flask_destination",
+              "retreatFrame": "filter_flask_retreat",
               "effector": "default",
-              "seed": 1008
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 1008,
               "processId": "assembly_seat",
-              "fixtureId": "funnel_alignment_jig",
-              "objectId": "filter_paper_carrier",
-              "value": "seated"
+              "processValue": "seated"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -468,9 +673,36 @@
     ],
     "negativeCases": [
       {
-        "id": "no-actions",
+        "id": "missing-second-object",
         "expectedFailureKind": "goal",
-        "calls": []
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "filter_paper_carrier",
+              "approachFrame": "filter_paper_carrier_approach",
+              "contactFrame": "filter_paper_carrier_contact",
+              "liftFrame": "filter_paper_carrier_lift",
+              "destinationFrame": "filter_paper_carrier_destination",
+              "retreatFrame": "filter_paper_carrier_retreat",
+              "effector": "default",
+              "seed": 211
+            }
+          }
+        ]
+      },
+      {
+        "id": "premature-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Visible destination seating confirmed with the robot clear."
+            }
+          }
+        ]
       },
       {
         "id": "outcome-without-evidence",
@@ -480,12 +712,11 @@
             "method": "skills.transport",
             "args": {
               "objectId": "filter_paper_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "filter_paper_carrier_approach",
+              "contactFrame": "filter_paper_carrier_contact",
+              "liftFrame": "filter_paper_carrier_lift",
+              "destinationFrame": "filter_paper_carrier_destination",
+              "retreatFrame": "filter_paper_carrier_retreat",
               "effector": "default",
               "seed": 17
             }
@@ -494,23 +725,68 @@
             "method": "skills.transport",
             "args": {
               "objectId": "filter_flask",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "filter_flask_approach",
+              "contactFrame": "filter_flask_contact",
+              "liftFrame": "filter_flask_lift",
+              "destinationFrame": "filter_flask_destination",
+              "retreatFrame": "filter_flask_retreat",
               "effector": "default",
-              "seed": 34
+              "seed": 34,
+              "processId": "assembly_seat",
+              "processValue": "seated"
+            }
+          }
+        ]
+      },
+      {
+        "id": "invalid-evidence-value",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "filter_paper_carrier",
+              "approachFrame": "filter_paper_carrier_approach",
+              "contactFrame": "filter_paper_carrier_contact",
+              "liftFrame": "filter_paper_carrier_lift",
+              "destinationFrame": "filter_paper_carrier_destination",
+              "retreatFrame": "filter_paper_carrier_retreat",
+              "effector": "default",
+              "seed": 17
             }
           },
           {
-            "method": "skills.fixture_operation",
+            "method": "skills.transport",
             "args": {
-              "processId": "assembly_seat",
-              "fixtureId": "funnel_alignment_jig",
               "objectId": "filter_flask",
-              "value": "seated"
+              "approachFrame": "filter_flask_approach",
+              "contactFrame": "filter_flask_contact",
+              "liftFrame": "filter_flask_lift",
+              "destinationFrame": "filter_flask_destination",
+              "retreatFrame": "filter_flask_retreat",
+              "effector": "default",
+              "seed": 34,
+              "processId": "assembly_seat",
+              "processValue": "seated"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Everything probably worked."
+            }
+          }
+        ]
+      },
+      {
+        "id": "fixed-base-navigation-rejected",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "filter_paper_carrier_destination"
             }
           }
         ]
@@ -523,8 +799,8 @@
             "method": "skills.fixture_operation",
             "args": {
               "processId": "assembly_seat",
-              "fixtureId": "funnel_alignment_jig",
-              "objectId": "filter_paper_carrier",
+              "fixtureId": "filter_flask_destination_slot",
+              "objectId": "filter_flask",
               "value": "seated"
             }
           }

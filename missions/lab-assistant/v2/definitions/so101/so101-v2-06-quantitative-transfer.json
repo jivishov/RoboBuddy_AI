@@ -19,112 +19,283 @@
     "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
   },
   "frames": {
-    "pickup_approach": {
+    "sealed_aliquot_carrier_approach": {
       "positionMm": [
-        123.89,
-        98.185,
-        -59.675
+        50,
+        180,
+        -250
       ],
       "role": "approach",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sealed_aliquot_carrier_pickup_adapter"
     },
-    "pickup_contact": {
+    "sealed_aliquot_carrier_contact": {
       "positionMm": [
-        116.93,
-        87.125,
-        -48.862
+        50,
+        80,
+        -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "transfer_station_adapter"
+      "contactFixtureId": "sealed_aliquot_carrier_pickup_adapter"
     },
-    "pickup_lift": {
+    "sealed_aliquot_carrier_lift": {
       "positionMm": [
-        140.488,
-        100.217,
-        -44.049
+        50,
+        220,
+        -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sealed_aliquot_carrier_pickup_adapter"
     },
-    "destination": {
+    "sealed_aliquot_carrier_destination": {
       "positionMm": [
-        134.927,
-        89.463,
-        25.496
+        300,
+        80,
+        150
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sealed_aliquot_carrier_destination_slot"
     },
-    "destination_contact": {
+    "sealed_aliquot_carrier_retreat": {
       "positionMm": [
-        110.008,
-        77.507,
-        25.439
-      ],
-      "role": "contact",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 4
-      }
-    },
-    "retreat": {
-      "positionMm": [
-        160.528,
-        108.363,
-        22.037
+        300,
+        220,
+        150
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sealed_aliquot_carrier_destination_slot"
+    },
+    "capped_rinse_bottle_approach": {
+      "positionMm": [
+        250,
+        180,
+        -250
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "capped_rinse_bottle_pickup_adapter"
+    },
+    "capped_rinse_bottle_contact": {
+      "positionMm": [
+        250,
+        80,
+        -250
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "capped_rinse_bottle_pickup_adapter"
+    },
+    "capped_rinse_bottle_lift": {
+      "positionMm": [
+        250,
+        220,
+        -250
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "capped_rinse_bottle_pickup_adapter"
+    },
+    "capped_rinse_bottle_destination": {
+      "positionMm": [
+        -50,
+        80,
+        250
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "capped_rinse_bottle_destination_slot"
+    },
+    "capped_rinse_bottle_retreat": {
+      "positionMm": [
+        -50,
+        220,
+        250
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "capped_rinse_bottle_destination_slot"
     }
   },
   "fixtures": [
     {
-      "id": "transfer_station_adapter",
-      "label": "Visible sealed-carrier transfer adapter",
+      "id": "sealed_aliquot_carrier_pickup_adapter",
+      "label": "Sealed aliquot carrier pickup adapter",
       "visible": true,
       "type": "morphology_adapter",
       "configured": true,
-      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+      "atFrame": "sealed_aliquot_carrier_contact",
+      "positionMm": [
+        50,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          50,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "sealed_aliquot_carrier_destination_slot",
+      "label": "Sealed aliquot carrier destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "sealed_aliquot_carrier_destination",
+      "positionMm": [
+        300,
+        72,
+        150
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          300,
+          72,
+          150
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "capped_rinse_bottle_pickup_adapter",
+      "label": "Capped rinse bottle pickup adapter",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "capped_rinse_bottle_contact",
+      "positionMm": [
+        250,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          250,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "capped_rinse_bottle_destination_slot",
+      "label": "Capped rinse bottle destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "capped_rinse_bottle_destination",
+      "positionMm": [
+        -50,
+        72,
+        250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          -50,
+          72,
+          250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
     }
   ],
   "objects": [
     {
       "id": "sealed_aliquot_carrier",
       "label": "Sealed aliquot carrier",
-      "initialFrame": "pickup_contact",
+      "initialFrame": "sealed_aliquot_carrier_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "secured_carrier",
+        "variant": "reagent",
+        "scale": 0.42
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     },
     {
       "id": "capped_rinse_bottle",
       "label": "Capped rinse bottle",
-      "initialFrame": "pickup_contact",
+      "initialFrame": "capped_rinse_bottle_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "bottle",
+        "variant": "wash_bottle",
+        "scale": 0.5
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     }
   ],
   "grasps": [
@@ -133,16 +304,20 @@
       "objectId": "sealed_aliquot_carrier",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "transfer_station_adapter"
+      "contactFrame": "sealed_aliquot_carrier_contact",
+      "fixtureId": "sealed_aliquot_carrier_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     },
     {
       "id": "capped_rinse_bottle_fixture_grasp",
       "objectId": "capped_rinse_bottle",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "transfer_station_adapter"
+      "contactFrame": "capped_rinse_bottle_contact",
+      "fixtureId": "capped_rinse_bottle_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     }
   ],
   "processModels": [
@@ -157,36 +332,79 @@
         {
           "op": "object_at",
           "objectId": "sealed_aliquot_carrier",
-          "frameId": "destination"
-        },
-        {
-          "op": "object_at",
-          "objectId": "capped_rinse_bottle",
-          "frameId": "destination"
+          "frameId": "sealed_aliquot_carrier_destination"
         }
-      ]
+      ],
+      "fixtureId": "capped_rinse_bottle_destination_slot",
+      "contactFrame": "capped_rinse_bottle_destination"
     }
   ],
   "goalPredicates": [
     {
       "id": "sealed_aliquot_carrier_placed",
+      "label": "Sealed aliquot carrier visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "sealed_aliquot_carrier",
-      "frameId": "destination"
+      "frameId": "sealed_aliquot_carrier_destination"
     },
     {
       "id": "capped_rinse_bottle_placed",
+      "label": "Capped rinse bottle visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "capped_rinse_bottle",
-      "frameId": "destination"
+      "frameId": "capped_rinse_bottle_destination"
     },
     {
-      "id": "safe_retreat",
+      "id": "sealed_aliquot_carrier_approach_visited",
+      "label": "Approach frame visited for Sealed aliquot carrier",
       "op": "frame_visited",
-      "frameId": "retreat"
+      "frameId": "sealed_aliquot_carrier_approach"
+    },
+    {
+      "id": "sealed_aliquot_carrier_contact_visited",
+      "label": "Contact frame visited for Sealed aliquot carrier",
+      "op": "frame_visited",
+      "frameId": "sealed_aliquot_carrier_contact"
+    },
+    {
+      "id": "sealed_aliquot_carrier_lift_visited",
+      "label": "Lift frame visited for Sealed aliquot carrier",
+      "op": "frame_visited",
+      "frameId": "sealed_aliquot_carrier_lift"
+    },
+    {
+      "id": "sealed_aliquot_carrier_retreat_visited",
+      "label": "Retreat frame visited for Sealed aliquot carrier",
+      "op": "frame_visited",
+      "frameId": "sealed_aliquot_carrier_retreat"
+    },
+    {
+      "id": "capped_rinse_bottle_approach_visited",
+      "label": "Approach frame visited for Capped rinse bottle",
+      "op": "frame_visited",
+      "frameId": "capped_rinse_bottle_approach"
+    },
+    {
+      "id": "capped_rinse_bottle_contact_visited",
+      "label": "Contact frame visited for Capped rinse bottle",
+      "op": "frame_visited",
+      "frameId": "capped_rinse_bottle_contact"
+    },
+    {
+      "id": "capped_rinse_bottle_lift_visited",
+      "label": "Lift frame visited for Capped rinse bottle",
+      "op": "frame_visited",
+      "frameId": "capped_rinse_bottle_lift"
+    },
+    {
+      "id": "capped_rinse_bottle_retreat_visited",
+      "label": "Retreat frame visited for Capped rinse bottle",
+      "op": "frame_visited",
+      "frameId": "capped_rinse_bottle_retreat"
     },
     {
       "id": "station_state",
+      "label": "Configured station-ready state committed at final placement contact",
       "op": "process_state",
       "processId": "transfer_station_ready",
       "value": "ready"
@@ -218,30 +436,36 @@
   "evidenceRequirements": [
     {
       "id": "completion_observation",
-      "label": "Record the visible configured station-ready state.",
+      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
       "kind": "learner-recorded",
-      "minLength": 20,
+      "allowedValues": [
+        "Visible destination seating confirmed with the robot clear."
+      ],
       "availableWhen": {
         "op": "all",
         "predicates": [
           {
             "op": "object_at",
             "objectId": "sealed_aliquot_carrier",
-            "frameId": "destination"
+            "frameId": "sealed_aliquot_carrier_destination"
           },
           {
             "op": "object_at",
             "objectId": "capped_rinse_bottle",
-            "frameId": "destination"
+            "frameId": "capped_rinse_bottle_destination"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "sealed_aliquot_carrier_retreat"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "capped_rinse_bottle_retreat"
           },
           {
             "op": "process_state",
             "processId": "transfer_station_ready",
             "value": "ready"
-          },
-          {
-            "op": "frame_visited",
-            "frameId": "retreat"
           }
         ]
       },
@@ -268,7 +492,7 @@
     },
     {
       "label": "C",
-      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
     }
   ],
   "modelClaim": {
@@ -373,12 +597,11 @@
             "method": "skills.transport",
             "args": {
               "objectId": "sealed_aliquot_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "sealed_aliquot_carrier_approach",
+              "contactFrame": "sealed_aliquot_carrier_contact",
+              "liftFrame": "sealed_aliquot_carrier_lift",
+              "destinationFrame": "sealed_aliquot_carrier_destination",
+              "retreatFrame": "sealed_aliquot_carrier_retreat",
               "effector": "default",
               "seed": 17
             }
@@ -387,30 +610,22 @@
             "method": "skills.transport",
             "args": {
               "objectId": "capped_rinse_bottle",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "capped_rinse_bottle_approach",
+              "contactFrame": "capped_rinse_bottle_contact",
+              "liftFrame": "capped_rinse_bottle_lift",
+              "destinationFrame": "capped_rinse_bottle_destination",
+              "retreatFrame": "capped_rinse_bottle_retreat",
               "effector": "default",
-              "seed": 34
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 34,
               "processId": "transfer_station_ready",
-              "fixtureId": "transfer_station_adapter",
-              "objectId": "capped_rinse_bottle",
-              "value": "ready"
+              "processValue": "ready"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -418,18 +633,17 @@
     ],
     "acceptedAlternates": [
       {
-        "id": "alternate-safe-order-and-seeds",
+        "id": "alternate-ik-seeds-same-safe-order",
         "calls": [
           {
             "method": "skills.transport",
             "args": {
-              "objectId": "capped_rinse_bottle",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "objectId": "sealed_aliquot_carrier",
+              "approachFrame": "sealed_aliquot_carrier_approach",
+              "contactFrame": "sealed_aliquot_carrier_contact",
+              "liftFrame": "sealed_aliquot_carrier_lift",
+              "destinationFrame": "sealed_aliquot_carrier_destination",
+              "retreatFrame": "sealed_aliquot_carrier_retreat",
               "effector": "default",
               "seed": 991
             }
@@ -437,31 +651,23 @@
           {
             "method": "skills.transport",
             "args": {
-              "objectId": "sealed_aliquot_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "objectId": "capped_rinse_bottle",
+              "approachFrame": "capped_rinse_bottle_approach",
+              "contactFrame": "capped_rinse_bottle_contact",
+              "liftFrame": "capped_rinse_bottle_lift",
+              "destinationFrame": "capped_rinse_bottle_destination",
+              "retreatFrame": "capped_rinse_bottle_retreat",
               "effector": "default",
-              "seed": 1008
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 1008,
               "processId": "transfer_station_ready",
-              "fixtureId": "transfer_station_adapter",
-              "objectId": "sealed_aliquot_carrier",
-              "value": "ready"
+              "processValue": "ready"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -469,9 +675,36 @@
     ],
     "negativeCases": [
       {
-        "id": "no-actions",
+        "id": "missing-second-object",
         "expectedFailureKind": "goal",
-        "calls": []
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sealed_aliquot_carrier",
+              "approachFrame": "sealed_aliquot_carrier_approach",
+              "contactFrame": "sealed_aliquot_carrier_contact",
+              "liftFrame": "sealed_aliquot_carrier_lift",
+              "destinationFrame": "sealed_aliquot_carrier_destination",
+              "retreatFrame": "sealed_aliquot_carrier_retreat",
+              "effector": "default",
+              "seed": 211
+            }
+          }
+        ]
+      },
+      {
+        "id": "premature-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Visible destination seating confirmed with the robot clear."
+            }
+          }
+        ]
       },
       {
         "id": "outcome-without-evidence",
@@ -481,12 +714,11 @@
             "method": "skills.transport",
             "args": {
               "objectId": "sealed_aliquot_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "sealed_aliquot_carrier_approach",
+              "contactFrame": "sealed_aliquot_carrier_contact",
+              "liftFrame": "sealed_aliquot_carrier_lift",
+              "destinationFrame": "sealed_aliquot_carrier_destination",
+              "retreatFrame": "sealed_aliquot_carrier_retreat",
               "effector": "default",
               "seed": 17
             }
@@ -495,23 +727,68 @@
             "method": "skills.transport",
             "args": {
               "objectId": "capped_rinse_bottle",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "capped_rinse_bottle_approach",
+              "contactFrame": "capped_rinse_bottle_contact",
+              "liftFrame": "capped_rinse_bottle_lift",
+              "destinationFrame": "capped_rinse_bottle_destination",
+              "retreatFrame": "capped_rinse_bottle_retreat",
               "effector": "default",
-              "seed": 34
+              "seed": 34,
+              "processId": "transfer_station_ready",
+              "processValue": "ready"
+            }
+          }
+        ]
+      },
+      {
+        "id": "invalid-evidence-value",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sealed_aliquot_carrier",
+              "approachFrame": "sealed_aliquot_carrier_approach",
+              "contactFrame": "sealed_aliquot_carrier_contact",
+              "liftFrame": "sealed_aliquot_carrier_lift",
+              "destinationFrame": "sealed_aliquot_carrier_destination",
+              "retreatFrame": "sealed_aliquot_carrier_retreat",
+              "effector": "default",
+              "seed": 17
             }
           },
           {
-            "method": "skills.fixture_operation",
+            "method": "skills.transport",
             "args": {
-              "processId": "transfer_station_ready",
-              "fixtureId": "transfer_station_adapter",
               "objectId": "capped_rinse_bottle",
-              "value": "ready"
+              "approachFrame": "capped_rinse_bottle_approach",
+              "contactFrame": "capped_rinse_bottle_contact",
+              "liftFrame": "capped_rinse_bottle_lift",
+              "destinationFrame": "capped_rinse_bottle_destination",
+              "retreatFrame": "capped_rinse_bottle_retreat",
+              "effector": "default",
+              "seed": 34,
+              "processId": "transfer_station_ready",
+              "processValue": "ready"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Everything probably worked."
+            }
+          }
+        ]
+      },
+      {
+        "id": "fixed-base-navigation-rejected",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "sealed_aliquot_carrier_destination"
             }
           }
         ]
@@ -524,8 +801,8 @@
             "method": "skills.fixture_operation",
             "args": {
               "processId": "transfer_station_ready",
-              "fixtureId": "transfer_station_adapter",
-              "objectId": "sealed_aliquot_carrier",
+              "fixtureId": "capped_rinse_bottle_destination_slot",
+              "objectId": "capped_rinse_bottle",
               "value": "ready"
             }
           }

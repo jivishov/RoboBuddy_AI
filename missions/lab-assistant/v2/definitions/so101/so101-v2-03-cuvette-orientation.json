@@ -2,117 +2,162 @@
   "schema": "robobuddy.lab-scenario.v2",
   "schemaVersion": 2,
   "id": "so101-v2-03-cuvette-orientation",
-  "title": "Precision Cuvette Load",
-  "brief": "Move a capped practice cuvette into a keyed orientation cassette and expose a configured instrument-ready state.",
+  "title": "Oriented Cuvette Queue Load",
+  "brief": "Load a dry practice cuvette into a keyed orientation cassette for the instrument queue; no instrument reading is simulated.",
   "robotId": "so101_follower",
   "rank": 3,
   "supersedes": "so101-03-cuvette-orientation",
   "assistanceLevel": "Guided",
-  "legacyClassification": "B",
+  "legacyClassification": "C",
   "migration": {
-    "class": "B",
-    "legacyLearningObjective": "Program an oriented cuvette handling sequence and distinguish the configured instrument-ready state from learner-recorded evidence."
+    "class": "C",
+    "legacyLearningObjective": "Program an oriented cuvette handling sequence and distinguish the configured instrument-ready state from learner-recorded evidence.",
+    "redesignRationale": "The legacy instrument reading and post-read removal cannot be validated without inventing instrument measurement behavior. This successor preserves oriented cuvette handling as dry-practice loading into a keyed queue cassette and excludes the unsupported read."
   },
   "canonicalModel": {
     "id": "so101_follower",
     "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
   },
   "frames": {
-    "pickup_approach": {
+    "sample_cuvette_approach": {
       "positionMm": [
-        123.89,
-        98.185,
-        -59.675
+        50,
+        180,
+        -250
       ],
       "role": "approach",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sample_cuvette_pickup_adapter"
     },
-    "pickup_contact": {
+    "sample_cuvette_contact": {
       "positionMm": [
-        116.93,
-        87.125,
-        -48.862
+        50,
+        80,
+        -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "keyed_cuvette_cassette"
+      "contactFixtureId": "sample_cuvette_pickup_adapter"
     },
-    "pickup_lift": {
+    "sample_cuvette_lift": {
       "positionMm": [
-        140.488,
-        100.217,
-        -44.049
+        50,
+        220,
+        -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sample_cuvette_pickup_adapter"
     },
-    "destination": {
+    "sample_cuvette_destination": {
       "positionMm": [
-        134.927,
-        89.463,
-        25.496
+        300,
+        80,
+        150
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sample_cuvette_destination_slot"
     },
-    "destination_contact": {
+    "sample_cuvette_retreat": {
       "positionMm": [
-        110.008,
-        77.507,
-        25.439
-      ],
-      "role": "contact",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 4
-      }
-    },
-    "retreat": {
-      "positionMm": [
-        160.528,
-        108.363,
-        22.037
+        300,
+        220,
+        150
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "sample_cuvette_destination_slot"
     }
   },
   "fixtures": [
     {
-      "id": "keyed_cuvette_cassette",
-      "label": "Visible keyed cuvette cassette",
+      "id": "sample_cuvette_pickup_adapter",
+      "label": "Capped practice cuvette pickup adapter",
       "visible": true,
       "type": "morphology_adapter",
       "configured": true,
-      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+      "atFrame": "sample_cuvette_contact",
+      "positionMm": [
+        50,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          50,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "sample_cuvette_destination_slot",
+      "label": "Capped practice cuvette destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "sample_cuvette_destination",
+      "positionMm": [
+        300,
+        72,
+        150
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          300,
+          72,
+          150
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
     }
   ],
   "objects": [
     {
       "id": "sample_cuvette",
-      "label": "Capped practice cuvette",
-      "initialFrame": "pickup_contact",
+      "label": "Dry practice cuvette",
+      "initialFrame": "sample_cuvette_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "cuvette",
+        "scale": 0.8
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     }
   ],
   "grasps": [
@@ -121,44 +166,44 @@
       "objectId": "sample_cuvette",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "keyed_cuvette_cassette"
+      "contactFrame": "sample_cuvette_contact",
+      "fixtureId": "sample_cuvette_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     }
   ],
-  "processModels": [
-    {
-      "id": "instrument_ready",
-      "label": "Configured discrete station state",
-      "discrete": true,
-      "contactGated": true,
-      "initialState": "not_ready",
-      "completeState": "configured_read_ready",
-      "prerequisites": [
-        {
-          "op": "object_at",
-          "objectId": "sample_cuvette",
-          "frameId": "destination"
-        }
-      ]
-    }
-  ],
+  "processModels": [],
   "goalPredicates": [
     {
       "id": "sample_cuvette_placed",
+      "label": "Capped practice cuvette visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "sample_cuvette",
-      "frameId": "destination"
+      "frameId": "sample_cuvette_destination"
     },
     {
-      "id": "safe_retreat",
+      "id": "sample_cuvette_approach_visited",
+      "label": "Approach frame visited for Capped practice cuvette",
       "op": "frame_visited",
-      "frameId": "retreat"
+      "frameId": "sample_cuvette_approach"
     },
     {
-      "id": "station_state",
-      "op": "process_state",
-      "processId": "instrument_ready",
-      "value": "configured_read_ready"
+      "id": "sample_cuvette_contact_visited",
+      "label": "Contact frame visited for Capped practice cuvette",
+      "op": "frame_visited",
+      "frameId": "sample_cuvette_contact"
+    },
+    {
+      "id": "sample_cuvette_lift_visited",
+      "label": "Lift frame visited for Capped practice cuvette",
+      "op": "frame_visited",
+      "frameId": "sample_cuvette_lift"
+    },
+    {
+      "id": "sample_cuvette_retreat_visited",
+      "label": "Retreat frame visited for Capped practice cuvette",
+      "op": "frame_visited",
+      "frameId": "sample_cuvette_retreat"
     }
   ],
   "prohibitedStates": [
@@ -182,31 +227,29 @@
   "evidenceRequirements": [
     {
       "id": "completion_observation",
-      "label": "Record the visible configured station-ready state.",
+      "label": "After placement and retreat, select the visible seating-and-clearance observation.",
       "kind": "learner-recorded",
-      "minLength": 20,
+      "allowedValues": [
+        "Visible destination seating confirmed with the robot clear."
+      ],
       "availableWhen": {
         "op": "all",
         "predicates": [
           {
             "op": "object_at",
             "objectId": "sample_cuvette",
-            "frameId": "destination"
-          },
-          {
-            "op": "process_state",
-            "processId": "instrument_ready",
-            "value": "configured_read_ready"
+            "frameId": "sample_cuvette_destination"
           },
           {
             "op": "frame_visited",
-            "frameId": "retreat"
+            "frameId": "sample_cuvette_retreat"
           }
         ]
       },
       "requiresEvent": {
-        "type": "PROCESS_COMMIT",
-        "processId": "instrument_ready"
+        "type": "DETACH_OBJECT",
+        "objectId": "sample_cuvette",
+        "frameId": "sample_cuvette_destination"
       }
     }
   ],
@@ -223,11 +266,11 @@
     },
     {
       "label": "R",
-      "claim": "Fixture-assisted manipulation matches the fixed-base SO-101 morphology and available kinematic contact sequence."
+      "claim": "The robot role is limited to dry-practice oriented loading because instrument measurement and a claimed read result exceed the model boundary."
     },
     {
       "label": "C",
-      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
     }
   ],
   "modelClaim": {
@@ -332,30 +375,20 @@
             "method": "skills.transport",
             "args": {
               "objectId": "sample_cuvette",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "sample_cuvette_approach",
+              "contactFrame": "sample_cuvette_contact",
+              "liftFrame": "sample_cuvette_lift",
+              "destinationFrame": "sample_cuvette_destination",
+              "retreatFrame": "sample_cuvette_retreat",
               "effector": "default",
               "seed": 17
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "instrument_ready",
-              "fixtureId": "keyed_cuvette_cassette",
-              "objectId": "sample_cuvette",
-              "value": "configured_read_ready"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -363,36 +396,26 @@
     ],
     "acceptedAlternates": [
       {
-        "id": "alternate-ik-seed",
+        "id": "alternate-ik-seeds-same-safe-order",
         "calls": [
           {
             "method": "skills.transport",
             "args": {
               "objectId": "sample_cuvette",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "sample_cuvette_approach",
+              "contactFrame": "sample_cuvette_contact",
+              "liftFrame": "sample_cuvette_lift",
+              "destinationFrame": "sample_cuvette_destination",
+              "retreatFrame": "sample_cuvette_retreat",
               "effector": "default",
               "seed": 991
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "instrument_ready",
-              "fixtureId": "keyed_cuvette_cassette",
-              "objectId": "sample_cuvette",
-              "value": "configured_read_ready"
             }
           },
           {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Configured station-ready state visibly confirmed."
+              "value": "Visible destination seating confirmed with the robot clear."
             }
           }
         ]
@@ -400,9 +423,22 @@
     ],
     "negativeCases": [
       {
-        "id": "no-actions",
+        "id": "no-transport",
         "expectedFailureKind": "goal",
         "calls": []
+      },
+      {
+        "id": "premature-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Visible destination seating confirmed with the robot clear."
+            }
+          }
+        ]
       },
       {
         "id": "outcome-without-evidence",
@@ -412,38 +448,51 @@
             "method": "skills.transport",
             "args": {
               "objectId": "sample_cuvette",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "sample_cuvette_approach",
+              "contactFrame": "sample_cuvette_contact",
+              "liftFrame": "sample_cuvette_lift",
+              "destinationFrame": "sample_cuvette_destination",
+              "retreatFrame": "sample_cuvette_retreat",
               "effector": "default",
               "seed": 17
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "instrument_ready",
-              "fixtureId": "keyed_cuvette_cassette",
-              "objectId": "sample_cuvette",
-              "value": "configured_read_ready"
             }
           }
         ]
       },
       {
-        "id": "process-before-placement",
+        "id": "invalid-evidence-value",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sample_cuvette",
+              "approachFrame": "sample_cuvette_approach",
+              "contactFrame": "sample_cuvette_contact",
+              "liftFrame": "sample_cuvette_lift",
+              "destinationFrame": "sample_cuvette_destination",
+              "retreatFrame": "sample_cuvette_retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Everything probably worked."
+            }
+          }
+        ]
+      },
+      {
+        "id": "fixed-base-navigation-rejected",
         "expectedFailureKind": "causal",
         "calls": [
           {
-            "method": "skills.fixture_operation",
+            "method": "robot.navigate",
             "args": {
-              "processId": "instrument_ready",
-              "fixtureId": "keyed_cuvette_cassette",
-              "objectId": "sample_cuvette",
-              "value": "configured_read_ready"
+              "frameId": "sample_cuvette_destination"
             }
           }
         ]

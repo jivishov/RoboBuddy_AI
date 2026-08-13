@@ -3,7 +3,7 @@
   "schemaVersion": 2,
   "id": "so101-v2-01-weigh-boat",
   "title": "Weigh Boat Placement",
-  "brief": "Place a clean, dry weigh boat into the balance-side support nest without contacting the balance mechanism.",
+  "brief": "Place the configured dry-practice weigh boat into the balance-side support nest without contacting the balance mechanism.",
   "robotId": "so101_follower",
   "rank": 1,
   "supersedes": "so101-01-weigh-boat",
@@ -18,101 +18,145 @@
     "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
   },
   "frames": {
-    "pickup_approach": {
+    "weigh_boat_approach": {
       "positionMm": [
-        123.89,
-        98.185,
-        -59.675
+        50,
+        180,
+        -250
       ],
       "role": "approach",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "weigh_boat_pickup_adapter"
     },
-    "pickup_contact": {
+    "weigh_boat_contact": {
       "positionMm": [
-        116.93,
-        87.125,
-        -48.862
+        50,
+        80,
+        -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "weigh_boat_nest"
+      "contactFixtureId": "weigh_boat_pickup_adapter"
     },
-    "pickup_lift": {
+    "weigh_boat_lift": {
       "positionMm": [
-        140.488,
-        100.217,
-        -44.049
+        50,
+        220,
+        -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "weigh_boat_pickup_adapter"
     },
-    "destination": {
+    "weigh_boat_destination": {
       "positionMm": [
-        134.927,
-        89.463,
-        25.496
+        300,
+        80,
+        150
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "weigh_boat_destination_slot"
     },
-    "destination_contact": {
+    "weigh_boat_retreat": {
       "positionMm": [
-        110.008,
-        77.507,
-        25.439
-      ],
-      "role": "contact",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 4
-      }
-    },
-    "retreat": {
-      "positionMm": [
-        160.528,
-        108.363,
-        22.037
+        300,
+        220,
+        150
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "contactFixtureId": "weigh_boat_destination_slot"
     }
   },
   "fixtures": [
     {
-      "id": "weigh_boat_nest",
-      "label": "Visible weigh-boat support nest",
+      "id": "weigh_boat_pickup_adapter",
+      "label": "Weigh boat pickup adapter",
       "visible": true,
       "type": "morphology_adapter",
       "configured": true,
-      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+      "atFrame": "weigh_boat_contact",
+      "positionMm": [
+        50,
+        72,
+        -250
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          50,
+          72,
+          -250
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+    },
+    {
+      "id": "weigh_boat_destination_slot",
+      "label": "Weigh boat destination slot",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "atFrame": "weigh_boat_destination",
+      "positionMm": [
+        300,
+        72,
+        150
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          300,
+          72,
+          150
+        ],
+        "halfExtentsMm": [
+          30,
+          8,
+          24
+        ]
+      },
+      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
     }
   ],
   "objects": [
     {
       "id": "weigh_boat",
       "label": "Weigh boat",
-      "initialFrame": "pickup_contact",
+      "initialFrame": "weigh_boat_contact",
       "transportable": true,
       "visible": true,
-      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
       "compatibleEffectors": [
         "default"
-      ]
+      ],
+      "visual": {
+        "type": "weigh_boat",
+        "scale": 0.72
+      },
+      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
+      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
     }
   ],
   "grasps": [
@@ -121,22 +165,44 @@
       "objectId": "weigh_boat",
       "effector": "default",
       "mode": "fixture-assisted",
-      "contactFrame": "pickup_contact",
-      "fixtureId": "weigh_boat_nest"
+      "contactFrame": "weigh_boat_contact",
+      "fixtureId": "weigh_boat_pickup_adapter",
+      "interface": "configured_narrow_adapter_tab",
+      "visible": true
     }
   ],
   "processModels": [],
   "goalPredicates": [
     {
       "id": "weigh_boat_placed",
+      "label": "Weigh boat visibly seated in its named destination slot",
       "op": "object_at",
       "objectId": "weigh_boat",
-      "frameId": "destination"
+      "frameId": "weigh_boat_destination"
     },
     {
-      "id": "safe_retreat",
+      "id": "weigh_boat_approach_visited",
+      "label": "Approach frame visited for Weigh boat",
       "op": "frame_visited",
-      "frameId": "retreat"
+      "frameId": "weigh_boat_approach"
+    },
+    {
+      "id": "weigh_boat_contact_visited",
+      "label": "Contact frame visited for Weigh boat",
+      "op": "frame_visited",
+      "frameId": "weigh_boat_contact"
+    },
+    {
+      "id": "weigh_boat_lift_visited",
+      "label": "Lift frame visited for Weigh boat",
+      "op": "frame_visited",
+      "frameId": "weigh_boat_lift"
+    },
+    {
+      "id": "weigh_boat_retreat_visited",
+      "label": "Retreat frame visited for Weigh boat",
+      "op": "frame_visited",
+      "frameId": "weigh_boat_retreat"
     }
   ],
   "prohibitedStates": [
@@ -160,27 +226,29 @@
   "evidenceRequirements": [
     {
       "id": "completion_observation",
-      "label": "Record the visible placement and robot retreat.",
+      "label": "After placement and retreat, select the visible slot-and-clearance observation.",
       "kind": "learner-recorded",
-      "minLength": 20,
+      "allowedValues": [
+        "Visible slot placement confirmed with the robot clear."
+      ],
       "availableWhen": {
         "op": "all",
         "predicates": [
           {
             "op": "object_at",
             "objectId": "weigh_boat",
-            "frameId": "destination"
+            "frameId": "weigh_boat_destination"
           },
           {
             "op": "frame_visited",
-            "frameId": "retreat"
+            "frameId": "weigh_boat_retreat"
           }
         ]
       },
       "requiresEvent": {
         "type": "DETACH_OBJECT",
         "objectId": "weigh_boat",
-        "frameId": "destination"
+        "frameId": "weigh_boat_destination"
       }
     }
   ],
@@ -201,7 +269,7 @@
     },
     {
       "label": "C",
-      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
     }
   ],
   "modelClaim": {
@@ -306,12 +374,11 @@
             "method": "skills.transport",
             "args": {
               "objectId": "weigh_boat",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "weigh_boat_approach",
+              "contactFrame": "weigh_boat_contact",
+              "liftFrame": "weigh_boat_lift",
+              "destinationFrame": "weigh_boat_destination",
+              "retreatFrame": "weigh_boat_retreat",
               "effector": "default",
               "seed": 17
             }
@@ -320,7 +387,7 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Visible fixture placement and retreat confirmed."
+              "value": "Visible slot placement confirmed with the robot clear."
             }
           }
         ]
@@ -328,18 +395,17 @@
     ],
     "acceptedAlternates": [
       {
-        "id": "alternate-ik-seed",
+        "id": "alternate-ik-seeds-same-safe-order",
         "calls": [
           {
             "method": "skills.transport",
             "args": {
               "objectId": "weigh_boat",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "weigh_boat_approach",
+              "contactFrame": "weigh_boat_contact",
+              "liftFrame": "weigh_boat_lift",
+              "destinationFrame": "weigh_boat_destination",
+              "retreatFrame": "weigh_boat_retreat",
               "effector": "default",
               "seed": 991
             }
@@ -348,7 +414,7 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "completion_observation",
-              "value": "Visible fixture placement and retreat confirmed."
+              "value": "Visible slot placement confirmed with the robot clear."
             }
           }
         ]
@@ -356,9 +422,22 @@
     ],
     "negativeCases": [
       {
-        "id": "no-actions",
+        "id": "no-transport",
         "expectedFailureKind": "goal",
         "calls": []
+      },
+      {
+        "id": "premature-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Visible slot placement confirmed with the robot clear."
+            }
+          }
+        ]
       },
       {
         "id": "outcome-without-evidence",
@@ -368,14 +447,51 @@
             "method": "skills.transport",
             "args": {
               "objectId": "weigh_boat",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "destination",
-              "placeFrame": "destination_contact",
-              "retreatFrame": "retreat",
+              "approachFrame": "weigh_boat_approach",
+              "contactFrame": "weigh_boat_contact",
+              "liftFrame": "weigh_boat_lift",
+              "destinationFrame": "weigh_boat_destination",
+              "retreatFrame": "weigh_boat_retreat",
               "effector": "default",
               "seed": 17
+            }
+          }
+        ]
+      },
+      {
+        "id": "invalid-evidence-value",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "weigh_boat",
+              "approachFrame": "weigh_boat_approach",
+              "contactFrame": "weigh_boat_contact",
+              "liftFrame": "weigh_boat_lift",
+              "destinationFrame": "weigh_boat_destination",
+              "retreatFrame": "weigh_boat_retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Everything probably worked."
+            }
+          }
+        ]
+      },
+      {
+        "id": "fixed-base-navigation-rejected",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "weigh_boat_destination"
             }
           }
         ]
