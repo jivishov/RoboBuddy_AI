@@ -1,0 +1,614 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "lekiwi-01-beaker-courier",
+  "title": "Beaker Courier",
+  "brief": "Plan a safe base route, then place an empty beaker in the visible transfer cradle.",
+  "robotId": "lekiwi_sim",
+  "canonicalModelId": "lekiwi_sim",
+  "rank": 1,
+  "supersedes": "lekiwi-01-beaker-courier",
+  "assistanceLevel": "Guided",
+  "legacyClassification": "A",
+  "migration": {
+    "class": "A",
+    "legacyLearningObjective": "Program LeKiwi to complete the observable handling sequence for an empty beaker and use feedback to recover from invalid states."
+  },
+  "canonicalModel": {
+    "id": "lekiwi_sim",
+    "sourceRevision": "LeKiwi official snapshot baked 2026-07-03"
+  },
+  "frames": {
+    "service_base": {
+      "positionMm": [
+        300,
+        0,
+        250
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "basePositionMm": [
+        300,
+        0,
+        250
+      ],
+      "label": "Primary service-base stop"
+    },
+    "alternate_service_base": {
+      "positionMm": [
+        250,
+        0,
+        300
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "basePositionMm": [
+        250,
+        0,
+        300
+      ],
+      "label": "Alternate service-base stop"
+    },
+    "pickup_approach": {
+      "positionMm": [
+        30.1095,
+        95.572,
+        261.1935
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "pickup_contact": {
+      "positionMm": [
+        38.6873,
+        113.2101,
+        241.0337
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "pickup_cradle"
+    },
+    "pickup_lift": {
+      "positionMm": [
+        39.3334,
+        144.6633,
+        263.1541
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "delivery": {
+      "positionMm": [
+        41.06,
+        102.6235,
+        421.5069
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "delivery_contact": {
+      "positionMm": [
+        52.5323,
+        123.4691,
+        440.1244
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "destination_fixture"
+    },
+    "delivery_retreat": {
+      "positionMm": [
+        30.9786,
+        99.5207,
+        401.8011
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "forbidden_drop": {
+      "positionMm": [
+        68,
+        118,
+        405
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "pickup_cradle",
+      "label": "Visible onboard-side cradle for Empty beaker",
+      "visible": true,
+      "configuredByTeacher": true,
+      "frameId": "pickup_contact"
+    },
+    {
+      "id": "destination_fixture",
+      "label": "Transfer-zone beaker cradle",
+      "visible": true,
+      "configuredByTeacher": true,
+      "frameId": "delivery_contact"
+    },
+    {
+      "id": "blocked_grid_cells",
+      "label": "Visible configured no-drive cells",
+      "visible": true,
+      "configuredByTeacher": true
+    }
+  ],
+  "objects": [
+    {
+      "id": "empty_beaker",
+      "label": "Empty beaker",
+      "initialFrame": "pickup_contact",
+      "compatibleEffectors": [
+        "default"
+      ],
+      "transportable": true,
+      "initialState": {
+        "contentsModel": "not simulated",
+        "releaseStatus": "configured for this simulation",
+        "payloadModel": "not simulated"
+      }
+    }
+  ],
+  "grasps": [
+    {
+      "id": "empty_beaker_configured_grasp",
+      "objectId": "empty_beaker",
+      "effector": "default",
+      "mode": "configured-pinch",
+      "approachFrame": "pickup_approach",
+      "contactFrame": "pickup_contact",
+      "liftFrame": "pickup_lift",
+      "geometryBasis": "configured educational grasp region; no force or payload claim"
+    }
+  ],
+  "processModels": [
+    {
+      "id": "placement_latch",
+      "label": "Visible fixture seating state",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "open",
+      "completeState": "seated",
+      "prerequisites": [
+        {
+          "op": "any",
+          "predicates": [
+            {
+              "op": "frame_visited",
+              "frameId": "service_base"
+            },
+            {
+              "op": "frame_visited",
+              "frameId": "alternate_service_base"
+            }
+          ]
+        }
+      ],
+      "modeledEffect": "fixture seating only; no chemical, thermal, force, or measurement effect"
+    }
+  ],
+  "goalPredicates": [
+    {
+      "id": "safe_route_completed",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "frame_visited",
+          "frameId": "service_base"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "alternate_service_base"
+        }
+      ]
+    },
+    {
+      "id": "object_delivered",
+      "op": "object_at",
+      "objectId": "empty_beaker",
+      "frameId": "delivery"
+    },
+    {
+      "id": "placement_contact_committed",
+      "op": "process_state",
+      "processId": "placement_latch",
+      "value": "seated"
+    },
+    {
+      "id": "retreat_completed",
+      "op": "frame_visited",
+      "frameId": "delivery_retreat"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "object_still_held",
+      "op": "attached_to",
+      "objectId": "empty_beaker",
+      "effector": "default"
+    },
+    {
+      "id": "forbidden_drop_used",
+      "op": "object_at",
+      "objectId": "empty_beaker",
+      "frameId": "forbidden_drop"
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "route_and_placement_observation",
+      "label": "Record what was visibly observed after the route and fixture placement.",
+      "prompt": "Describe the safe route completion and visible seating outcome; do not report an unmodeled measurement.",
+      "kind": "learner-recorded",
+      "minLength": 18,
+      "valuePattern": "route|placed|delivered|seated",
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "any",
+            "predicates": [
+              {
+                "op": "frame_visited",
+                "frameId": "service_base"
+              },
+              {
+                "op": "frame_visited",
+                "frameId": "alternate_service_base"
+              }
+            ]
+          },
+          {
+            "op": "object_at",
+            "objectId": "empty_beaker",
+            "frameId": "delivery"
+          },
+          {
+            "op": "process_state",
+            "processId": "placement_latch",
+            "value": "seated"
+          }
+        ]
+      },
+      "requiresEvent": {
+        "type": "DETACH_OBJECT",
+        "objectId": "empty_beaker"
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "Arm frames and joint-limited motion use the baked official LeKiwi model snapshot.",
+      "sourceRef": "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/main/URDF/LeKiwi.urdf"
+    },
+    {
+      "label": "F",
+      "claim": "The successor preserves the rank-1 legacy objective and observable handling focus.",
+      "sourceRef": "missions/lab-assistant/v1/lekiwi-01-beaker-courier.json"
+    },
+    {
+      "label": "R",
+      "claim": "LeKiwi is restricted to planar navigation, stowed-base travel, collision-checked arm motion, contact-gated grasping, and visible logistics placement."
+    },
+    {
+      "label": "C",
+      "claim": "Grid cells, route destinations, task frames, fixture positions, grasp regions, release labels, and seating states are configured educational values shown to the learner."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "lekiwi_sim",
+    "source": {
+      "kind": "official URDF baked model",
+      "revision": "LeKiwi official snapshot baked 2026-07-03",
+      "url": "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/main/URDF/LeKiwi.urdf",
+      "provenance": "M",
+      "notes": "Official visual/kinematic chain with configured planar occupancy-grid base model."
+    },
+    "joints": [
+      {
+        "id": "shoulder_pan",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds."
+      },
+      {
+        "id": "shoulder_lift",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds."
+      },
+      {
+        "id": "elbow_flex",
+        "min": -120,
+        "max": 120,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds."
+      },
+      {
+        "id": "wrist_flex",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds."
+      },
+      {
+        "id": "wrist_roll",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds."
+      },
+      {
+        "id": "gripper",
+        "min": 0,
+        "max": 100,
+        "home": 50,
+        "unit": "percent",
+        "type": "gripper",
+        "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds."
+      }
+    ],
+    "limitProvenance": "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds.",
+    "frames": [
+      "shoulderPan",
+      "shoulderLift",
+      "elbowFlex",
+      "wristFlex",
+      "wristRoll",
+      "gripperRoot"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots"
+    ],
+    "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+    "unsupportedPhysics": [
+      "wheel slip",
+      "base dynamics",
+      "force sensing",
+      "payload claim"
+    ]
+  },
+  "api": {
+    "level": "builder",
+    "namedFramesDiscoverable": true,
+    "phaseBoundary": "base navigation must complete with the arm stowed before arm manipulation begins"
+  },
+  "navigation": {
+    "planner": "planar occupancy-grid A*",
+    "occupancyGrid": {
+      "width": 9,
+      "height": 9,
+      "resolutionMm": 50,
+      "originMm": [
+        0,
+        0
+      ],
+      "blocked": [
+        "3,0",
+        "3,1",
+        "3,2",
+        "3,3",
+        "5,4",
+        "6,4"
+      ],
+      "configuredByTeacher": true
+    },
+    "routeOptions": [
+      {
+        "id": "primary_safe_route",
+        "destinationFrame": "service_base",
+        "label": "Primary visible safe route"
+      },
+      {
+        "id": "alternate_safe_route",
+        "destinationFrame": "alternate_service_base",
+        "label": "Alternate visible safe route"
+      }
+    ],
+    "prohibitedCapabilities": [
+      "wheel slip",
+      "dynamic navigation",
+      "collision recovery",
+      "base dynamics"
+    ]
+  },
+  "validation": {
+    "referenceExecutions": [
+      {
+        "id": "primary-a-star-route",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "service_base"
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "empty_beaker",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "delivery_retreat",
+              "effector": "default",
+              "seed": 17,
+              "processId": "placement_latch",
+              "processValue": "seated"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "route_and_placement_observation",
+              "value": "Empty beaker placed and visibly seated after the safe route."
+            }
+          }
+        ]
+      }
+    ],
+    "acceptedAlternates": [
+      {
+        "id": "alternate-a-star-route-and-ik-seed",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "alternate_service_base"
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "empty_beaker",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "delivery_retreat",
+              "effector": "default",
+              "seed": 991,
+              "processId": "placement_latch",
+              "processValue": "seated"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "route_and_placement_observation",
+              "value": "Empty beaker delivered by the alternate safe route and visibly seated."
+            }
+          }
+        ]
+      }
+    ],
+    "negativeCases": [
+      {
+        "id": "no-actions-misses-goals",
+        "expectedFailureKind": "goal",
+        "calls": []
+      },
+      {
+        "id": "missing-evidence-after-valid-outcome",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "service_base"
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "empty_beaker",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "delivery_retreat",
+              "effector": "default",
+              "seed": 37,
+              "processId": "placement_latch",
+              "processValue": "seated"
+            }
+          }
+        ]
+      },
+      {
+        "id": "forbidden-drop",
+        "expectedFailureKind": "prohibited",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "service_base"
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "empty_beaker",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "forbidden_drop",
+              "placeFrame": "forbidden_drop",
+              "retreatFrame": "delivery_retreat",
+              "effector": "default",
+              "seed": 71
+            }
+          }
+        ]
+      },
+      {
+        "id": "approach-frame-is-not-contact",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "service_base"
+            }
+          },
+          {
+            "method": "robot.grasp",
+            "args": {
+              "objectId": "empty_beaker",
+              "contactFrame": "pickup_approach",
+              "effector": "default"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
