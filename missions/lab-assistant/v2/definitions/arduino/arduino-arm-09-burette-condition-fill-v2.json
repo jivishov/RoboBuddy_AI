@@ -43,7 +43,7 @@
       "tolerance": {
         "positionMm": 3
       },
-      "contactFixtureId": "funnel_pickup_cradle"
+      "contactFixtureId": "funnel_supply_cradle"
     },
     "pickup_lift": {
       "positionMm": [
@@ -56,19 +56,6 @@
       "tolerance": {
         "positionMm": 3
       }
-    },
-    "burette_funnel_guide": {
-      "positionMm": [
-        27.322,
-        411.119,
-        -3.46
-      ],
-      "role": "destination",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 3
-      },
-      "contactFixtureId": "burette_funnel_guide"
     },
     "destination_retreat": {
       "positionMm": [
@@ -104,19 +91,8 @@
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
-    },
-    "second_pickup_lift": {
-      "positionMm": [
-        13.802,
-        414.113,
-        0.6
-      ],
-      "role": "lift",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 3
-      }
+      },
+      "contactFixtureId": "burette_funnel_guide"
     },
     "funnel_return_cradle": {
       "positionMm": [
@@ -129,7 +105,7 @@
       "tolerance": {
         "positionMm": 3
       },
-      "contactFixtureId": "funnel_pickup_cradle"
+      "contactFixtureId": "funnel_return_cradle_fixture"
     },
     "second_destination_retreat": {
       "positionMm": [
@@ -146,17 +122,25 @@
   },
   "fixtures": [
     {
-      "id": "funnel_pickup_cradle",
-      "label": "Filling-funnel pickup and return cradle",
+      "id": "funnel_supply_cradle",
+      "label": "Filling-funnel supply cradle",
+      "frameId": "pickup_contact",
+      "purpose": "Presents the funnel at the initial linkage-gripper contact.",
+      "visible": true,
+      "configured": true
+    },
+    {
+      "id": "funnel_return_cradle_fixture",
+      "label": "Filling-funnel return cradle",
       "frameId": "funnel_return_cradle",
-      "purpose": "Provides a stable linkage-gripper interface.",
+      "purpose": "Receives the funnel after the configured fill-complete event.",
       "visible": true,
       "configured": true
     },
     {
       "id": "burette_funnel_guide",
       "label": "Burette filling-funnel guide",
-      "frameId": "burette_funnel_guide",
+      "frameId": "burette_funnel_pickup",
       "purpose": "Supports discrete seating without fluid simulation.",
       "visible": true,
       "configured": true
@@ -164,7 +148,7 @@
     {
       "id": "burette_status_panel",
       "label": "Teacher-configured burette status panel",
-      "frameId": "burette_funnel_guide",
+      "frameId": "burette_funnel_pickup",
       "purpose": "Exposes configured conditioning, fill-complete, and level-visible states only.",
       "visible": true,
       "configured": true
@@ -183,7 +167,7 @@
     {
       "id": "burette_fixture",
       "label": "Fixed burette fixture",
-      "initialFrame": "burette_funnel_guide",
+      "initialFrame": "burette_funnel_pickup",
       "transportable": false
     }
   ],
@@ -195,7 +179,7 @@
       "mode": "linkage-pinch",
       "linkageAware": true,
       "contactFrame": "pickup_contact",
-      "fixtureId": "funnel_pickup_cradle"
+      "fixtureId": "funnel_supply_cradle"
     },
     {
       "id": "funnel-removal-pinch",
@@ -222,6 +206,7 @@
         }
       ],
       "actor": "teacher-configured-status",
+      "fixtureId": "burette_status_panel",
       "excludedClaim": "fluid conditioning"
     },
     {
@@ -235,6 +220,14 @@
           "op": "process_state",
           "processId": "configured_conditioning_complete",
           "value": "confirmed"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "filling_funnel",
+            "frameId": "burette_funnel_pickup"
+          }
         }
       ],
       "fixtureId": "burette_funnel_guide"
@@ -254,11 +247,35 @@
         {
           "op": "object_at",
           "objectId": "filling_funnel",
-          "frameId": "burette_funnel_guide"
+          "frameId": "burette_funnel_pickup"
         }
       ],
       "actor": "teacher-configured-status",
+      "fixtureId": "burette_status_panel",
       "excludedClaim": "fluid fill volume or dynamics"
+    },
+    {
+      "id": "funnel_return_after_fill",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "locked",
+      "completeState": "returned",
+      "prerequisites": [
+        {
+          "op": "process_state",
+          "processId": "configured_fill_complete",
+          "value": "confirmed"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "filling_funnel",
+            "frameId": "funnel_return_cradle"
+          }
+        }
+      ],
+      "fixtureId": "funnel_return_cradle_fixture"
     },
     {
       "id": "configured_level_visible",
@@ -269,8 +286,8 @@
       "prerequisites": [
         {
           "op": "process_state",
-          "processId": "configured_fill_complete",
-          "value": "confirmed"
+          "processId": "funnel_return_after_fill",
+          "value": "returned"
         },
         {
           "op": "object_at",
@@ -279,6 +296,7 @@
         }
       ],
       "actor": "teacher-configured-status",
+      "fixtureId": "burette_status_panel",
       "excludedClaim": "meniscus or calibrated volume measurement"
     }
   ],
@@ -300,6 +318,12 @@
       "op": "object_at",
       "objectId": "filling_funnel",
       "frameId": "funnel_return_cradle"
+    },
+    {
+      "id": "funnel-returned-after-fill",
+      "op": "process_state",
+      "processId": "funnel_return_after_fill",
+      "value": "returned"
     },
     {
       "id": "level-status-visible",
@@ -472,19 +496,12 @@
               "approachFrame": "pickup_approach",
               "contactFrame": "pickup_contact",
               "liftFrame": "pickup_lift",
-              "destinationFrame": "burette_funnel_guide",
+              "destinationFrame": "burette_funnel_pickup",
               "retreatFrame": "destination_retreat",
               "effector": "default",
-              "seed": 17
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 17,
               "processId": "funnel_seated",
-              "objectId": "filling_funnel",
-              "fixtureId": "burette_funnel_guide",
-              "value": "seated"
+              "processValue": "seated"
             }
           },
           {
@@ -502,11 +519,13 @@
               "objectId": "filling_funnel",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "burette_funnel_pickup",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "funnel_return_cradle",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 31
+              "seed": 31,
+              "processId": "funnel_return_after_fill",
+              "processValue": "returned"
             }
           },
           {
@@ -548,19 +567,12 @@
               "approachFrame": "pickup_approach",
               "contactFrame": "pickup_contact",
               "liftFrame": "pickup_lift",
-              "destinationFrame": "burette_funnel_guide",
+              "destinationFrame": "burette_funnel_pickup",
               "retreatFrame": "destination_retreat",
               "effector": "default",
-              "seed": 503
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 503,
               "processId": "funnel_seated",
-              "objectId": "filling_funnel",
-              "fixtureId": "burette_funnel_guide",
-              "value": "seated"
+              "processValue": "seated"
             }
           },
           {
@@ -578,11 +590,13 @@
               "objectId": "filling_funnel",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "burette_funnel_pickup",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "funnel_return_cradle",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 707
+              "seed": 707,
+              "processId": "funnel_return_after_fill",
+              "processValue": "returned"
             }
           },
           {

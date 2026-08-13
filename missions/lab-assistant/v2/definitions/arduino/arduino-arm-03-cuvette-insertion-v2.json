@@ -58,9 +58,9 @@
     },
     "instrument_slot": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
@@ -130,7 +130,16 @@
       "contactGated": true,
       "initialState": "ready",
       "completeState": "seated",
-      "prerequisites": [],
+      "prerequisites": [
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "sample_cuvette_carrier",
+            "frameId": "instrument_slot"
+          }
+        }
+      ],
       "fixtureId": "spectrophotometer_slot_guide"
     }
   ],

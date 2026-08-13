@@ -57,15 +57,16 @@
     },
     "cylinder_station": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
+      },
+      "contactFixtureId": "cylinder_measuring_slot"
     },
     "destination_retreat": {
       "positionMm": [
@@ -103,18 +104,6 @@
         "positionMm": 3
       }
     },
-    "second_pickup_lift": {
-      "positionMm": [
-        13.802,
-        414.113,
-        0.6
-      ],
-      "role": "lift",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 3
-      }
-    },
     "bottle_station": {
       "positionMm": [
         58.964,
@@ -125,7 +114,8 @@
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
+      },
+      "contactFixtureId": "bottle_measuring_slot"
     },
     "second_destination_retreat": {
       "positionMm": [
@@ -142,10 +132,18 @@
   },
   "fixtures": [
     {
-      "id": "measuring_slot_fixture",
-      "label": "Two-slot measuring station",
+      "id": "cylinder_measuring_slot",
+      "label": "Graduated-cylinder measuring slot",
       "frameId": "cylinder_station",
-      "purpose": "Keeps the two staged items visibly separate and upright; it does not measure volume.",
+      "purpose": "Keeps the staged cylinder visibly upright; it does not measure volume.",
+      "visible": true,
+      "configured": true
+    },
+    {
+      "id": "bottle_measuring_slot",
+      "label": "Sealed-bottle measuring slot",
+      "frameId": "bottle_station",
+      "purpose": "Keeps the sealed sample bottle visibly separate from the cylinder; it does not measure volume.",
       "visible": true,
       "configured": true
     }
@@ -382,7 +380,7 @@
               "objectId": "sealed_sample_bottle",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "second_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "bottle_station",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
@@ -409,7 +407,7 @@
               "objectId": "sealed_sample_bottle",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "second_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "bottle_station",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",

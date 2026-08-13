@@ -58,9 +58,9 @@
     },
     "chamber_guide": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
@@ -133,7 +133,16 @@
       "contactGated": true,
       "initialState": "ready",
       "completeState": "seated",
-      "prerequisites": [],
+      "prerequisites": [
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "chromatography_paper_carrier",
+            "frameId": "chamber_guide"
+          }
+        }
+      ],
       "fixtureId": "chromatography_orientation_guide",
       "excludedClaim": "fluid rise or chromatographic separation"
     }

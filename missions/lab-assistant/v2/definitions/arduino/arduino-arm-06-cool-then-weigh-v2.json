@@ -58,9 +58,9 @@
     },
     "balance_carrier_slot": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
@@ -147,7 +147,31 @@
       "completeState": "ready-for-transfer",
       "prerequisites": [],
       "actor": "configured-fixture",
+      "fixtureId": "cooling_status_fixture",
       "excludedClaim": "temperature or elapsed-time measurement"
+    },
+    {
+      "id": "carrier_transfer_after_cooling",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "locked",
+      "completeState": "transferred",
+      "prerequisites": [
+        {
+          "op": "process_state",
+          "processId": "configured_cooling_gate",
+          "value": "ready-for-transfer"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "dried_watch_glass_carrier",
+            "frameId": "balance_carrier_slot"
+          }
+        }
+      ],
+      "fixtureId": "balance_carrier_guide"
     },
     {
       "id": "configured_balance_display",
@@ -158,8 +182,8 @@
       "prerequisites": [
         {
           "op": "process_state",
-          "processId": "configured_cooling_gate",
-          "value": "ready-for-transfer"
+          "processId": "carrier_transfer_after_cooling",
+          "value": "transferred"
         },
         {
           "op": "object_at",
@@ -168,6 +192,7 @@
         }
       ],
       "actor": "configured-fixture",
+      "fixtureId": "balance_display",
       "excludedClaim": "mass measurement accuracy"
     }
   ],
@@ -183,6 +208,12 @@
       "op": "object_at",
       "objectId": "dried_watch_glass_carrier",
       "frameId": "balance_carrier_slot"
+    },
+    {
+      "id": "carrier-transfer-after-cooling",
+      "op": "process_state",
+      "processId": "carrier_transfer_after_cooling",
+      "value": "transferred"
     },
     {
       "id": "balance-display-visible",
@@ -358,7 +389,9 @@
               "destinationFrame": "balance_carrier_slot",
               "retreatFrame": "destination_retreat",
               "effector": "default",
-              "seed": 17
+              "seed": 17,
+              "processId": "carrier_transfer_after_cooling",
+              "processValue": "transferred"
             }
           },
           {
@@ -403,7 +436,9 @@
               "destinationFrame": "balance_carrier_slot",
               "retreatFrame": "destination_retreat",
               "effector": "default",
-              "seed": 991
+              "seed": 991,
+              "processId": "carrier_transfer_after_cooling",
+              "processValue": "transferred"
             }
           },
           {

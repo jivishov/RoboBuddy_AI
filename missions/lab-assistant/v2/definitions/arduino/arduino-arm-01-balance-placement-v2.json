@@ -9,9 +9,9 @@
   "rank": 1,
   "supersedes": "arduino-arm-01-balance-placement",
   "assistanceLevel": "Guided",
-  "legacyClassification": "A",
+  "legacyClassification": "B",
   "migration": {
-    "class": "A",
+    "class": "B",
     "legacyLearningObjective": "Program Arduino Arm to complete the observable handling sequence."
   },
   "canonicalModel": {
@@ -41,7 +41,8 @@
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
+      },
+      "contactFixtureId": "watch_glass_edge_cradle"
     },
     "pickup_lift": {
       "positionMm": [
@@ -57,15 +58,16 @@
     },
     "balance_destination": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
+      },
+      "contactFixtureId": "balance_target_fixture"
     },
     "destination_retreat": {
       "positionMm": [
@@ -80,7 +82,24 @@
       }
     }
   },
-  "fixtures": [],
+  "fixtures": [
+    {
+      "id": "watch_glass_edge_cradle",
+      "label": "Watch-glass edge-presentation cradle",
+      "frameId": "pickup_contact",
+      "purpose": "Presents a configured edge to the linkage gripper; it does not imply force sensing.",
+      "visible": true,
+      "configured": true
+    },
+    {
+      "id": "balance_target_fixture",
+      "label": "Configured balance placement target",
+      "frameId": "balance_destination",
+      "purpose": "Provides the visible destination surface without claiming mass measurement.",
+      "visible": true,
+      "configured": true
+    }
+  ],
   "objects": [
     {
       "id": "watch_glass",
@@ -99,7 +118,8 @@
       "effector": "default",
       "mode": "linkage-pinch",
       "linkageAware": true,
-      "contactFrame": "pickup_contact"
+      "contactFrame": "pickup_contact",
+      "fixtureId": "watch_glass_edge_cradle"
     }
   ],
   "processModels": [],

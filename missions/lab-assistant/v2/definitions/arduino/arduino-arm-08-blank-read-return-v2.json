@@ -42,7 +42,7 @@
       "tolerance": {
         "positionMm": 3
       },
-      "contactFixtureId": "blank_carrier_rack"
+      "contactFixtureId": "blank_supply_rack"
     },
     "pickup_lift": {
       "positionMm": [
@@ -55,19 +55,6 @@
       "tolerance": {
         "positionMm": 3
       }
-    },
-    "instrument_slot": {
-      "positionMm": [
-        27.322,
-        411.119,
-        -3.46
-      ],
-      "role": "destination",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 3
-      },
-      "contactFixtureId": "spectrophotometer_carrier_guide"
     },
     "destination_retreat": {
       "positionMm": [
@@ -103,19 +90,8 @@
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
-    },
-    "second_pickup_lift": {
-      "positionMm": [
-        13.802,
-        414.113,
-        0.6
-      ],
-      "role": "lift",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 3
-      }
+      },
+      "contactFixtureId": "spectrophotometer_carrier_guide"
     },
     "return_rack_slot": {
       "positionMm": [
@@ -128,7 +104,7 @@
       "tolerance": {
         "positionMm": 3
       },
-      "contactFixtureId": "blank_carrier_rack"
+      "contactFixtureId": "blank_return_rack"
     },
     "second_destination_retreat": {
       "positionMm": [
@@ -145,17 +121,25 @@
   },
   "fixtures": [
     {
-      "id": "blank_carrier_rack",
-      "label": "Blank-cuvette carrier rack",
+      "id": "blank_supply_rack",
+      "label": "Blank-cuvette supply rack",
+      "frameId": "pickup_contact",
+      "purpose": "Presents the keyed carrier at the initial pickup contact.",
+      "visible": true,
+      "configured": true
+    },
+    {
+      "id": "blank_return_rack",
+      "label": "Blank-cuvette return rack",
       "frameId": "return_rack_slot",
-      "purpose": "Presents and receives the keyed carrier.",
+      "purpose": "Receives the keyed carrier after the configured read event.",
       "visible": true,
       "configured": true
     },
     {
       "id": "spectrophotometer_carrier_guide",
       "label": "Spectrophotometer carrier guide",
-      "frameId": "instrument_slot",
+      "frameId": "instrument_pickup_contact",
       "purpose": "Constrains insertion orientation.",
       "visible": true,
       "configured": true
@@ -163,7 +147,7 @@
     {
       "id": "spectrophotometer_display",
       "label": "Configured spectrophotometer display",
-      "frameId": "instrument_slot",
+      "frameId": "instrument_pickup_contact",
       "purpose": "Shows a configured state only; no optical accuracy claim is made.",
       "visible": true,
       "configured": true
@@ -188,7 +172,7 @@
       "mode": "linkage-pinch",
       "linkageAware": true,
       "contactFrame": "pickup_contact",
-      "fixtureId": "blank_carrier_rack"
+      "fixtureId": "blank_supply_rack"
     },
     {
       "id": "blank-carrier-return",
@@ -207,7 +191,16 @@
       "contactGated": true,
       "initialState": "ready",
       "completeState": "seated",
-      "prerequisites": [],
+      "prerequisites": [
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "blank_cuvette_carrier",
+            "frameId": "instrument_pickup_contact"
+          }
+        }
+      ],
       "fixtureId": "spectrophotometer_carrier_guide"
     },
     {
@@ -225,11 +218,35 @@
         {
           "op": "object_at",
           "objectId": "blank_cuvette_carrier",
-          "frameId": "instrument_slot"
+          "frameId": "instrument_pickup_contact"
         }
       ],
       "actor": "configured-fixture",
+      "fixtureId": "spectrophotometer_display",
       "excludedClaim": "optical measurement accuracy"
+    },
+    {
+      "id": "blank_return_after_read",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "locked",
+      "completeState": "returned",
+      "prerequisites": [
+        {
+          "op": "process_state",
+          "processId": "configured_blank_read",
+          "value": "visible"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "blank_cuvette_carrier",
+            "frameId": "return_rack_slot"
+          }
+        }
+      ],
+      "fixtureId": "blank_return_rack"
     }
   ],
   "goalPredicates": [
@@ -244,6 +261,12 @@
       "op": "object_at",
       "objectId": "blank_cuvette_carrier",
       "frameId": "return_rack_slot"
+    },
+    {
+      "id": "return-occurred-after-read",
+      "op": "process_state",
+      "processId": "blank_return_after_read",
+      "value": "returned"
     }
   ],
   "prohibitedStates": [
@@ -401,7 +424,7 @@
               "approachFrame": "pickup_approach",
               "contactFrame": "pickup_contact",
               "liftFrame": "pickup_lift",
-              "destinationFrame": "instrument_slot",
+              "destinationFrame": "instrument_pickup_contact",
               "retreatFrame": "destination_retreat",
               "effector": "default",
               "seed": 17,
@@ -424,11 +447,13 @@
               "objectId": "blank_cuvette_carrier",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "instrument_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "return_rack_slot",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 31
+              "seed": 31,
+              "processId": "blank_return_after_read",
+              "processValue": "returned"
             }
           },
           {
@@ -452,7 +477,7 @@
               "approachFrame": "pickup_approach",
               "contactFrame": "pickup_contact",
               "liftFrame": "pickup_lift",
-              "destinationFrame": "instrument_slot",
+              "destinationFrame": "instrument_pickup_contact",
               "retreatFrame": "destination_retreat",
               "effector": "default",
               "seed": 503,
@@ -475,11 +500,13 @@
               "objectId": "blank_cuvette_carrier",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "instrument_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "return_rack_slot",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 707
+              "seed": 707,
+              "processId": "blank_return_after_read",
+              "processValue": "returned"
             }
           },
           {

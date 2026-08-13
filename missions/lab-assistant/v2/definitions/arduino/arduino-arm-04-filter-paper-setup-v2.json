@@ -58,9 +58,9 @@
     },
     "funnel_seat": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
@@ -100,18 +100,6 @@
         26.26
       ],
       "role": "contact",
-      "chainId": "default",
-      "tolerance": {
-        "positionMm": 3
-      }
-    },
-    "second_pickup_lift": {
-      "positionMm": [
-        13.802,
-        414.113,
-        0.6
-      ],
-      "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
@@ -215,7 +203,16 @@
       "contactGated": true,
       "initialState": "ready",
       "completeState": "seated",
-      "prerequisites": [],
+      "prerequisites": [
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "filter_paper_tab",
+            "frameId": "funnel_seat"
+          }
+        }
+      ],
       "fixtureId": "funnel_paper_guide"
     },
     {
@@ -231,9 +228,12 @@
           "value": "seated"
         },
         {
-          "op": "object_at",
-          "objectId": "gravity_funnel",
-          "frameId": "stand_destination"
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "gravity_funnel",
+            "frameId": "stand_destination"
+          }
         }
       ],
       "fixtureId": "stand_cradle"
@@ -446,20 +446,13 @@
               "objectId": "gravity_funnel",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "funnel_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "stand_destination",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 31
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 31,
               "processId": "funnel_on_stand",
-              "objectId": "gravity_funnel",
-              "fixtureId": "stand_cradle",
-              "value": "seated"
+              "processValue": "seated"
             }
           },
           {
@@ -497,20 +490,13 @@
               "objectId": "gravity_funnel",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "funnel_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "stand_destination",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 707
-            }
-          },
-          {
-            "method": "skills.fixture_operation",
-            "args": {
+              "seed": 707,
               "processId": "funnel_on_stand",
-              "objectId": "gravity_funnel",
-              "fixtureId": "stand_cradle",
-              "value": "seated"
+              "processValue": "seated"
             }
           },
           {
@@ -534,11 +520,13 @@
               "objectId": "gravity_funnel",
               "approachFrame": "second_pickup_approach",
               "contactFrame": "funnel_pickup_contact",
-              "liftFrame": "second_pickup_lift",
+              "liftFrame": "pickup_lift",
               "destinationFrame": "stand_destination",
               "retreatFrame": "second_destination_retreat",
               "effector": "default",
-              "seed": 31
+              "seed": 31,
+              "processId": "funnel_on_stand",
+              "processValue": "seated"
             }
           }
         ]

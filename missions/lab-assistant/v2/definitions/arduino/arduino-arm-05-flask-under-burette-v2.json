@@ -57,15 +57,16 @@
     },
     "receiver_cradle": {
       "positionMm": [
-        27.322,
-        411.119,
-        -3.46
+        254.195,
+        105.104,
+        135.629
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 3
-      }
+      },
+      "contactFixtureId": "burette_receiver_fixture"
     },
     "destination_retreat": {
       "positionMm": [
@@ -325,9 +326,17 @@
     ],
     "negativeCases": [
       {
-        "id": "empty-program",
-        "expectedFailureKind": "goal",
-        "calls": []
+        "id": "evidence-before-placement",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "receiver_observation",
+              "value": "flask visibly centered in cradle"
+            }
+          }
+        ]
       }
     ]
   }
