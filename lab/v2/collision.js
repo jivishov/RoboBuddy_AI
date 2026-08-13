@@ -60,8 +60,38 @@ function worldProxy(proxy, fk) {
     if (!start || !end) return null;
     return { ...proxy, startMm: [...start], endMm: [...end] };
   }
-  if (proxy.type === "box") return { ...proxy, centerMm: [...proxy.centerMm], halfExtentsMm: [...proxy.halfExtentsMm] };
+  if (proxy.type === "box") {
+    const frame = fk.frames[proxy.frameId || "root"];
+    if (!frame) return null;
+    const corners = [-1, 1].flatMap((x) => [-1, 1].flatMap((y) => [-1, 1].map((z) => transformPoint(frame, [
+      proxy.centerMm[0] + x * proxy.halfExtentsMm[0],
+      proxy.centerMm[1] + y * proxy.halfExtentsMm[1],
+      proxy.centerMm[2] + z * proxy.halfExtentsMm[2]
+    ]))));
+    const minimum = [0, 1, 2].map((axis) => Math.min(...corners.map((point) => point[axis])));
+    const maximum = [0, 1, 2].map((axis) => Math.max(...corners.map((point) => point[axis])));
+    return {
+      ...proxy,
+      centerMm: minimum.map((value, axis) => (value + maximum[axis]) / 2),
+      halfExtentsMm: minimum.map((value, axis) => (maximum[axis] - value) / 2)
+    };
+  }
   return null;
+}
+
+function rendererForwardKinematics(model, jointState, options = {}) {
+  if (!model.rendererChain?.length) return null;
+  const rendererModel = {
+    ...model,
+    chains: {
+      renderer: {
+        id: "renderer",
+        joints: model.rendererChain,
+        endFrame: model.rendererChain.at(-1).id
+      }
+    }
+  };
+  return forwardKinematics(rendererModel, jointState, { chainId: "renderer", basePose: options.basePose });
 }
 
 export function collisionGeometry(model, jointState, options = {}) {
@@ -69,13 +99,26 @@ export function collisionGeometry(model, jointState, options = {}) {
   Object.keys(model.chains || {}).forEach((chainId) => {
     fkByChain[chainId] = forwardKinematics(model, jointState, { chainId, basePose: options.basePose });
   });
-  const fallback = Object.values(fkByChain)[0] || { frames: { root: { position: options.basePose?.positionMm || [0, 0, 0] } } };
+  const rendererFk = rendererForwardKinematics(model, jointState, options);
+  const fallback = rendererFk || Object.values(fkByChain)[0] || {
+    frames: {
+      root: {
+        position: add3(options.basePose?.positionMm || [0, 0, 0], model.rendererRootOffsetMm || [0, 0, 0]),
+        rotation: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+      }
+    }
+  };
   return (model.collisionProxies || []).map((proxy) => {
-    const chainFk = Object.values(fkByChain).find((fk) => (
+    const chainFk = (proxy.frameId && rendererFk?.frames[proxy.frameId] ? rendererFk : null)
+      || Object.values(fkByChain).find((fk) => (
       (!proxy.fromFrame || fk.frames[proxy.fromFrame]) && (!proxy.toFrame || fk.frames[proxy.toFrame])
     )) || fallback;
-    if (proxy.type === "box" && options.basePose?.positionMm) {
-      return { ...proxy, centerMm: add3(proxy.centerMm, options.basePose.positionMm), halfExtentsMm: [...proxy.halfExtentsMm] };
+    if (proxy.type === "box" && !proxy.frameId) {
+      return {
+        ...proxy,
+        centerMm: add3(proxy.centerMm, options.basePose?.positionMm || [0, 0, 0]),
+        halfExtentsMm: [...proxy.halfExtentsMm]
+      };
     }
     return worldProxy(proxy, chainFk);
   }).filter(Boolean);
@@ -106,6 +149,15 @@ export function stateCollisionReport(model, jointState, obstacles = [], options 
 }
 
 export function sampleRenderedGeometry(model, jointState = {}, options = {}) {
+  if (model.renderGeometrySamples?.length) {
+    const rendererFk = rendererForwardKinematics(model, jointState, options);
+    const chainFks = Object.keys(model.chains || {}).map((chainId) => forwardKinematics(model, jointState, { chainId, basePose: options.basePose }));
+    return model.renderGeometrySamples.flatMap((sample) => {
+      const frame = rendererFk?.frames[sample.frameId]
+        || chainFks.find((fk) => fk.frames[sample.frameId])?.frames[sample.frameId];
+      return frame ? [{ ...sample, pointMm: transformPoint(frame, sample.localPointMm) }] : [];
+    });
+  }
   const proxies = collisionGeometry(model, jointState, options);
   return proxies.flatMap((proxy) => {
     if (proxy.type === "box") {
@@ -126,15 +178,23 @@ export function sampleRenderedGeometry(model, jointState = {}, options = {}) {
 
 export function validateProxyEnclosure(model, jointState = {}, options = {}) {
   const proxies = collisionGeometry(model, jointState, options);
-  const byId = new Map(proxies.map((item) => [item.id, item]));
   const samples = options.samples || sampleRenderedGeometry(model, jointState, options);
   const violations = samples.flatMap((sample) => {
-    const proxy = byId.get(sample.proxyId);
-    if (!proxy) return [{ ...sample, reason: "missing proxy" }];
-    const margin = proxy.type === "capsule"
-      ? proxy.radiusMm - pointSegmentDistance(sample.pointMm, proxy.startMm, proxy.endMm)
-      : Math.min(...sample.pointMm.map((value, index) => proxy.halfExtentsMm[index] - Math.abs(value - proxy.centerMm[index])));
-    return margin >= -1e-6 ? [] : [{ ...sample, marginMm: margin, reason: "outside conservative proxy" }];
+    const margins = proxies.map((proxy) => ({
+      proxyId: proxy.id,
+      marginMm: proxy.type === "capsule"
+        ? proxy.radiusMm - pointSegmentDistance(sample.pointMm, proxy.startMm, proxy.endMm)
+        : Math.min(...sample.pointMm.map((value, index) => proxy.halfExtentsMm[index] - Math.abs(value - proxy.centerMm[index])))
+    })).sort((a, b) => b.marginMm - a.marginMm);
+    const best = margins[0];
+    return best && best.marginMm >= -1e-6
+      ? []
+      : [{ ...sample, nearestProxyId: best?.proxyId || null, marginMm: best?.marginMm ?? -Infinity, reason: "outside conservative proxy union" }];
   });
-  return { ok: violations.length === 0, sampleCount: samples.length, violations };
+  return {
+    ok: samples.length > 0 && violations.length === 0,
+    sampleCount: samples.length,
+    sampleProvenance: samples.length ? "authored-or-baked-renderer-mesh" : "unavailable",
+    violations
+  };
 }

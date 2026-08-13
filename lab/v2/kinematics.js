@@ -21,8 +21,8 @@ function chainFor(model, chainId = "default") {
   return chain;
 }
 
-function rootTransform(basePose = {}) {
-  const position = basePose.positionMm || [0, 0, 0];
+function rootTransform(model, basePose = {}) {
+  const position = add3(basePose.positionMm || [0, 0, 0], model?.rendererRootOffsetMm || [0, 0, 0]);
   const heading = Number(basePose.headingDeg || 0) * Math.PI / 180;
   return { position: [...position], rotation: rotationFromAxisAngle([0, 1, 0], heading) };
 }
@@ -59,7 +59,7 @@ export function withinJointLimits(model, state = {}, chainId = "default", tolera
 
 export function forwardKinematics(model, jointState = {}, options = {}) {
   const chain = chainFor(model, options.chainId || "default");
-  const frames = { root: rootTransform(options.basePose) };
+  const frames = { root: rootTransform(model, options.basePose) };
   const state = { ...homeJointState(model), ...jointState };
   chain.joints.forEach((item) => {
     const parent = frames[item.parent] || frames.root;

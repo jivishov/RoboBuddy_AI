@@ -1,6 +1,10 @@
 import { ARM_RIG_CONFIG } from "../../simulator/js/arm-rig-config.js";
+import { ARM_PREVIEW_MESH_DATA } from "../../simulator/js/arm-preview-mesh-data.js";
 import { ROBOT_RIG_PREVIEW_CONFIGS } from "../../simulator/js/robot-rig-configs.js";
+import { ROBOT_RIG_MESH_DATA as SO101_MESH_DATA } from "../../simulator/js/robot-mesh-data-so101.js";
+import { ROBOT_RIG_MESH_DATA as LEKIWI_MESH_DATA } from "../../simulator/js/robot-mesh-data-lekiwi.js";
 import { deepClone, deepFreeze } from "./math.js";
+import { geometryProbesFromArduinoRig, geometryProbesFromOfficialMesh } from "./render-geometry-probes.js";
 
 const joint = (id, min, max, home, extra = {}) => ({ id, min, max, home, unit: "deg", ...extra });
 
@@ -155,21 +159,30 @@ function baseModel(id, options) {
     fidelity: options.fidelity,
     unsupportedPhysics: options.unsupportedPhysics,
     configured: options.configured || {},
+    rendererChain: options.rendererChain || undefined,
+    rendererRootOffsetMm: options.rendererRootOffsetMm || [0, 0, 0],
     renderGeometrySamples: options.renderGeometrySamples || []
   };
   return deepFreeze(model);
 }
 
 const ARDUINO_CHAIN = arduinoChain();
-const SO101_CHAIN = previewChain("so101_follower");
-const LEKIWI_CHAIN = previewChain("lekiwi_sim");
+const ARDUINO_GEOMETRY = geometryProbesFromArduinoRig(ARM_RIG_CONFIG, ARM_PREVIEW_MESH_DATA);
+const SO101_RENDERER_CHAIN = normalizeMeshChain(SO101_MESH_DATA.chain);
+const LEKIWI_RENDERER_CHAIN = normalizeMeshChain(LEKIWI_MESH_DATA.chain);
+const SO101_CHAIN = SO101_RENDERER_CHAIN.filter((item) => ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper_jaw"].includes(item.id));
+const LEKIWI_CHAIN = LEKIWI_RENDERER_CHAIN.filter((item) => ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper_jaw"].includes(item.id));
+const SO101_GEOMETRY = geometryProbesFromOfficialMesh(SO101_MESH_DATA, { prefix: "render-so101" });
+const LEKIWI_GEOMETRY = geometryProbesFromOfficialMesh(LEKIWI_MESH_DATA, { prefix: "render-lekiwi" });
 
 const STATIC_MODELS = {
   arduino_arm: baseModel("arduino_arm", {
     chain: ARDUINO_CHAIN,
     endFrame: "tool",
     rendererBinding: { kind: "arm-rig-config", revision: "2026-06-11", chainField: "kinematicChain" },
-    proxyRadiusMm: 31,
+    collisionProxies: [...capsuleProxies(ARDUINO_CHAIN, 31), ...ARDUINO_GEOMETRY.collisionProxies],
+    rendererRootOffsetMm: ARDUINO_GEOMETRY.rendererRootOffsetMm,
+    renderGeometrySamples: ARDUINO_GEOMETRY.renderGeometrySamples,
     capabilities: ["fixed_base_fk", "position_ik", "joint_path", "linkage_gripper", "contact_sequences"],
     fidelity: "CAD-derived kinematic chain with conservative collision envelopes",
     unsupportedPhysics: ["certified calibration", "servo dynamics", "force control", "payload certification"],
@@ -177,19 +190,25 @@ const STATIC_MODELS = {
   }),
   so101_follower: baseModel("so101_follower", {
     chain: SO101_CHAIN,
-    endFrame: "gripperRoot",
-    rendererBinding: { kind: "robot-rig-preview-config", revision: ROBOT_RIG_PREVIEW_CONFIGS.so101_follower.meshData.version, chainField: "chain" },
-    proxyRadiusMm: 34,
+    endFrame: "gripper_jaw",
+    rendererBinding: { kind: "official-baked-mesh-chain", revision: ROBOT_RIG_PREVIEW_CONFIGS.so101_follower.meshData.version, sourceUrl: SO101_MESH_DATA.source.urdf },
+    rendererChain: SO101_RENDERER_CHAIN,
+    collisionProxies: [...capsuleProxies(SO101_CHAIN, 34), ...SO101_GEOMETRY.collisionProxies],
+    rendererRootOffsetMm: SO101_GEOMETRY.rendererRootOffsetMm,
+    renderGeometrySamples: SO101_GEOMETRY.renderGeometrySamples,
     capabilities: ["fixed_base_fk", "position_ik", "joint_path", "fixture_assisted_grasp", "contact_sequences"],
     fidelity: "Official-model kinematic chain with configured educational joint limits",
     unsupportedPhysics: ["force sensing", "payload claim", "servo dynamics", "certified calibrated limits"]
   }),
   lekiwi_sim: baseModel("lekiwi_sim", {
     chain: LEKIWI_CHAIN,
-    endFrame: "gripperRoot",
+    endFrame: "gripper_jaw",
     rootMotion: "planar",
-    rendererBinding: { kind: "robot-rig-preview-config", revision: ROBOT_RIG_PREVIEW_CONFIGS.lekiwi_sim.meshData.version, chainField: "chain" },
-    proxyRadiusMm: 34,
+    rendererBinding: { kind: "official-baked-mesh-chain", revision: ROBOT_RIG_PREVIEW_CONFIGS.lekiwi_sim.meshData.version, sourceUrl: LEKIWI_MESH_DATA.source.urdf },
+    rendererChain: LEKIWI_RENDERER_CHAIN,
+    collisionProxies: [...capsuleProxies(LEKIWI_CHAIN, 34), ...LEKIWI_GEOMETRY.collisionProxies],
+    rendererRootOffsetMm: LEKIWI_GEOMETRY.rendererRootOffsetMm,
+    renderGeometrySamples: LEKIWI_GEOMETRY.renderGeometrySamples,
     capabilities: ["occupancy_grid_astar", "stow_before_drive", "arm_fk", "position_ik", "joint_path", "grasping", "contact_sequences"],
     fidelity: "Planar occupancy-grid base and official-model arm kinematics",
     unsupportedPhysics: ["wheel slip", "base dynamics", "force sensing", "payload claim"],
@@ -207,8 +226,8 @@ const STATIC_MODELS = {
     rootMotion: "constrained-waypoint",
     rendererBinding: { kind: "baked-mesh-chain", revision: SOURCES.unitree_g1_29dof.revision },
     collisionProxies: [
-      { id: "body", type: "box", centerMm: [0, 710, 0], halfExtentsMm: [260, 710, 235], provenance: "C: conservative full-body waypoint envelope" },
-      { id: "secured-carrier", type: "box", centerMm: [285, 825, 0], halfExtentsMm: [210, 145, 260], provenance: "C: configured locked-carrier envelope" }
+      { id: "body", type: "box", frameId: "root", centerMm: [0, -82.266, 0], halfExtentsMm: [260, 710, 235], provenance: "C: conservative full-body waypoint envelope" },
+      { id: "secured-carrier", type: "box", frameId: "root", centerMm: [285, 32.734, 0], halfExtentsMm: [210, 145, 260], provenance: "C: configured locked-carrier envelope" }
     ],
     capabilities: ["constrained_waypoints", "turns", "docking", "secured_carrier_attachment"],
     fidelity: "Constrained waypoint logistics with discrete dock/latch events",
@@ -219,7 +238,7 @@ const STATIC_MODELS = {
 
 function splitOpenArmChains(chain) {
   const shared = chain.filter((item) => item.id === "base_yaw");
-  const side = (name) => chain.filter((item) => item.id.startsWith(`${name}_`) && !item.id.includes("finger"));
+  const side = (name) => chain.filter((item) => /^.+_j[1-7]$/.test(item.id) && item.id.startsWith(`${name}_`));
   const make = (name) => ({
     id: name,
     joints: [...shared, ...chain.filter((item) => item.id === `${name}_mount`), ...side(name)],
@@ -262,12 +281,22 @@ export async function loadRobotModel(robotId) {
     if (mesh.source?.revision !== base.source.revision) throw new Error("OpenArm baked model revision does not match the canonical claim.");
     const meshChain = normalizeMeshChain(mesh.chain);
     const chains = splitOpenArmChains(meshChain);
+    const renderGeometry = geometryProbesFromOfficialMesh(mesh, { prefix: "render-openarm" });
     const collisionProxies = [
       ...capsuleProxies(chains.left.joints, 42, "left-link"),
       ...capsuleProxies(chains.right.joints, 42, "right-link"),
-      { id: "shared-base", type: "box", centerMm: [0, 290, 0], halfExtentsMm: [205, 290, 205], provenance: "C: conservative configured stand envelope" }
+      { id: "shared-base", type: "box", centerMm: [0, 290, 0], halfExtentsMm: [205, 290, 205], provenance: "C: conservative configured stand envelope" },
+      ...renderGeometry.collisionProxies
     ];
-    const model = deepFreeze({ ...deepClone(base), chains, collisionProxies, rendererChain: meshChain, rendererBoundsMm: [...mesh.bboxMm] });
+    const model = deepFreeze({
+      ...deepClone(base),
+      chains,
+      collisionProxies,
+      rendererChain: meshChain,
+      rendererBoundsMm: [...mesh.bboxMm],
+      rendererRootOffsetMm: renderGeometry.rendererRootOffsetMm,
+      renderGeometrySamples: renderGeometry.renderGeometrySamples
+    });
     loadedModels.set(robotId, model);
     return model;
   }
@@ -275,7 +304,15 @@ export async function loadRobotModel(robotId) {
     const module = await import("../../simulator/js/robot-mesh-data-unitree-g1.js");
     const mesh = module.ROBOT_RIG_MESH_DATA;
     if (mesh.source?.revision !== base.source.revision) throw new Error("G1 baked model revision does not match the canonical claim.");
-    const model = deepFreeze({ ...deepClone(base), rendererChain: normalizeMeshChain(mesh.chain), rendererBoundsMm: [...mesh.bboxMm] });
+    const renderGeometry = geometryProbesFromOfficialMesh(mesh, { prefix: "render-g1" });
+    const model = deepFreeze({
+      ...deepClone(base),
+      collisionProxies: [...deepClone(base.collisionProxies), ...renderGeometry.collisionProxies],
+      rendererChain: normalizeMeshChain(mesh.chain),
+      rendererBoundsMm: [...mesh.bboxMm],
+      rendererRootOffsetMm: renderGeometry.rendererRootOffsetMm,
+      renderGeometrySamples: renderGeometry.renderGeometrySamples
+    });
     loadedModels.set(robotId, model);
     return model;
   }
@@ -288,6 +325,12 @@ export async function canonicalRendererData(robotId, rendererData) {
   if (model.rendererBinding.kind === "baked-mesh-chain") {
     const revision = rendererData.source?.revision;
     if (revision !== model.source.revision) throw new Error(`${robotId} renderer revision ${revision || "unknown"} does not match canonical revision ${model.source.revision}.`);
+    return { ...rendererData, chain: deepClone(model.rendererChain) };
+  }
+  if (model.rendererBinding.kind === "official-baked-mesh-chain") {
+    if (rendererData.source?.urdf !== model.rendererBinding.sourceUrl) {
+      throw new Error(`${robotId} renderer source does not match the canonical baked model source.`);
+    }
     return { ...rendererData, chain: deepClone(model.rendererChain) };
   }
   const field = model.rendererBinding.chainField;

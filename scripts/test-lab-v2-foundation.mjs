@@ -19,6 +19,7 @@ import {
   planOccupancyGridAStar,
   readLegacyV1Archive,
   requireStowedForDrive,
+  sampleRenderedGeometry,
   validateProxyEnclosure,
   validateScenarioV2,
   withinJointLimits
@@ -26,7 +27,6 @@ import {
 import { V2_BLOCK_DEFINITIONS, createV2Toolbox } from "../lab/v2/blockly-api.js";
 import { stripValidationForClient } from "../lab/v2/scenario-schema.js";
 import { ARM_RIG_CONFIG } from "../simulator/js/arm-rig-config.js";
-import { ROBOT_RIG_PREVIEW_CONFIGS } from "../simulator/js/robot-rig-configs.js";
 
 const ROBOTS = ["arduino_arm", "so101_follower", "lekiwi_sim", "openarm_v2_bimanual", "unitree_g1_29dof"];
 const checks = [];
@@ -104,7 +104,12 @@ await check("canonical model catalog and renderer bindings", async () => {
     assert.ok(model.unsupportedPhysics.length);
   }
   await canonicalRendererData("arduino_arm", { kinematicChain: ARM_RIG_CONFIG.kinematicChain });
-  await canonicalRendererData("so101_follower", ROBOT_RIG_PREVIEW_CONFIGS.so101_follower);
+  const so101Mesh = (await import("../simulator/js/robot-mesh-data-so101.js")).ROBOT_RIG_MESH_DATA;
+  const so101Canonical = await canonicalRendererData("so101_follower", so101Mesh);
+  assert.deepEqual(so101Canonical.chain, JSON.parse(JSON.stringify((await loadRobotModel("so101_follower")).rendererChain)));
+  const lekiwiMesh = (await import("../simulator/js/robot-mesh-data-lekiwi.js")).ROBOT_RIG_MESH_DATA;
+  const lekiwiCanonical = await canonicalRendererData("lekiwi_sim", lekiwiMesh);
+  assert.deepEqual(lekiwiCanonical.chain, JSON.parse(JSON.stringify((await loadRobotModel("lekiwi_sim")).rendererChain)));
   const mesh = (await import("../simulator/js/robot-mesh-data-openarm-v2.js")).ROBOT_RIG_MESH_DATA;
   const canonical = await canonicalRendererData("openarm_v2_bimanual", mesh);
   assert.equal(canonical.source.revision, (await loadRobotModel("openarm_v2_bimanual")).source.revision);
@@ -135,6 +140,12 @@ await check("collision proxy enclosure and bounded path planning", async () => {
     const enclosure = validateProxyEnclosure(model, homeJointState(model));
     assert.equal(enclosure.ok, true, `${robotId} proxy enclosure`);
     assert.ok(enclosure.sampleCount > 0);
+    assert.equal(enclosure.sampleProvenance, "authored-or-baked-renderer-mesh");
+    const shiftedSamples = sampleRenderedGeometry(model, homeJointState(model)).slice(0, 1).map((sample) => ({
+      ...sample,
+      pointMm: sample.pointMm.map((value) => value + 100000)
+    }));
+    assert.equal(validateProxyEnclosure(model, homeJointState(model), { samples: shiftedSamples }).ok, false, `${robotId} must reject a renderer sample outside the proxy union`);
   }
   const model = await loadRobotModel("arduino_arm");
   const start = homeJointState(model);
