@@ -347,7 +347,9 @@
             "frameId": "carrier_1_destination"
           }
         }
-      ]
+      ],
+      "fixtureId": "receiver_latch_1",
+      "contactFrame": "carrier_1_receiver_latch"
     }
   ],
   "goalPredicates": [
@@ -554,9 +556,9 @@
         "carrier_1_retreat": [
           "safe_transfer_hub"
         ],
-      "restricted_bench": [
-        "home"
-      ]
+        "restricted_bench": [
+          "home"
+        ]
       }
     },
     "restrictedFrames": [
@@ -753,18 +755,18 @@
               "frameId": "home"
             }
           },
-        {
-          "method": "robot.navigate",
-          "args": {
-            "frameId": "restricted_bench"
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "restricted_bench"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home"
+            }
           }
-        },
-        {
-          "method": "robot.navigate",
-          "args": {
-            "frameId": "home"
-          }
-        }
         ]
       }
     ]

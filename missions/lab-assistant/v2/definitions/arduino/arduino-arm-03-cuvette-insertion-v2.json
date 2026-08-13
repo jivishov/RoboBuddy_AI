@@ -140,7 +140,8 @@
           }
         }
       ],
-      "fixtureId": "spectrophotometer_slot_guide"
+      "fixtureId": "spectrophotometer_slot_guide",
+      "contactFrame": "instrument_slot"
     }
   ],
   "goalPredicates": [

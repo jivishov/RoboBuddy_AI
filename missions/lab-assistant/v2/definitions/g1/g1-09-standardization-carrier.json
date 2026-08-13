@@ -743,7 +743,9 @@
             "frameId": "carrier_1_destination"
           }
         }
-      ]
+      ],
+      "fixtureId": "receiver_latch_1",
+      "contactFrame": "carrier_1_receiver_latch"
     },
     {
       "id": "receiver_verification_2",
@@ -774,7 +776,9 @@
             "frameId": "carrier_2_destination"
           }
         }
-      ]
+      ],
+      "fixtureId": "receiver_latch_2",
+      "contactFrame": "carrier_2_receiver_latch"
     },
     {
       "id": "receiver_verification_3",
@@ -805,7 +809,9 @@
             "frameId": "carrier_3_destination"
           }
         }
-      ]
+      ],
+      "fixtureId": "receiver_latch_3",
+      "contactFrame": "carrier_3_receiver_latch"
     }
   ],
   "goalPredicates": [

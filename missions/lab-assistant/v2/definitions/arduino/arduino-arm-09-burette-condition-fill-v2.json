@@ -207,7 +207,8 @@
       ],
       "actor": "teacher-configured-status",
       "fixtureId": "burette_status_panel",
-      "excludedClaim": "fluid conditioning"
+      "excludedClaim": "fluid conditioning",
+      "contactFrame": "burette_funnel_pickup"
     },
     {
       "id": "funnel_seated",
@@ -230,7 +231,8 @@
           }
         }
       ],
-      "fixtureId": "burette_funnel_guide"
+      "fixtureId": "burette_funnel_guide",
+      "contactFrame": "burette_funnel_pickup"
     },
     {
       "id": "configured_fill_complete",
@@ -252,7 +254,8 @@
       ],
       "actor": "teacher-configured-status",
       "fixtureId": "burette_status_panel",
-      "excludedClaim": "fluid fill volume or dynamics"
+      "excludedClaim": "fluid fill volume or dynamics",
+      "contactFrame": "burette_funnel_pickup"
     },
     {
       "id": "funnel_return_after_fill",
@@ -275,7 +278,8 @@
           }
         }
       ],
-      "fixtureId": "funnel_return_cradle_fixture"
+      "fixtureId": "funnel_return_cradle_fixture",
+      "contactFrame": "funnel_return_cradle"
     },
     {
       "id": "configured_level_visible",
@@ -297,7 +301,8 @@
       ],
       "actor": "teacher-configured-status",
       "fixtureId": "burette_status_panel",
-      "excludedClaim": "meniscus or calibrated volume measurement"
+      "excludedClaim": "meniscus or calibrated volume measurement",
+      "contactFrame": "burette_funnel_pickup"
     }
   ],
   "goalPredicates": [

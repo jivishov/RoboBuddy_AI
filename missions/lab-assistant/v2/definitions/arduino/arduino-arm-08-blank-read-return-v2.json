@@ -201,7 +201,8 @@
           }
         }
       ],
-      "fixtureId": "spectrophotometer_carrier_guide"
+      "fixtureId": "spectrophotometer_carrier_guide",
+      "contactFrame": "instrument_pickup_contact"
     },
     {
       "id": "configured_blank_read",
@@ -223,7 +224,8 @@
       ],
       "actor": "configured-fixture",
       "fixtureId": "spectrophotometer_display",
-      "excludedClaim": "optical measurement accuracy"
+      "excludedClaim": "optical measurement accuracy",
+      "contactFrame": "instrument_pickup_contact"
     },
     {
       "id": "blank_return_after_read",
@@ -246,7 +248,8 @@
           }
         }
       ],
-      "fixtureId": "blank_return_rack"
+      "fixtureId": "blank_return_rack",
+      "contactFrame": "return_rack_slot"
     }
   ],
   "goalPredicates": [

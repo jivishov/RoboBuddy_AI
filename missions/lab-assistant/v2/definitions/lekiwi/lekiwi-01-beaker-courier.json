@@ -286,7 +286,9 @@
           ]
         }
       ],
-      "modeledEffect": "fixture seating only; no chemical, thermal, force, payload, fluid, or measurement effect"
+      "modeledEffect": "fixture seating only; no chemical, thermal, force, payload, fluid, or measurement effect",
+      "contactFrame": "delivery_contact",
+      "fixtureId": "destination_fixture"
     }
   ],
   "goalPredicates": [

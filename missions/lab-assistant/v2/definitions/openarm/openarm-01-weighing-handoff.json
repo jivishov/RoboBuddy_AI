@@ -445,7 +445,8 @@
           "frameId": "right_retreat"
         }
       ],
-      "unsupportedContinuity": "No continuous material, force, fluid, thermal, or instrument-response model is implied."
+      "unsupportedContinuity": "No continuous material, force, fluid, thermal, or instrument-response model is implied.",
+      "contactFrame": "left_handoff"
     }
   ],
   "goalPredicates": [

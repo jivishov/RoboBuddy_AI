@@ -144,7 +144,8 @@
         }
       ],
       "fixtureId": "chromatography_orientation_guide",
-      "excludedClaim": "fluid rise or chromatographic separation"
+      "excludedClaim": "fluid rise or chromatographic separation",
+      "contactFrame": "chamber_guide"
     }
   ],
   "goalPredicates": [

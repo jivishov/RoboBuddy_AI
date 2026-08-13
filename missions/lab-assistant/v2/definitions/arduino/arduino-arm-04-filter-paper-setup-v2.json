@@ -213,7 +213,8 @@
           }
         }
       ],
-      "fixtureId": "funnel_paper_guide"
+      "fixtureId": "funnel_paper_guide",
+      "contactFrame": "funnel_seat"
     },
     {
       "id": "funnel_on_stand",
@@ -236,7 +237,8 @@
           }
         }
       ],
-      "fixtureId": "stand_cradle"
+      "fixtureId": "stand_cradle",
+      "contactFrame": "stand_destination"
     }
   ],
   "goalPredicates": [

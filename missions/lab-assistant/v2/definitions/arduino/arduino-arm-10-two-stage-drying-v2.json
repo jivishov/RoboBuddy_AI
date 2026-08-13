@@ -154,10 +154,17 @@
       "contactGated": true,
       "initialState": "ready",
       "completeState": "confirmed",
-      "prerequisites": [],
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "watch_glass_carrier",
+          "frameId": "pickup_contact"
+        }
+      ],
       "actor": "teacher-configured-status",
       "fixtureId": "drying_status_panel",
-      "excludedClaim": "thermal drying"
+      "excludedClaim": "thermal drying",
+      "contactFrame": "pickup_approach"
     },
     {
       "id": "configured_dry_stage_2",
@@ -174,7 +181,8 @@
       ],
       "actor": "teacher-configured-status",
       "fixtureId": "drying_status_panel",
-      "excludedClaim": "thermal drying"
+      "excludedClaim": "thermal drying",
+      "contactFrame": "pickup_approach"
     },
     {
       "id": "configured_cooling_complete",
@@ -191,7 +199,8 @@
       ],
       "actor": "teacher-configured-status",
       "fixtureId": "cooling_status_panel",
-      "excludedClaim": "temperature or elapsed-time measurement"
+      "excludedClaim": "temperature or elapsed-time measurement",
+      "contactFrame": "pickup_contact"
     },
     {
       "id": "carrier_transfer_after_cooling",
@@ -214,7 +223,8 @@
           }
         }
       ],
-      "fixtureId": "balance_carrier_guide"
+      "fixtureId": "balance_carrier_guide",
+      "contactFrame": "balance_carrier_slot"
     },
     {
       "id": "configured_balance_readout",
@@ -236,7 +246,8 @@
       ],
       "actor": "configured-fixture",
       "fixtureId": "balance_display",
-      "excludedClaim": "mass measurement accuracy"
+      "excludedClaim": "mass measurement accuracy",
+      "contactFrame": "balance_carrier_slot"
     }
   ],
   "goalPredicates": [

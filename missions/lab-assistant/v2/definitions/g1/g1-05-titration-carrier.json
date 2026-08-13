@@ -312,7 +312,9 @@
             "frameId": "carrier_1_destination"
           }
         }
-      ]
+      ],
+      "fixtureId": "receiver_latch_1",
+      "contactFrame": "carrier_1_receiver_latch"
     }
   ],
   "goalPredicates": [

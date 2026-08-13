@@ -145,10 +145,17 @@
       "contactGated": true,
       "initialState": "ready",
       "completeState": "ready-for-transfer",
-      "prerequisites": [],
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "dried_watch_glass_carrier",
+          "frameId": "pickup_contact"
+        }
+      ],
       "actor": "configured-fixture",
       "fixtureId": "cooling_status_fixture",
-      "excludedClaim": "temperature or elapsed-time measurement"
+      "excludedClaim": "temperature or elapsed-time measurement",
+      "contactFrame": "pickup_approach"
     },
     {
       "id": "carrier_transfer_after_cooling",
@@ -171,7 +178,8 @@
           }
         }
       ],
-      "fixtureId": "balance_carrier_guide"
+      "fixtureId": "balance_carrier_guide",
+      "contactFrame": "balance_carrier_slot"
     },
     {
       "id": "configured_balance_display",
@@ -193,7 +201,8 @@
       ],
       "actor": "configured-fixture",
       "fixtureId": "balance_display",
-      "excludedClaim": "mass measurement accuracy"
+      "excludedClaim": "mass measurement accuracy",
+      "contactFrame": "balance_carrier_slot"
     }
   ],
   "goalPredicates": [
