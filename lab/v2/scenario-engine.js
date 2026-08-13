@@ -362,6 +362,13 @@ export class ScenarioV2Engine {
     const object = this.state.objects[args.objectId];
     if (!object) return failure("UNKNOWN_OBJECT", `Unknown object ${args.objectId}.`);
     const effector = args.effector || (this.model.id === "openarm_v2_bimanual" ? "left" : "default");
+    const graspCheck = this.validateConfiguredGrasp(object, {
+      effector,
+      approachFrame: args.approachFrame,
+      contactFrame: args.contactFrame,
+      liftFrame: args.liftFrame
+    });
+    if (!graspCheck.ok) return graspCheck;
     let cursor = { ...this.state.jointState };
     const segment = async (frameId, seedOffset) => {
       const path = await this.planSegment(frameId, cursor, { ...args, seed: Number(args.seed || 101) + seedOffset });
@@ -417,6 +424,10 @@ export class ScenarioV2Engine {
     ) {
       return failure("MORPHOLOGY_LIMIT", "G1 can transport only mechanically compatible secured carriers.");
     }
+    if (object.attachedTo) return failure("ALREADY_ATTACHED", `${args.objectId} is already attached.`);
+    if (object.currentFrame !== args.contactFrame) {
+      return failure("OBJECT_NOT_AT_CONTACT", `${args.objectId} is at ${object.currentFrame || "an unknown frame"}, not ${args.contactFrame}.`);
+    }
     const approachFrame = args.approachFrame;
     const pickupFrame = args.contactFrame;
     const clearanceFrame = args.liftFrame;
@@ -457,11 +468,36 @@ export class ScenarioV2Engine {
     const object = this.state.objects[args.objectId];
     if (!object) return failure("UNKNOWN_OBJECT", `Unknown object ${args.objectId}.`);
     if (this.model.id === "unitree_g1_29dof") return failure("MORPHOLOGY_LIMIT", "G1 has no free-grasping API; use secured-carrier docking.");
-    const frame = this.frame(args.contactFrame || this.state.lastReachedFrame);
+    const contactFrame = args.contactFrame || this.state.lastReachedFrame;
+    const frame = this.frame(contactFrame);
     if (frame.role !== "contact") return failure("CONTACT_REQUIRED", "Grasp requires a named contact frame.");
-    this.applyEvent({ type: "CONTACT", objectId: args.objectId, frameId: args.contactFrame || this.state.lastReachedFrame });
-    this.applyEvent({ type: "ATTACH_OBJECT", objectId: args.objectId, effector: args.effector || "default", attachmentInterface: "gripper" });
+    if (this.state.lastReachedFrame !== contactFrame) return failure("FRAME_NOT_REACHED", `Move to ${contactFrame} before grasping.`);
+    const effector = args.effector || (this.model.id === "openarm_v2_bimanual" ? "left" : "default");
+    const graspCheck = this.validateConfiguredGrasp(object, { effector, contactFrame });
+    if (!graspCheck.ok) return graspCheck;
+    this.applyEvent({ type: "CONTACT", objectId: args.objectId, frameId: contactFrame });
+    this.applyEvent({ type: "ATTACH_OBJECT", objectId: args.objectId, effector, attachmentInterface: "gripper" });
     return success("GRASPED", `${args.objectId} attached after contact.`);
+  }
+
+  validateConfiguredGrasp(object, args) {
+    if (object.attachedTo) return failure("ALREADY_ATTACHED", `${object.id} is already attached.`);
+    if (object.currentFrame !== args.contactFrame) {
+      return failure("OBJECT_NOT_AT_CONTACT", `${object.id} is at ${object.currentFrame || "an unknown frame"}, not ${args.contactFrame}.`);
+    }
+    if (object.compatibleEffectors?.length && !object.compatibleEffectors.includes(args.effector)) {
+      return failure("EFFECTOR_INCOMPATIBLE", `${args.effector} is not configured for ${object.id}.`);
+    }
+    const configured = this.definition.grasps.filter((grasp) => grasp.objectId === object.id);
+    const matches = configured.some((grasp) => (
+      grasp.effector === args.effector
+      && grasp.contactFrame === args.contactFrame
+      && (!args.approachFrame || !grasp.approachFrame || grasp.approachFrame === args.approachFrame)
+      && (!args.liftFrame || !grasp.liftFrame || grasp.liftFrame === args.liftFrame)
+    ));
+    return matches
+      ? success("GRASP_CONFIGURATION_VALID", "Configured object, effector, and contact frames agree.")
+      : failure("GRASP_CONFIGURATION_MISMATCH", `No configured grasp matches ${object.id} at ${args.contactFrame} with ${args.effector}.`);
   }
 
   async release(args) {
@@ -469,6 +505,9 @@ export class ScenarioV2Engine {
     if (!object?.attachedTo) return failure("NOT_ATTACHED", `${args.objectId} is not attached.`);
     const frame = this.frame(args.frameId || this.state.lastReachedFrame);
     if (!new Set(["destination", "contact", "latch", "dock"]).has(frame.role)) return failure("PLACE_CONTACT_REQUIRED", "Release requires a named placement/contact frame.");
+    if (this.state.lastReachedFrame !== (args.frameId || this.state.lastReachedFrame)) {
+      return failure("FRAME_NOT_REACHED", `Move to ${args.frameId} before releasing.`);
+    }
     this.applyEvent({ type: "PLACE_CONTACT", objectId: args.objectId, frameId: args.frameId || this.state.lastReachedFrame });
     this.applyEvent({ type: "DETACH_OBJECT", objectId: args.objectId, frameId: args.frameId || this.state.lastReachedFrame });
     return success("RELEASED", `${args.objectId} released at ${args.frameId || this.state.lastReachedFrame}.`);

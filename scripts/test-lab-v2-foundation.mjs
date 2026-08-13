@@ -205,6 +205,20 @@ await check("ScenarioV2 validation, contact-gated outcomes, alternates, perturba
   await assert.rejects(() => directGate.applyTrajectorySample({ rootPose: { positionMm: [10, 0, 0], headingDeg: 0 } }, 0), /Fixed robot root/);
   assert.equal(directGate.snapshot().fixedRootViolation, true);
 
+  const wrongLocation = structuredClone(definition);
+  wrongLocation.objects[0].initialFrame = "destination";
+  const wrongLocationEngine = await ScenarioV2Engine.create(wrongLocation);
+  const wrongLocationRun = await wrongLocationEngine.executeProgram(definition.validation.referenceExecutions[0].calls.slice(0, 1));
+  assert.equal(wrongLocationRun.ok, false);
+  assert.equal(wrongLocationRun.results[0].code, "OBJECT_NOT_AT_CONTACT");
+
+  const wrongEffectorEngine = await ScenarioV2Engine.create(definition);
+  const wrongEffectorCall = structuredClone(definition.validation.referenceExecutions[0].calls[0]);
+  wrongEffectorCall.args.effector = "unconfigured_effector";
+  const wrongEffectorRun = await wrongEffectorEngine.executeProgram([wrongEffectorCall]);
+  assert.equal(wrongEffectorRun.ok, false);
+  assert.equal(wrongEffectorRun.results[0].code, "EFFECTOR_INCOMPATIBLE");
+
   for (const execution of [definition.validation.referenceExecutions[0], definition.validation.acceptedAlternates[0]]) {
     const engine = await ScenarioV2Engine.create(definition);
     const run = await engine.executeProgram(execution.calls);
