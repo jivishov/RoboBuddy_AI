@@ -264,9 +264,34 @@ export class ScenarioV2Engine {
     if (plan.kind === "joint") samples = appendEventsToFinal(plan.path, args.events || [], "joint_motion");
     else if (plan.kind === "base") samples = plan.samples;
     else if (plan.kind === "g1-waypoint") {
-      samples = plan.path.slice(1).map((frameId) => {
+      samples = [];
+      let startPose = deepClone(this.state.rootPose);
+      plan.path.slice(1).forEach((frameId) => {
         const frame = this.frame(frameId);
-        return { rootPose: { positionMm: [...frame.positionMm], headingDeg: Number(frame.headingDeg || 0) }, reachedFrame: frameId, phase: "waypoint_logistics" };
+        const targetPosition = [...frame.positionMm];
+        const targetHeading = Number(frame.headingDeg || 0);
+        const dx = targetPosition[0] - startPose.positionMm[0];
+        const dz = targetPosition[2] - startPose.positionMm[2];
+        const rawHeadingDelta = ((targetHeading - startPose.headingDeg + 540) % 360) - 180;
+        // Interpolation makes configured waypoint logistics visibly inspectable.
+        // It is not a claim of gait, balance, wheel slip, or dynamic locomotion.
+        const stepCount = Math.max(4, Math.min(18, Math.ceil(Math.hypot(dx, dz) / 75)));
+        for (let step = 1; step <= stepCount; step += 1) {
+          const progress = step / stepCount;
+          samples.push({
+            rootPose: {
+              positionMm: [
+                startPose.positionMm[0] + dx * progress,
+                startPose.positionMm[1] + (targetPosition[1] - startPose.positionMm[1]) * progress,
+                startPose.positionMm[2] + dz * progress
+              ],
+              headingDeg: startPose.headingDeg + rawHeadingDelta * progress
+            },
+            reachedFrame: step === stepCount ? frameId : undefined,
+            phase: "waypoint_logistics"
+          });
+        }
+        startPose = { positionMm: targetPosition, headingDeg: targetHeading };
       });
       if (samples.length && args.events?.length) samples.at(-1).events = deepClone(args.events);
     }

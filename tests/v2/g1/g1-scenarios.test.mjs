@@ -286,6 +286,10 @@ for (const definition of definitions) {
     assert.equal(run.ok, true, `${definition.id}/${execution.id}: ${firstFailure(run)?.code || "execution failed"}`);
     assert.equal(run.grade.passed, true, `${definition.id}/${execution.id}: reference must satisfy outcome plus evidence`);
     assert.equal(run.state.lastReachedFrame, "home");
+    assert.ok(
+      samples.some((item) => item.sample.phase === "waypoint_logistics" && !item.sample.reachedFrame),
+      `${definition.id}/${execution.id}: configured waypoint edges need intermediate visual samples`
+    );
     for (const item of samples.filter((entry) => entry.sample.reachedFrame)) {
       assert.equal(item.sample.rootPose?.headingDeg, definition.frames[item.sample.reachedFrame].headingDeg, `${definition.id}/${item.sample.reachedFrame}: executed turn state must match the authored heading`);
     }

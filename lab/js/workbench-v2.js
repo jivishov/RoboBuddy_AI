@@ -2,9 +2,9 @@ import { escapeHtml } from "./calculations.js";
 import { LAB_BOUNDARY_COPY } from "./instructions.js";
 import { ROBOT_LABELS } from "./labels.js";
 import { createV2Toolbox, compileV2BlocklyProgram, registerV2Blocks } from "../v2/blockly-api.js";
-import { ScenarioV2EquipmentScene } from "../v2/equipment-scene.js";
+import { ScenarioV2EquipmentScene } from "../v2/equipment-scene.js?v=20260813-fixed-fixtures-1";
 import { PythonRpcClient } from "../v2/python-rpc.js";
-import { ScenarioV2Engine } from "../v2/scenario-engine.js";
+import { ScenarioV2Engine } from "../v2/scenario-engine.js?v=20260813-visible-g1-waypoints-1";
 import { exportLegacyV1Archive, loadV2Draft, resetV2Progress, saveV2Draft, saveV2Progress } from "../v2/storage.js";
 
 const elements = Object.fromEntries([

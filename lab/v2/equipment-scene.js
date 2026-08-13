@@ -65,7 +65,11 @@ function frameMarker(id, frame) {
 function fixtureProxy(fixture) {
   const proxy = fixture.collisionProxy || {};
   let geometry;
-  if (proxy.type === "box" && Array.isArray(proxy.halfExtentsMm)) {
+  if (fixture.type === "configured_visible_support_pad") {
+    // A fixed, thin support shelf is intentionally distinct from the legacy
+    // animated contact lift. ScenarioV2 never changes this fixture's transform.
+    geometry = new THREE.BoxGeometry(96, 12, 96);
+  } else if (proxy.type === "box" && Array.isArray(proxy.halfExtentsMm)) {
     geometry = new THREE.BoxGeometry(...proxy.halfExtentsMm.map((value) => Math.max(4, Number(value) * 2)));
   } else if (proxy.type === "capsule") {
     geometry = new THREE.CapsuleGeometry(Math.max(4, Number(proxy.radiusMm) || 20), Math.max(8, Number(proxy.lengthMm) || 80), 6, 12);
@@ -85,6 +89,7 @@ function fixtureProxy(fixture) {
   if (Array.isArray(center)) mesh.position.set(...center);
   mesh.name = `scenario-v2-fixture-${fixture.id}`;
   mesh.userData.frameId = frame || "";
+  mesh.userData.fixedFixture = true;
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
@@ -147,7 +152,7 @@ export class ScenarioV2EquipmentScene {
       if (!mesh.position.lengthSq() && mesh.userData.frameId && this.definition.frames[mesh.userData.frameId]) {
         mesh.position.set(...this.definition.frames[mesh.userData.frameId].positionMm);
       }
-      const label = labelSprite(fixture.label || fixture.id, "#53666c");
+      const label = labelSprite(`Fixed: ${fixture.label || fixture.id}`, "#53666c");
       label.position.set(mesh.position.x, mesh.position.y + 70, mesh.position.z);
       this.fixtureGroups.set(fixture.id, mesh);
       this.root.add(mesh, label);
