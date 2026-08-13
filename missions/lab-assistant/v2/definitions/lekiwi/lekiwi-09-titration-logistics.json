@@ -3,16 +3,24 @@
   "schemaVersion": 2,
   "id": "lekiwi-09-titration-logistics",
   "title": "Titration Logistics",
-  "brief": "Plan and execute a safe route for a locked rack to the titration logistics queue.",
+  "brief": "Visit both configured logistics stops in a causally safe order and deliver a locked rack to the visible titration queue before returning home.",
   "robotId": "lekiwi_sim",
   "canonicalModelId": "lekiwi_sim",
   "rank": 9,
   "supersedes": "lekiwi-09-spectro-route",
   "assistanceLevel": "Challenge",
-  "legacyClassification": "B",
+  "legacyClassification": "C",
   "migration": {
-    "class": "B",
-    "legacyLearningObjective": "Program LeKiwi to move locked racks through a configured station sequence and record observable completion evidence."
+    "class": "C",
+    "legacyLearningObjective": "Program LeKiwi to complete the observable handling sequence. Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states. Distinguish simulated apparatus state from learner-recorded evidence.",
+    "legacySuccessCriteria": [
+      "Grasp Locked Blank Rack",
+      "Place Locked Blank Rack at Instrument Zone",
+      "Grasp Locked Sample Rack",
+      "Place Locked Sample Rack at Instrument Zone",
+      "Route Complete: Instrument Queue"
+    ],
+    "redesignRationale": "The successor preserves multi-stop rack routing, queue completion, and learner recovery while consolidating the legacy blank/sample pair into one visibly locked logistics rack; no titration, liquid, or instrument behavior is modeled."
   },
   "canonicalModel": {
     "id": "lekiwi_sim",
@@ -21,9 +29,9 @@
   "frames": {
     "service_base": {
       "positionMm": [
-        300,
+        600,
         0,
-        250
+        500
       ],
       "role": "destination",
       "chainId": "default",
@@ -31,17 +39,17 @@
         "positionMm": 4
       },
       "basePositionMm": [
-        300,
+        600,
         0,
-        250
+        500
       ],
-      "label": "Primary service-base stop"
+      "label": "Primary configured service-base stop"
     },
     "alternate_service_base": {
       "positionMm": [
-        250,
+        550,
         0,
-        300
+        550
       ],
       "role": "destination",
       "chainId": "default",
@@ -49,17 +57,17 @@
         "positionMm": 4
       },
       "basePositionMm": [
-        250,
+        550,
         0,
-        300
+        550
       ],
-      "label": "Alternate service-base stop"
+      "label": "Alternate configured service-base stop"
     },
     "pickup_approach": {
       "positionMm": [
-        250,
+        400,
         270,
-        145
+        350
       ],
       "role": "approach",
       "chainId": "default",
@@ -69,9 +77,9 @@
     },
     "pickup_contact": {
       "positionMm": [
+        400,
         250,
-        250,
-        145
+        350
       ],
       "role": "contact",
       "chainId": "default",
@@ -82,9 +90,9 @@
     },
     "pickup_lift": {
       "positionMm": [
-        250,
+        400,
         290,
-        145
+        350
       ],
       "role": "lift",
       "chainId": "default",
@@ -94,9 +102,9 @@
     },
     "delivery": {
       "positionMm": [
-        235,
-        260,
-        150
+        350,
+        270,
+        400
       ],
       "role": "destination",
       "chainId": "default",
@@ -106,9 +114,9 @@
     },
     "delivery_contact": {
       "positionMm": [
-        235,
+        350,
         250,
-        150
+        400
       ],
       "role": "contact",
       "chainId": "default",
@@ -117,49 +125,115 @@
       },
       "contactFixtureId": "destination_fixture"
     },
-    "delivery_retreat": {
+    "primary_delivery_retreat": {
       "positionMm": [
-        235,
-        290,
-        150
+        575.4,
+        166.027,
+        365.164
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "label": "Primary-base stow retreat"
     },
-    "forbidden_drop": {
+    "alternate_delivery_retreat": {
       "positionMm": [
-        265,
-        260,
-        140
+        525.4,
+        166.027,
+        415.164
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "label": "Alternate-base stow retreat"
+    },
+    "restricted_base_stop": {
+      "positionMm": [
+        100,
+        0,
+        650
       ],
       "role": "destination",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      }
+      },
+      "basePositionMm": [
+        100,
+        0,
+        650
+      ],
+      "label": "Visible restricted base stop"
+    },
+    "home_base": {
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "basePositionMm": [
+        0,
+        0,
+        0
+      ],
+      "label": "Home base"
     }
   },
   "fixtures": [
     {
       "id": "pickup_cradle",
-      "label": "Visible onboard-side cradle for Locked titration logistics rack",
+      "label": "Visible pickup cradle for Locked titration logistics rack",
       "visible": true,
       "configuredByTeacher": true,
-      "frameId": "pickup_contact"
+      "frameId": "pickup_contact",
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          400,
+          10,
+          350
+        ],
+        "halfExtentsMm": [
+          20,
+          10,
+          20
+        ],
+        "provenance": "C: configured conservative floor support-footprint proxy below the grasp workspace"
+      }
     },
     {
       "id": "destination_fixture",
       "label": "Titration queue fixture",
       "visible": true,
       "configuredByTeacher": true,
-      "frameId": "delivery_contact"
+      "frameId": "delivery_contact",
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          350,
+          10,
+          400
+        ],
+        "halfExtentsMm": [
+          20,
+          10,
+          20
+        ],
+        "provenance": "C: configured conservative floor support-footprint proxy below the grasp workspace"
+      }
     },
     {
       "id": "blocked_grid_cells",
-      "label": "Visible configured no-drive cells",
+      "label": "Visible teacher-configured occupied/no-drive grid cells",
       "visible": true,
       "configuredByTeacher": true
     }
@@ -175,7 +249,7 @@
       "transportable": true,
       "initialState": {
         "contentsModel": "not simulated",
-        "releaseStatus": "configured for this simulation",
+        "releaseStatus": "teacher-configured released",
         "payloadModel": "not simulated"
       }
     }
@@ -202,7 +276,7 @@
       "completeState": "seated",
       "prerequisites": [
         {
-          "op": "any",
+          "op": "all",
           "predicates": [
             {
               "op": "frame_visited",
@@ -215,13 +289,13 @@
           ]
         }
       ],
-      "modeledEffect": "fixture seating only; no chemical, thermal, force, or measurement effect"
+      "modeledEffect": "fixture seating only; no chemical, thermal, force, payload, fluid, or measurement effect"
     }
   ],
   "goalPredicates": [
     {
-      "id": "safe_route_completed",
-      "op": "any",
+      "id": "configured_route_completed",
+      "op": "all",
       "predicates": [
         {
           "op": "frame_visited",
@@ -246,9 +320,23 @@
       "value": "seated"
     },
     {
-      "id": "retreat_completed",
+      "id": "stow_retreat_completed",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "frame_visited",
+          "frameId": "primary_delivery_retreat"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "alternate_delivery_retreat"
+        }
+      ]
+    },
+    {
+      "id": "base_returned_home",
       "op": "frame_visited",
-      "frameId": "delivery_retreat"
+      "frameId": "home_base"
     }
   ],
   "prohibitedStates": [
@@ -259,25 +347,24 @@
       "effector": "default"
     },
     {
-      "id": "forbidden_drop_used",
-      "op": "object_at",
-      "objectId": "locked_titration_rack",
-      "frameId": "forbidden_drop"
+      "id": "restricted_stop_visited",
+      "op": "frame_visited",
+      "frameId": "restricted_base_stop"
     }
   ],
   "evidenceRequirements": [
     {
       "id": "route_and_placement_observation",
-      "label": "Record what was visibly observed after the route and fixture placement.",
-      "prompt": "Describe the safe route completion and visible seating outcome; do not report an unmodeled measurement.",
+      "label": "Record what was visibly observed after the configured route, fixture placement, stow, and return.",
+      "prompt": "Describe the configured route, visible delivery/seating outcome, and completed return; do not report an unmodeled measurement.",
       "kind": "learner-recorded",
-      "minLength": 18,
-      "valuePattern": "route|placed|delivered|seated",
+      "minLength": 30,
+      "valuePattern": "(?=.*(?:route|path))(?=.*(?:placed|delivered))(?=.*(?:seated|fixture))",
       "availableWhen": {
         "op": "all",
         "predicates": [
           {
-            "op": "any",
+            "op": "all",
             "predicates": [
               {
                 "op": "frame_visited",
@@ -298,6 +385,10 @@
             "op": "process_state",
             "processId": "placement_latch",
             "value": "seated"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "home_base"
           }
         ]
       },
@@ -315,16 +406,16 @@
     },
     {
       "label": "F",
-      "claim": "The successor preserves the rank-9 legacy objective and observable handling focus.",
+      "claim": "The successor records the rank-9 legacy objective and success criteria without reinterpreting v1 completion.",
       "sourceRef": "missions/lab-assistant/v1/lekiwi-09-spectro-route.json"
     },
     {
       "label": "R",
-      "claim": "LeKiwi is restricted to planar navigation, stowed-base travel, collision-checked arm motion, contact-gated grasping, and visible logistics placement."
+      "claim": "LeKiwi uses configured point-cell A* base routes, explicit stow-before-drive phases, baked-model arm IK, task-proxy collision checks, and contact-gated placement."
     },
     {
       "label": "C",
-      "claim": "Grid cells, route destinations, task frames, fixture positions, grasp regions, release labels, and seating states are configured educational values shown to the learner."
+      "claim": "Grid cells, route destinations, task frames, support proxies, grasp regions, release labels, and seating states are visible configured educational values."
     }
   ],
   "modelClaim": {
@@ -416,51 +507,62 @@
   "api": {
     "level": "challenge",
     "namedFramesDiscoverable": true,
-    "phaseBoundary": "base navigation must complete with the arm stowed before arm manipulation begins"
+    "phaseBoundary": "Base navigation occurs only while the arm is stowed; each manipulation ends at a base-specific stow retreat before the return drive."
   },
   "navigation": {
     "planner": "planar occupancy-grid A*",
     "occupancyGrid": {
-      "width": 9,
-      "height": 9,
+      "width": 15,
+      "height": 15,
       "resolutionMm": 50,
       "originMm": [
         0,
         0
       ],
       "blocked": [
-        "3,0",
-        "3,1",
-        "3,2",
-        "3,3",
-        "5,4",
-        "6,4"
+        "4,0",
+        "4,1",
+        "4,2",
+        "4,3",
+        "4,4",
+        "4,5",
+        "4,6",
+        "4,7",
+        "8,5",
+        "8,6",
+        "8,7",
+        "8,8",
+        "8,9",
+        "8,10",
+        "8,11"
       ],
       "configuredByTeacher": true
     },
     "routeOptions": [
       {
-        "id": "primary_safe_route",
+        "id": "primary_configured_route",
         "destinationFrame": "service_base",
-        "label": "Primary visible safe route"
+        "label": "Primary configured free-cell route"
       },
       {
-        "id": "alternate_safe_route",
+        "id": "alternate_configured_route",
         "destinationFrame": "alternate_service_base",
-        "label": "Alternate visible safe route"
+        "label": "Alternate configured free-cell route"
       }
     ],
+    "clearanceModel": "Point-cell occupancy only; the frozen planner does not provide a footprint-clearance guarantee.",
     "prohibitedCapabilities": [
       "wheel slip",
       "dynamic navigation",
       "collision recovery",
-      "base dynamics"
+      "base dynamics",
+      "footprint-clearance guarantee"
     ]
   },
   "validation": {
     "referenceExecutions": [
       {
-        "id": "primary-a-star-route",
+        "id": "primary-safe-stop-order",
         "calls": [
           {
             "method": "robot.navigate",
@@ -468,36 +570,6 @@
               "frameId": "service_base"
             }
           },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "locked_titration_rack",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "delivery_retreat",
-              "effector": "default",
-              "seed": 17,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "route_and_placement_observation",
-              "value": "Locked titration logistics rack placed and visibly seated after the safe route."
-            }
-          }
-        ]
-      }
-    ],
-    "acceptedAlternates": [
-      {
-        "id": "alternate-a-star-route-and-ik-seed",
-        "calls": [
           {
             "method": "robot.navigate",
             "args": {
@@ -513,7 +585,7 @@
               "liftFrame": "pickup_lift",
               "destinationFrame": "delivery",
               "placeFrame": "delivery_contact",
-              "retreatFrame": "delivery_retreat",
+              "retreatFrame": "alternate_delivery_retreat",
               "effector": "default",
               "seed": 991,
               "processId": "placement_latch",
@@ -521,10 +593,64 @@
             }
           },
           {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home_base"
+            }
+          },
+          {
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "route_and_placement_observation",
-              "value": "Locked titration logistics rack delivered by the alternate safe route and visibly seated."
+              "value": "Configured route used; Locked titration logistics rack placed and visibly seated."
+            }
+          }
+        ]
+      }
+    ],
+    "acceptedAlternates": [
+      {
+        "id": "alternate-safe-stop-order-and-ik-seed",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "alternate_service_base"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "service_base"
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "locked_titration_rack",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "primary_delivery_retreat",
+              "effector": "default",
+              "seed": 17,
+              "processId": "placement_latch",
+              "processValue": "seated"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home_base"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "route_and_placement_observation",
+              "value": "Alternate configured route used; Locked titration logistics rack delivered and visibly seated."
             }
           }
         ]
@@ -547,31 +673,9 @@
             }
           },
           {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "locked_titration_rack",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "delivery_retreat",
-              "effector": "default",
-              "seed": 37,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          }
-        ]
-      },
-      {
-        "id": "forbidden-drop",
-        "expectedFailureKind": "prohibited",
-        "calls": [
-          {
             "method": "robot.navigate",
             "args": {
-              "frameId": "service_base"
+              "frameId": "alternate_service_base"
             }
           },
           {
@@ -581,11 +685,72 @@
               "approachFrame": "pickup_approach",
               "contactFrame": "pickup_contact",
               "liftFrame": "pickup_lift",
-              "destinationFrame": "forbidden_drop",
-              "placeFrame": "forbidden_drop",
-              "retreatFrame": "delivery_retreat",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "alternate_delivery_retreat",
               "effector": "default",
-              "seed": 71
+              "seed": 991,
+              "processId": "placement_latch",
+              "processValue": "seated"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home_base"
+            }
+          }
+        ]
+      },
+      {
+        "id": "restricted-stop-route",
+        "expectedFailureKind": "prohibited",
+        "calls": [
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "restricted_base_stop"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "service_base"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "alternate_service_base"
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "locked_titration_rack",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "alternate_delivery_retreat",
+              "effector": "default",
+              "seed": 71,
+              "processId": "placement_latch",
+              "processValue": "seated"
+            }
+          },
+          {
+            "method": "robot.navigate",
+            "args": {
+              "frameId": "home_base"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "route_and_placement_observation",
+              "value": "Configured route used; Locked titration logistics rack placed and visibly seated."
             }
           }
         ]
@@ -606,6 +771,28 @@
               "objectId": "locked_titration_rack",
               "contactFrame": "pickup_approach",
               "effector": "default"
+            }
+          }
+        ]
+      },
+      {
+        "id": "arm-transport-before-base-route",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "locked_titration_rack",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "delivery",
+              "placeFrame": "delivery_contact",
+              "retreatFrame": "primary_delivery_retreat",
+              "effector": "default",
+              "seed": 113,
+              "processId": "placement_latch",
+              "processValue": "seated"
             }
           }
         ]
