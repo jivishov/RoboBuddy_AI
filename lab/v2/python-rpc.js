@@ -12,6 +12,7 @@ export class PythonRpcClient {
     this.workerFactory = options.workerFactory || ((url) => new Worker(url));
     this.apiHandler = options.apiHandler || (async () => { throw rpcError("API_HANDLER_MISSING", "No v2 API handler is configured."); });
     this.defaultTimeoutMs = Number(options.timeoutMs || 15000);
+    this.cancelGraceMs = Math.max(0, Number(options.cancelGraceMs ?? 120));
     this.runCounter = 0;
     this.active = null;
     this.ready = false;
@@ -102,7 +103,17 @@ export class PythonRpcClient {
 
   cancel(reason = "user") {
     if (!this.active) return false;
-    this.worker.postMessage({ protocol: PYTHON_RPC_PROTOCOL, type: "CANCEL", runId: this.active.runId, reason });
+    const runId = this.active.runId;
+    this.worker.postMessage({ protocol: PYTHON_RPC_PROTOCOL, type: "CANCEL", runId, reason });
+    setTimeout(() => {
+      if (!this.active || this.active.runId !== runId) return;
+      const active = this.active;
+      this.clearActive();
+      this.worker.terminate();
+      this.ready = false;
+      this.createWorker();
+      active.reject(rpcError("STOPPED", String(reason || "user")));
+    }, this.cancelGraceMs);
     return true;
   }
 

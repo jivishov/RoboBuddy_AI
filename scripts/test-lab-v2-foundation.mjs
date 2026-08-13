@@ -259,6 +259,14 @@ await check("bidirectional Python RPC loops/conditions, errors, timeout, pause/r
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.ok(worker.outbound.some((message) => message.type === "API_ERROR" && message.code === "STALE_CALL"));
   client.dispose();
+
+  const cancelWorkers = [];
+  const cancelClient = new PythonRpcClient({ workerFactory: () => { const next = new FakeWorker(); cancelWorkers.push(next); return next; }, cancelGraceMs: 5 });
+  const cancelled = cancelClient.run("async def main(robot, lab):\n    while True: pass", { timeoutMs: 500 });
+  assert.equal(cancelClient.cancel("emergency stop"), true);
+  await assert.rejects(() => cancelled, (error) => error.code === "STOPPED");
+  assert.equal(cancelWorkers[0].terminated, true, "non-responsive Pyodide worker must be terminated after cancel grace");
+  cancelClient.dispose();
 });
 
 await check("layered Blockly surface and camera toggle regression", async () => {
