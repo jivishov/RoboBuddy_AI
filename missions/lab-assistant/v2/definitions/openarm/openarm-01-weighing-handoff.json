@@ -21,13 +21,17 @@
   "coordination": {
     "rootTranslationAllowed": false,
     "sharedJointId": "base_yaw",
-    "armScheduling": "sequential_collision_checked",
+    "armScheduling": "sequential_shared_state_fixture_checked",
     "simultaneousPlansAllowed": false,
+    "layoutTemplateId": "openarm-separated-dual-lane-v2",
+    "sharedJointPolicy": "carry_forward_executed_base_yaw",
+    "orderSafetyPrerequisite": "Each transport must complete placement contact, detachment, and retreat before the other arm begins.",
+    "minimumConfiguredEffectorSeparationMm": 300,
     "acceptedSafeOrderings": [
       "left_then_right",
       "right_then_left"
     ],
-    "claimBoundary": "The frozen planner checks each per-arm path while both arms share one base state; this does not claim collision recovery, force control, or dynamics."
+    "claimBoundary": "Each arm is scheduled sequentially from the live shared-joint state against the visible fixture proxy. The 300 mm inter-effector separation floor is configured validation, not a force, payload, dynamics, full-mesh collision, or collision-recovery claim."
   },
   "frames": {
     "home": {
@@ -104,6 +108,8 @@
       ],
       "role": "contact",
       "chainId": "left",
+      "coincidentWith": "left_handoff",
+      "coincidenceRationale": "The frozen runtime stores a detached object at destinationFrame; coincidence prevents a post-contact visual teleport.",
       "tolerance": {
         "positionMm": 10
       }
@@ -117,6 +123,8 @@
       ],
       "role": "retreat",
       "chainId": "left",
+      "coincidentWith": "home",
+      "coincidenceRationale": "The left arm returns to the configured shared-base home endpoint after detachment.",
       "tolerance": {
         "positionMm": 10
       }
@@ -182,6 +190,8 @@
       ],
       "role": "contact",
       "chainId": "right",
+      "coincidentWith": "right_handoff",
+      "coincidenceRationale": "The frozen runtime stores a detached object at destinationFrame; coincidence prevents a post-contact visual teleport.",
       "tolerance": {
         "positionMm": 10
       }
@@ -204,12 +214,86 @@
     {
       "id": "weighing_handoff_pad",
       "label": "weighing handoff pad",
-      "type": "configured_visible_alignment_fixture",
+      "type": "configured_visible_bimanual_fixture_with_center_divider",
       "visible": true,
       "frameId": "left_handoff",
       "pairedFrameId": "right_handoff",
+      "contactFrames": [
+        "left_place_contact",
+        "right_place_contact"
+      ],
+      "collisionProxy": {
+        "type": "box",
+        "centerMm": [
+          350,
+          700,
+          0
+        ],
+        "halfExtentsMm": [
+          30,
+          70,
+          70
+        ],
+        "provenance": "C: conservative configured central divider between the separated arm lanes"
+      },
       "configuredByTeacher": true,
-      "claimBoundary": "Fixture presence and placement zones are authored configuration; no calibration, force, fluid, thermal, or dynamics behavior is claimed."
+      "claimBoundary": "Fixture presence, lane positions, and the central divider proxy are teacher-visible authored configuration; no calibration, force, fluid, thermal, or dynamics behavior is claimed."
+    },
+    {
+      "id": "left_pickup_support",
+      "label": "Configured left pickup support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        225.4,
+        509.6,
+        -318.9
+      ],
+      "supportsFrame": "left_contact",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    },
+    {
+      "id": "right_pickup_support",
+      "label": "Configured right pickup support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        225.4,
+        509.6,
+        318.9
+      ],
+      "supportsFrame": "right_contact",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    },
+    {
+      "id": "left_handoff_support",
+      "label": "Configured left handoff support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        257.5,
+        710.2,
+        -322.1
+      ],
+      "supportsFrame": "left_handoff",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
+    },
+    {
+      "id": "right_handoff_support",
+      "label": "Configured right handoff support",
+      "type": "configured_visible_support_pad",
+      "visible": true,
+      "positionMm": [
+        257.5,
+        710.2,
+        322.1
+      ],
+      "supportsFrame": "right_handoff",
+      "configuredByTeacher": true,
+      "claimBoundary": "Visible support only; exact object grip-socket geometry is not claimed."
     }
   ],
   "objects": [
@@ -217,26 +301,34 @@
       "id": "watch_glass",
       "label": "Watch glass",
       "initialFrame": "left_contact",
+      "visual": {
+        "type": "watch_glass",
+        "approximation": "Procedural educational proxy; no dimensional or photorealistic match is claimed."
+      },
       "visible": true,
       "transportable": true,
       "allowedEffectors": [
         "left"
       ],
       "initialState": {
-        "sealedOrDry": true
+        "contentsSimulation": "not modeled"
       }
     },
     {
       "id": "spatula",
       "label": "Spatula",
       "initialFrame": "right_contact",
+      "visual": {
+        "type": "tool",
+        "approximation": "Procedural educational proxy; no dimensional or photorealistic match is claimed."
+      },
       "visible": true,
       "transportable": true,
       "allowedEffectors": [
         "right"
       ],
       "initialState": {
-        "sealedOrDry": true
+        "contentsSimulation": "not modeled"
       }
     }
   ],
@@ -279,6 +371,78 @@
           "op": "object_at",
           "objectId": "spatula",
           "frameId": "right_handoff"
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "watch_glass",
+            "frameId": "left_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "watch_glass",
+            "effector": "left"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "watch_glass",
+            "frameId": "left_place_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "watch_glass",
+            "frameId": "left_handoff"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "spatula",
+            "frameId": "right_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "spatula",
+            "effector": "right"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "spatula",
+            "frameId": "right_place_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "DETACH_OBJECT",
+            "objectId": "spatula",
+            "frameId": "right_handoff"
+          }
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "left_retreat"
+        },
+        {
+          "op": "frame_visited",
+          "frameId": "right_retreat"
         }
       ],
       "unsupportedContinuity": "No continuous material, force, fluid, thermal, or instrument-response model is implied."
@@ -333,12 +497,69 @@
           "path": "objects.spatula.attachedTo"
         }
       ]
+    },
+    {
+      "id": "morphology_invalid_cross_arm_contact",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "watch_glass",
+            "frameId": "right_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "watch_glass",
+            "effector": "right"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "watch_glass",
+            "frameId": "right_place_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "CONTACT",
+            "objectId": "spatula",
+            "frameId": "left_contact"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "ATTACH_OBJECT",
+            "objectId": "spatula",
+            "effector": "left"
+          }
+        },
+        {
+          "op": "event",
+          "match": {
+            "type": "PLACE_CONTACT",
+            "objectId": "spatula",
+            "frameId": "left_place_contact"
+          }
+        }
+      ]
     }
   ],
   "evidenceRequirements": [
     {
       "id": "observable_confirmation",
-      "label": "After the visible fixture-contact event, record whether both items are released in their named handoff frames.",
+      "kind": "learner-recorded",
+      "prompt": "After the visible fixture-contact event, record both object ids and their observed left_handoff/right_handoff destination frames.",
+      "minLength": 40,
+      "valuePattern": "^(?=.*watch_glass)(?=.*left_handoff)(?=.*spatula)(?=.*right_handoff).{40,}$",
       "availableWhen": {
         "op": "process_state",
         "processId": "handoff_confirmed",
@@ -348,10 +569,7 @@
         "type": "PROCESS_COMMIT",
         "processId": "handoff_confirmed",
         "value": "confirmed"
-      },
-      "allowedValues": [
-        "confirmed"
-      ]
+      }
     }
   ],
   "provenance": [
@@ -371,7 +589,7 @@
     },
     {
       "label": "C",
-      "claim": "Frame coordinates, 10 mm tolerances, visible fixture locations, grasp assignments, seeds, and the confirmation value are educational configuration."
+      "claim": "Frame coordinates, 10 mm tolerances, visible fixture geometry, the 300 mm coarse effector-separation floor, grasp assignments, seeds, and evidence format are teacher-visible educational configuration."
     }
   ],
   "modelClaim": {
@@ -623,7 +841,7 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "observable_confirmation",
-              "value": "confirmed"
+              "value": "Observed watch_glass at left_handoff and spatula at right_handoff after fixture contact."
             }
           }
         ]
@@ -675,7 +893,7 @@
             "method": "lab.record_evidence",
             "args": {
               "requirementId": "observable_confirmation",
-              "value": "confirmed"
+              "value": "Observed watch_glass at left_handoff and spatula at right_handoff after fixture contact."
             }
           }
         ]
@@ -683,9 +901,9 @@
     ],
     "negativeCases": [
       {
-        "id": "negative-incomplete-goal",
-        "description": "Only the left item is delivered; the right outcome and process remain incomplete.",
-        "expectedFailureKind": "goal",
+        "id": "negative-cross-arm-effector",
+        "description": "The left-lane object is deliberately tagged to the right effector; the observable morphology prohibition must trigger.",
+        "expectedFailureKind": "prohibited",
         "calls": [
           {
             "method": "skills.transport",
@@ -697,7 +915,7 @@
               "destinationFrame": "left_handoff",
               "placeFrame": "left_place_contact",
               "retreatFrame": "left_retreat",
-              "effector": "left",
+              "effector": "right",
               "seed": 212
             }
           }
