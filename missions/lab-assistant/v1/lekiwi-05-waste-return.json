@@ -1,0 +1,526 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "lekiwi-05-waste-return",
+  "robotId": "lekiwi_sim",
+  "rank": 5,
+  "assistanceLevel": "Builder",
+  "title": "Waste Carrier Return",
+  "brief": "Deliver the closed carrier to the configured waste station.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Intermediate",
+  "skills": [
+    "closed-waste transport"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program LeKiwi to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Closed Waste Carrier",
+    "Place Closed Waste Carrier at Waste Zone",
+    "Return robot home"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "crystal-violet-waste-treatment",
+      "basis": "M",
+      "actionIds": [
+        "cv11-transfer-cv-waste"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the holonomic mobile manipulator."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "holonomic_drive",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "place",
+    "set_gripper",
+    "drive"
+  ],
+  "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      740,
+      430,
+      800
+    ],
+    "targetMm": [
+      0,
+      140,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "work_zone",
+      "label": "Work Zone",
+      "positionMm": [
+        -120,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        -120,
+        0,
+        260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "waste_zone",
+      "label": "Waste Zone",
+      "positionMm": [
+        460,
+        0,
+        -220
+      ],
+      "visualPositionMm": [
+        460,
+        0,
+        220
+      ],
+      "radiusMm": 70,
+      "hazard": "configured waste zone"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 0,
+        "shoulder_lift": 0,
+        "elbow_flex": 0,
+        "wrist_flex": 0,
+        "wrist_roll": 0,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 8.39,
+        "shoulder_lift": -0.32,
+        "elbow_flex": 62.39,
+        "wrist_flex": 40.97,
+        "wrist_roll": 27.33,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 3.35,
+        "shoulder_lift": -31.52,
+        "elbow_flex": 88.03,
+        "wrist_flex": -22.4,
+        "wrist_roll": -63.93,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "work_zone": {
+      "id": "work_zone",
+      "label": "Work Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": 25.04,
+        "shoulder_lift": 19.32,
+        "elbow_flex": 60.43,
+        "wrist_flex": 38.18,
+        "wrist_roll": 23.31,
+        "gripper": 50
+      },
+      "positionMm": [
+        -120,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "waste_zone": {
+      "id": "waste_zone",
+      "label": "Waste Zone",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 28.14,
+        "shoulder_lift": -7.84,
+        "elbow_flex": 46.45,
+        "wrist_flex": 18.2,
+        "wrist_roll": -5.46,
+        "gripper": 50
+      },
+      "positionMm": [
+        460,
+        0,
+        -220
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "closed_waste_carrier",
+      "label": "Closed Waste Carrier",
+      "accessibleName": "Closed Waste Carrier",
+      "type": "secured_carrier",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "reagent-tray.png",
+      "visualVariant": "carrier",
+      "initialZone": "work_zone",
+      "positionMm": [
+        -120,
+        0,
+        -260
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "closed configured waste",
+      "allowedZones": [
+        "waste_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": true,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "waste_station_bin",
+      "label": "Waste Station Bin",
+      "accessibleName": "Waste Station Bin",
+      "type": "secured_carrier",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "reagent-tray.png",
+      "visualVariant": "bin",
+      "initialZone": "waste_zone",
+      "positionMm": [
+        460,
+        0,
+        -220
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "closed configured waste",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": true,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Closed Waste Carrier",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "closed_waste_carrier",
+        "at": "work_zone",
+        "requiredPose": "work_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:closed_waste_carrier"
+      },
+      "invalidFeedback": "Grasp Closed Waste Carrier is unavailable until the robot is at Work Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Work Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Place Closed Waste Carrier at Waste Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "closed_waste_carrier",
+        "zoneId": "waste_zone",
+        "requiredPose": "waste_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:closed_waste_carrier"
+      },
+      "invalidFeedback": "Place Closed Waste Carrier at Waste Zone is unavailable until the robot is at Waste Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Waste Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Return robot home",
+      "sourceBasis": [
+        "C"
+      ],
+      "expected": {
+        "type": "home",
+        "requiredPose": "home"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "home:robot"
+      },
+      "invalidFeedback": "Return robot home is unavailable until the robot is at Home and earlier checkpoints are complete.",
+      "recovery": "Move to Home, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": [
+        {
+          "type": "drive",
+          "vx": -0.1466703621116114,
+          "vy": -0.3177857845751581,
+          "omega": 0,
+          "seconds": 0.8181612036157916,
+          "frame": "world",
+          "destinationId": "work_zone"
+        },
+        {
+          "type": "grasp",
+          "objectId": "closed_waste_carrier",
+          "at": "work_zone"
+        }
+      ]
+    },
+    "python": {
+      "code": "robot.drive(vx=-0.1466703621116114, vy=-0.3177857845751581, omega=0, seconds=0.8181612036157916, frame=\"world\", destination_id=\"work_zone\")\nrobot.grasp(object_id=\"closed_waste_carrier\", at=\"work_zone\")"
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "drive",
+        "vx": -0.1466703621116114,
+        "vy": -0.3177857845751581,
+        "omega": 0,
+        "seconds": 0.8181612036157916,
+        "frame": "world",
+        "destinationId": "work_zone"
+      },
+      {
+        "type": "grasp",
+        "objectId": "closed_waste_carrier",
+        "at": "work_zone"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "waste_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "place",
+        "objectId": "closed_waste_carrier",
+        "zoneId": "waste_zone"
+      },
+      {
+        "type": "home"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "closed_waste_carrier",
+          "at": "work_zone"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "drive",
+          "vx": -0.1466703621116114,
+          "vy": -0.3177857845751581,
+          "omega": 0,
+          "seconds": 0.8181612036157916,
+          "frame": "world",
+          "destinationId": "work_zone"
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "closed_waste_carrier",
+          "at": "work_zone"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

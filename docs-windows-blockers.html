@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Blockers · RoboBuddy Documentation</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260718-foundation-1">
+  <link rel="stylesheet" href="css/workbench-docs.css?v=20260729-docs-copy-1">
+</head>
+<body class="workbench-page workbench-page--docs python-docs-page" data-page="docs">
+  <a class="workbench-skip" href="#main-content">Skip to guide content</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="python-docs.html" aria-current="page"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div>
+        <h1 class="topbar__title">RoboBuddy Documentation</h1>
+      </div>
+    </div>
+    <div class="topbar__controls">
+      <span class="python-docs__header-location" data-docs-header-current>Windows Blockers</span>
+    </div>
+  </header>
+  <main class="python-docs" id="main-content" tabindex="-1">
+    <aside class="python-docs__toc-shell" aria-label="Documentation navigation">
+
+      <details class="python-docs__toc-disclosure" data-docs-nav-disclosure open>
+        <summary>
+          <span>Guide menu</span>
+          <span class="python-docs__nav-current" data-docs-nav-current>Windows Blockers</span>
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <nav class="python-docs__nav" aria-label="RoboBuddy documentation guides">
+          <div class="python-docs__nav-heading">
+            <i data-lucide="list" aria-hidden="true"></i>
+            <span>Documentation</span>
+          </div>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-home">
+            <h2 id="guide-nav-home">Python Docs</h2>
+            <a href="python-docs.html">Python Docs Home</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-guides">
+            <h2 id="guide-nav-guides">Guides</h2>
+            <a href="docs-local-bridge.html">Local Bridge</a>
+            <a href="docs-github-pages-so101.html">GitHub Pages Setup</a>
+            <a href="docs-so101-hardware.html">SO-101 Hardware</a>
+            <a href="docs-python-so101-lekiwi.html">SO-101 &amp; LeKiwi Python</a>
+            <a href="docs-windows-support.html">Windows Support Matrix</a>
+            <a href="docs-windows-verification.html">Windows Verification</a>
+            <a href="docs-windows-blockers.html" aria-current="page">Windows Blockers</a>
+          </section>
+          <section class="python-docs__nav-group" aria-labelledby="guide-nav-sections">
+            <h2 id="guide-nav-sections">On this page</h2>
+            <a href="#blocked-external-evidence">Blocked external evidence</a>
+            <a href="#still-functional-and-verified-in-the-returned-source">Still functional and verified in the returned source</a>
+            <a href="#primary-references">Primary references</a>
+          </section>
+        </nav>
+        <button
+          class="python-docs__nav-more"
+          type="button"
+          data-docs-nav-more
+          aria-label="Show more menu items below"
+          title="More menu items below"
+          hidden
+        >
+          <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </button>
+      </details>
+    </aside>
+    <article class="python-docs__content">
+      <section
+        class="python-docs__section python-docs__guide"
+        data-source-markdown="docs/windows-control/UNRESOLVED_BLOCKERS.md"
+        data-source-sha256="5a59eeb8ddf0917c996c4b938bad71be9a6b7198a2a93f2dff4ff85e02c7d5ec"
+      >
+<h1 id="unresolved-native-windows-verification-blockers">Unresolved native-Windows verification blockers</h1>
+<p>Terminal status for this returned bundle: <strong><code>NATIVE_WINDOWS_BLOCKED</code></strong>.</p>
+<p>This is not an impossibility finding. It is the required narrow status because the packaging environment was Linux and had no Windows browser/device/robot access. Repeating source tests cannot substitute for the external evidence below.</p>
+<h2 id="blocked-external-evidence">Blocked external evidence</h2>
+<ol>
+<li>
+<p><strong>Clean native-Windows setup and PowerShell execution</strong>
+   - <code>tools/setup-so101-windows.ps1</code>, TLS setup/cleanup, and bridge launcher could be statically reviewed but not parsed/executed by Windows PowerShell here.
+   - Required closure: Python 3.12.10 x64 environment creation, editable provenance, exact dependency resolution, second-run idempotence, repair behavior, and sanitized probe output on native Windows.</p>
+</li>
+<li>
+<p><strong>LeRobot/Feetech real Windows robot I/O</strong>
+   - The immutable LeRobot adapter imports are covered by source/read-only probes, but <code>feetech-servo-sdk==1.0.0</code> is published as a source distribution and no physical COM-port test was authorized or available.
+   - Required closure: current intended Windows host, actual USB/serial adapter/driver, exact SO-101, calibration, limit registers, bounded connect/retry behavior, and clean disconnect.
+   - No-Windows-wheel and not-reproduced are not claims of technical impossibility.</p>
+</li>
+<li>
+<p><strong>Bridge lifecycle on Windows</strong>
+   - Listener ownership, <code>/health</code>, token authentication, restart, shutdown, feature postconditions, private-interface HTTPS binding, and failure cleanup need real Windows process/network APIs.</p>
+</li>
+<li>
+<p><strong>Current Chrome and Edge Xbox behavior</strong>
+   - Static JS and source contracts preserve <code>xbox_standard_v1</code>, but real Gamepad API mapping, timestamps, Bluetooth loss, multiple-controller selection, neutral qualification, deadman, hold, STOP, and re-arm must be repeated in both current browser channels on the intended controller/driver stack.</p>
+</li>
+<li>
+<p><strong>Android TLS/WebXR source lifecycle</strong>
+   - Requires a physical ARCore-supported Android device, imported mkcert public CA, same-LAN reachability, trusted HTTPS, one-time QR/cookie exchange, one authorized WebSocket, WebXR tracking, background/focus/pointer loss, release, disconnect, reconnect, and STOP checks.
+   - Android Emulator is not accepted for this WebXR path.</p>
+</li>
+<li>
+<p><strong>Physical SO-101 evidence</strong>
+   - No robot motion was executed. Limits remain provisional and hardware gates remain disabled/unqualified.
+   - Required closure: the existing H0/H1 read-only evidence first, then separately authorized and recorded supervised Xbox and Android qualification with Fine speed, clear workspace, observer, reachable cutoff, release-to-hold, stale/disconnect retirement, unreachable targets, STOP, and recovery.</p>
+</li>
+<li>
+<p><strong>Complete application JavaScript suite</strong>
+   - The received bundle is a patch-oriented source slice and omits unrelated full-checkout pages, including <code>python.html</code>. The source-slice <code>npm test</code> therefore reaches a pre-existing missing-page condition after its earlier checks.
+   - Required closure: merge the returned slice into the complete <code>SolU</code> checkout and run the full JavaScript/Playwright suite there. Do not add replacement unrelated pages to this patch slice.</p>
+</li>
+</ol>
+<h2 id="still-functional-and-verified-in-the-returned-source">Still functional and verified in the returned source</h2>
+<ul>
+<li>Existing Xbox joint-space mapping and motion-authority files remain byte-for-byte unchanged.</li>
+<li><code>run-app.bat</code> remains byte-for-byte unchanged and does not enable any hardware Leader feature.</li>
+<li>The Placo-independent <code>native_dls_v1</code> backend is explicitly selected with no fallback.</li>
+<li>Bundled URDF digest, target frame, semantic joint order, gripper exclusion, degree/radian boundary, workspace/limit checks, bounded solve, and classified diagnostics are implemented.</li>
+<li>Independent standard-library FK oracle and immutable reference cases cover home/compact, interior, limit-adjacent, and near-singular configurations.</li>
+<li>Position-only, weighted soft-orientation, malformed/non-finite, unreachable, digest/frame, and no-fallback behavior are covered by tests.</li>
+<li>Phone source pairing/session/controller safety tests remain available without hardware motion.</li>
+<li>SolU-local Windows setup, exact Python/dependency selection, native runtime probes, private-LAN TLS creation/cleanup, scoped firewall rule, and ownership-preserving launcher source are included.</li>
+</ul>
+<h2 id="primary-references">Primary references</h2>
+<ul>
+<li>Python 3.12.10 Windows installer: <code>https://www.python.org/downloads/release/python-31210/</code></li>
+<li>Immutable LeRobot dependency boundary: <code>https://github.com/huggingface/lerobot/blob/8a74e0ac6d01706d67fddfed682a09d694d9c8c0/pyproject.toml</code></li>
+<li>Feetech 1.0.0 release artifacts: <code>https://pypi.org/project/feetech-servo-sdk/1.0.0/</code></li>
+<li>NumPy 2.2.6 Windows artifacts: <code>https://pypi.org/project/numpy/2.2.6/</code></li>
+<li>Placo v0.9.15 wheel matrix: <code>https://github.com/Rhoban/placo/blob/v0.9.15/.github/workflows/wheels.yml</code></li>
+<li>Gamepad API behavior: <code>https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API</code></li>
+<li>Android WebXR requirements: <code>https://developers.google.com/ar/develop/webxr/requirements</code></li>
+<li>mkcert trust/private-key guidance: <code>https://github.com/FiloSottile/mkcert/tree/v1.4.4</code></li>
+</ul>
+      </section>
+    </article>
+  </main>
+  <footer class="bottombar">
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" class="bottombar__status-icon"></i>
+      <span>Guide ready</span>
+    </div>
+  </footer>
+  <script src="js/button-hints.js?v=20260608-ui"></script>
+  <script src="js/docs-navigation.js?v=20260729-docs-copy-1"></script>
+</body>
+</html>

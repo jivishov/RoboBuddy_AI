@@ -1,0 +1,14 @@
+{
+  "id": "gripper-open-close-01",
+  "title": "Open and Close Gripper",
+  "robotIds": ["arduino_arm", "so101_follower", "lekiwi_sim"],
+  "difficulty": "beginner",
+  "skills": ["gripper", "sequence", "wait"],
+  "brief": "Open and close the end effector with a pause between actions.",
+  "starterPython": "robot.home()\nrobot.open_gripper(speed=45)\nrobot.wait(0.5)\nrobot.close_gripper(speed=45)\nrobot.wait(0.5)\nrobot.open_gripper(speed=45)",
+  "successCriteria": [
+    "opens the gripper",
+    "closes the gripper",
+    "uses wait between gripper commands"
+  ]
+}

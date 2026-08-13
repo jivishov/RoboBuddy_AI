@@ -1,0 +1,15 @@
+{
+  "id": "lekiwi-drive-square-01",
+  "title": "Drive a Square",
+  "robotIds": ["lekiwi_sim"],
+  "difficulty": "intermediate",
+  "skills": ["drive_2d", "turning", "sequence"],
+  "brief": "Drive the simulated mobile base in a square path.",
+  "starterPython": "robot.home()\nfor _ in range(4):\n  robot.drive_forward(35, seconds=1.0)\n  robot.turn_left(90, seconds=1.0)\nrobot.stop()",
+  "successCriteria": [
+    "uses drive_forward",
+    "uses turn_left or turn_right",
+    "uses repeat or repeated commands",
+    "stops at the end"
+  ]
+}

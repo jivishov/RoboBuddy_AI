@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoboBuddy Lab Workbench</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260811-unitree-g1-solu-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260719-remediation-1">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="lab/css/styles.css?v=20260812-lab-fidelity-14">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.184.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="workbench-page lab-page lab-workbench-page" data-page="lab-workbench">
+  <a class="workbench-skip" href="#main-content">Skip to lab programming workbench</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="lab-scenarios.html"><i data-lucide="flask-conical" aria-hidden="true"></i><span>Lab Tasks</span></a>
+      <a class="workbench-rail__link" href="python-docs.html"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+
+  <header class="topbar">
+    <div class="lab-topbar__identity">
+      <h1 id="labWorkbenchTitle">Lab Workbench</h1>
+      <p id="labWorkbenchSubtitle">Loading the selected simulation task.</p>
+    </div>
+    <div class="topbar__controls">
+      <a class="lab-button" id="labBackLink" href="lab-scenarios.html"><i data-lucide="arrow-left" aria-hidden="true"></i>Back to Tasks</a>
+      <label class="visually-hidden" for="labTaskSelect">Change lab task</label>
+      <select class="lab-task-select" id="labTaskSelect" aria-label="Change lab task"><option>Loading tasks</option></select>
+      <span class="lab-status-chip"><i data-lucide="monitor-check" aria-hidden="true"></i>Simulation only</span>
+      <button class="lab-button lab-button--danger" id="labEmergencyStop" type="button" aria-keyshortcuts="Escape"><i data-lucide="octagon-alert" aria-hidden="true"></i>Simulation Stop</button>
+    </div>
+  </header>
+
+  <div class="lab-workbench-loading" id="labWorkbenchLoading" aria-label="Loading lab workbench">
+    <div></div><div></div><div></div>
+  </div>
+
+  <div class="lab-inline-error" id="labWorkbenchError" role="alert" hidden>
+    <strong>Lab workbench unavailable</strong>
+    <p>The selected task could not be loaded.</p>
+    <a class="lab-button" href="lab-scenarios.html">Return to Lab Tasks</a>
+  </div>
+
+  <main class="lab-workbench-shell" id="main-content" tabindex="-1" hidden>
+    <div class="lab-workbench-grid" id="labWorkbenchShell">
+      <aside class="lab-panel lab-procedure-panel" aria-label="Task procedure and feedback">
+        <div class="lab-panel__header">
+          <h2>Active task</h2>
+          <span class="lab-kicker" id="labProgress" data-readout>0 / 0</span>
+        </div>
+        <div class="lab-procedure-scroll">
+          <section class="lab-task-summary">
+            <span class="lab-kicker" id="labRobotName">Robot</span>
+            <h2>Programmed handling sequence</h2>
+            <p>Complete each observable checkpoint with explicit robot and laboratory commands.</p>
+          </section>
+          <div class="lab-task-meta"><span id="labRank">Rank</span><span id="labAssistance">Assistance</span><span class="lab-source-list" id="labSourceRefs"></span></div>
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labLimitationsBody"><span>Model limitations</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <div class="lab-collapsible__body" id="labLimitationsBody"><p id="labLimitations"></p></div>
+          </section>
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labSafetyBody"><span>Safety boundary</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <div class="lab-collapsible__body" id="labSafetyBody"><p id="labSafetyBoundary"></p></div>
+          </section>
+          <ol class="lab-checkpoints" id="labCheckpointList" aria-label="Task checkpoints"></ol>
+          <section class="lab-feedback" id="labFeedback" data-tone="ready" aria-live="polite" aria-atomic="true">
+            <code id="labFeedbackCode">READY</code>
+            <p id="labFeedbackMessage">Task state is ready.</p>
+          </section>
+        </div>
+      </aside>
+
+      <section class="lab-panel lab-editor-panel" aria-label="Robot program editor">
+        <header class="lab-editor-header">
+          <div class="lab-language-tabs" role="tablist" aria-label="Programming language">
+            <button type="button" role="tab" data-lab-language="blockly" aria-selected="true" aria-controls="labBlocklyPanel">Blockly</button>
+            <button type="button" role="tab" data-lab-language="python" aria-selected="false" aria-controls="labPythonPanel" tabindex="-1">Python commands</button>
+          </div>
+          <div class="lab-editor-actions">
+            <button class="lab-button" id="labLoadStarter" type="button"><i data-lucide="file-input" aria-hidden="true"></i>Load Starter</button>
+            <button class="lab-button" id="labSaveDraft" type="button" aria-keyshortcuts="Control+S"><i data-lucide="save" aria-hidden="true"></i>Save Draft</button>
+            <button class="lab-button" id="labGeneratePython" type="button"><i data-lucide="arrow-right-left" aria-hidden="true"></i>Generate Python</button>
+          </div>
+        </header>
+        <div class="lab-editor-surface">
+          <section class="lab-code-panel" id="labBlocklyPanel" role="tabpanel" aria-label="Blockly editor"><div id="labBlocklyEditor"></div></section>
+          <section class="lab-code-panel" id="labPythonPanel" role="tabpanel" aria-label="Python editor" hidden>
+            <label class="visually-hidden" for="labPythonEditor">Python robot program</label>
+            <p class="lab-editor-note">Supported <code>robot.command(...)</code> subset only; this page does not execute arbitrary Python.</p>
+            <textarea id="labPythonEditor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="# One simulation command per line&#10;robot.move_to_pose(&quot;supply_zone&quot;)&#10;robot.grasp(&quot;watch_glass&quot;)" aria-describedby="labEditorStatus"></textarea>
+          </section>
+        </div>
+        <footer class="lab-runbar">
+          <button class="lab-button lab-button--primary" id="labRun" type="button"><i data-lucide="play" aria-hidden="true"></i><span>Run</span></button>
+          <button class="lab-button" id="labPause" type="button" aria-pressed="false" disabled><i data-lucide="pause" aria-hidden="true"></i><span>Pause</span></button>
+          <button class="lab-button" id="labStop" type="button"><i data-lucide="square" aria-hidden="true"></i><span>Stop</span></button>
+          <button class="lab-button" id="labReset" type="button"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset Task</span></button>
+          <p class="lab-runbar__status" id="labEditorStatus" data-tone="ready" aria-live="polite">Drafts are independent by language and saved only in this browser.</p>
+        </footer>
+      </section>
+
+      <aside class="lab-panel lab-evidence-panel" aria-label="3D simulation and evidence">
+        <div class="lab-panel__header"><h2>Robot and apparatus</h2><span class="lab-kicker">Kinematic state</span></div>
+        <div class="lab-preview-stage" id="labPreviewStage">
+          <div class="lab-stage-toolbar">
+            <button class="lab-button lab-button--danger lab-stage-stop" id="labStageStop" type="button" aria-keyshortcuts="Escape"><i data-lucide="octagon-alert" aria-hidden="true"></i><span>Simulation Stop</span></button>
+            <div class="lab-camera-controls" aria-label="Camera controls">
+              <button class="lab-icon-button" id="labCameraMovement" type="button" aria-pressed="true" aria-label="Camera movement on" title="Camera movement on"><i data-lucide="move-3d" aria-hidden="true"></i><span>Move view: on</span></button>
+              <button class="lab-icon-button" id="labCameraZoom" type="button" aria-pressed="true" aria-label="Camera zoom on" title="Camera zoom on"><i data-lucide="zoom-in" aria-hidden="true"></i><span>Zoom: on</span></button>
+              <button class="lab-icon-button" id="labCameraReset" type="button" aria-label="Reset authored camera view" title="Reset authored camera view"><i data-lucide="scan" aria-hidden="true"></i><span>Reset view</span></button>
+              <button class="lab-icon-button" id="labSceneFullscreen" type="button" aria-expanded="false" aria-label="Expand 3D scene" title="Expand 3D scene"><i data-lucide="maximize-2" aria-hidden="true"></i><span>Expand scene</span></button>
+            </div>
+          </div>
+          <div id="labRobotPreview" role="img" aria-label="Robot and laboratory apparatus 3D scene" aria-describedby="labPreviewStatus"></div>
+          <p class="lab-preview-status" id="labPreviewStatus" role="status" data-tone="ready">Preparing existing robot rig.</p>
+        </div>
+        <div class="lab-evidence-scroll">
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labApparatusPanel"><span>Object and instrument state</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <div class="lab-table-wrap" id="labApparatusPanel">
+              <table class="lab-state-table"><thead><tr><th>Object</th><th>Location</th><th>Contents</th><th>Temperature</th><th>Condition</th><th>Transfer</th></tr></thead><tbody id="labApparatusBody"></tbody></table>
+            </div>
+          </section>
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labEvidencePanel"><span>Evidence and provenance</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <ol class="lab-evidence-list" id="labEvidenceLog"></ol>
+          </section>
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labCommandPanel"><span>Command trace</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <ol class="lab-command-list" id="labCommandLog"></ol>
+          </section>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="visually-hidden" id="labWorkbenchLive" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://unpkg.com/blockly@12.5.1/blockly.min.js" integrity="sha384-SxxR8fpocVLJMl6kYyBm33uuy9U1yy0gMrMavfyCd3lQRer3qaBMlcVb0VSAfzop" crossorigin="anonymous"></script>
+  <script src="robots/registry.js"></script>
+  <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260713-xbox-gamepad-4"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260707-closed-initial-pose"></script>
+  <script src="robots/packs/openarm_v2_bimanual/manifest.js?v=20260811-openarm-solu-v1"></script>
+  <script src="robots/packs/unitree_g1_29dof/manifest.js?v=20260812-g1-registration-fix-1"></script>
+  <script src="lab/js/simulation-safety.js?v=20260812-lab-fidelity-1"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260812-openarm-g1-solu-1"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260812-g1-registration-fix-2"></script>
+  <script type="module" src="lab/js/workbench.js?v=20260812-lab-fidelity-14"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { window.lucide?.createIcons(); });</script>
+</body>
+</html>

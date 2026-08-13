@@ -1,0 +1,15 @@
+{
+  "id": "robot-wave-01",
+  "title": "Make the robot wave",
+  "robotIds": ["arduino_arm", "so101_follower"],
+  "difficulty": "beginner",
+  "skills": ["sequence", "joint_control", "wait"],
+  "brief": "Move one joint left and right safely three times.",
+  "starterPython": "robot.home()\njoints = robot.get_joints()\njoint = \"shoulder_pan\" if \"shoulder_pan\" in joints else \"base\"\nfor _ in range(3):\n  robot.move_joint(joint, 25, speed=40)\n  robot.wait(0.3)\n  robot.move_joint(joint, -25 if joint == \"shoulder_pan\" else 105, speed=40)\n  robot.wait(0.3)\nrobot.home()",
+  "successCriteria": [
+    "uses at least two move_joint commands",
+    "uses wait between motions",
+    "does not exceed joint limits",
+    "finishes with no validation errors"
+  ]
+}

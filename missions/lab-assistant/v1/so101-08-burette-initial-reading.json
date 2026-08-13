@@ -1,0 +1,802 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "so101-08-burette-initial-reading",
+  "robotId": "so101_follower",
+  "rank": 8,
+  "assistanceLevel": "Challenge",
+  "title": "Burette Setup",
+  "brief": "Mount, condition, fill, remove the filling funnel, and read the initial level.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Advanced",
+  "skills": [
+    "burette sequence"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program SO-101 Follower to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Burette",
+    "Place Burette at Burette Zone",
+    "Condition: Burette",
+    "Grasp Filling Funnel",
+    "Insert Filling Funnel into Burette",
+    "Fill: Burette",
+    "Grasp Filling Funnel",
+    "Place Filling Funnel at Supply Zone",
+    "Read Burette"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "titration-endpoint",
+      "basis": "M",
+      "actionIds": [
+        "condition-burette",
+        "fill-burette",
+        "remove-burette-funnel",
+        "read-initial-burette"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the single-arm follower."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "home",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "place",
+    "operate",
+    "insert_into",
+    "read_instrument",
+    "set_gripper"
+  ],
+  "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      620,
+      350,
+      690
+    ],
+    "targetMm": [
+      0,
+      110,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        -234
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "visualPositionMm": [
+        -234,
+        0,
+        90
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "burette_zone",
+      "label": "Burette Zone",
+      "positionMm": [
+        80,
+        0,
+        300
+      ],
+      "visualPositionMm": [
+        72,
+        0,
+        270
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 0,
+        "shoulder_lift": -90,
+        "elbow_flex": 85,
+        "wrist_flex": 72,
+        "wrist_roll": 88,
+        "gripper": 85
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": -15.24,
+        "shoulder_lift": 10.68,
+        "elbow_flex": 98.07,
+        "wrist_flex": -8.06,
+        "wrist_roll": -43.27,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": -16.37,
+        "shoulder_lift": -23.09,
+        "elbow_flex": 74.69,
+        "wrist_flex": 58.54,
+        "wrist_roll": 52.63,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "supply_zone": {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": -30.97,
+        "shoulder_lift": 18.89,
+        "elbow_flex": 40.66,
+        "wrist_flex": 9.93,
+        "wrist_roll": -17.37,
+        "gripper": 50
+      },
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "burette_zone": {
+      "id": "burette_zone",
+      "label": "Burette Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": 34.52,
+        "shoulder_lift": -56.4,
+        "elbow_flex": 46.67,
+        "wrist_flex": 18.52,
+        "wrist_roll": -5,
+        "gripper": 50
+      },
+      "positionMm": [
+        80,
+        0,
+        300
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "burette",
+      "label": "Burette",
+      "accessibleName": "Burette",
+      "type": "burette",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "ring-stand-burette.png",
+      "visualVariant": "default",
+      "initialZone": "supply_zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "burette_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "configured readiness only",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": true,
+        "operable": true,
+        "readable": true,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "filling_funnel",
+      "label": "Filling Funnel",
+      "accessibleName": "Filling Funnel",
+      "type": "funnel",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "funnel.png",
+      "visualVariant": "default",
+      "initialZone": "supply_zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": "upright",
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "supply_zone"
+      ],
+      "compatibleTargets": [
+        "burette"
+      ],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": true,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Burette",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "burette",
+        "at": "supply_zone",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:burette"
+      },
+      "invalidFeedback": "Grasp Burette is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Place Burette at Burette Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "burette",
+        "zoneId": "burette_zone",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:burette"
+      },
+      "invalidFeedback": "Place Burette at Burette Zone is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Condition: Burette",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "burette",
+        "mode": "condition",
+        "at": "burette_zone",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:burette"
+      },
+      "invalidFeedback": "Condition: Burette is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Grasp Filling Funnel",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "filling_funnel",
+        "at": "supply_zone",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:filling_funnel"
+      },
+      "invalidFeedback": "Grasp Filling Funnel is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Insert Filling Funnel into Burette",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "insert_into",
+        "objectId": "filling_funnel",
+        "targetId": "burette",
+        "at": "burette_zone",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "insert_into:filling_funnel"
+      },
+      "invalidFeedback": "Insert Filling Funnel into Burette is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-06",
+      "label": "Fill: Burette",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "burette",
+        "mode": "fill",
+        "at": "burette_zone",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-05"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:burette"
+      },
+      "invalidFeedback": "Fill: Burette is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-07",
+      "label": "Grasp Filling Funnel",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "filling_funnel",
+        "at": "burette_zone",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-06"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:filling_funnel"
+      },
+      "invalidFeedback": "Grasp Filling Funnel is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-08",
+      "label": "Place Filling Funnel at Supply Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "filling_funnel",
+        "zoneId": "supply_zone",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [
+        "cp-07"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:filling_funnel"
+      },
+      "invalidFeedback": "Place Filling Funnel at Supply Zone is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-09",
+      "label": "Read Burette",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "read_instrument",
+        "instrumentId": "burette",
+        "at": "burette_zone",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-08"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "read_instrument:burette"
+      },
+      "invalidFeedback": "Read Burette is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": []
+    },
+    "python": {
+      "code": ""
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": -30.97,
+          "shoulder_lift": 18.89,
+          "elbow_flex": 40.66,
+          "wrist_flex": 9.93,
+          "wrist_roll": -17.37,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "burette",
+        "at": "supply_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": 34.52,
+          "shoulder_lift": -56.4,
+          "elbow_flex": 46.67,
+          "wrist_flex": 18.52,
+          "wrist_roll": -5,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "place",
+        "objectId": "burette",
+        "zoneId": "burette_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": 34.52,
+          "shoulder_lift": -56.4,
+          "elbow_flex": 46.67,
+          "wrist_flex": 18.52,
+          "wrist_roll": -5,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "burette",
+        "mode": "condition",
+        "at": "burette_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": -30.97,
+          "shoulder_lift": 18.89,
+          "elbow_flex": 40.66,
+          "wrist_flex": 9.93,
+          "wrist_roll": -17.37,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "filling_funnel",
+        "at": "supply_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": 34.52,
+          "shoulder_lift": -56.4,
+          "elbow_flex": 46.67,
+          "wrist_flex": 18.52,
+          "wrist_roll": -5,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "insert_into",
+        "objectId": "filling_funnel",
+        "targetId": "burette",
+        "at": "burette_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": 34.52,
+          "shoulder_lift": -56.4,
+          "elbow_flex": 46.67,
+          "wrist_flex": 18.52,
+          "wrist_roll": -5,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "burette",
+        "mode": "fill",
+        "at": "burette_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": 34.52,
+          "shoulder_lift": -56.4,
+          "elbow_flex": 46.67,
+          "wrist_flex": 18.52,
+          "wrist_roll": -5,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "filling_funnel",
+        "at": "burette_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": -30.97,
+          "shoulder_lift": 18.89,
+          "elbow_flex": 40.66,
+          "wrist_flex": 9.93,
+          "wrist_roll": -17.37,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "place",
+        "objectId": "filling_funnel",
+        "zoneId": "supply_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": 34.52,
+          "shoulder_lift": -56.4,
+          "elbow_flex": 46.67,
+          "wrist_flex": 18.52,
+          "wrist_roll": -5,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "read_instrument",
+        "instrumentId": "burette",
+        "at": "burette_zone"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "burette",
+          "at": "supply_zone"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_joints",
+          "joints": {
+            "shoulder_pan": -30.97,
+            "shoulder_lift": 18.89,
+            "elbow_flex": 40.66,
+            "wrist_flex": 9.93,
+            "wrist_roll": -17.37,
+            "gripper": 50
+          },
+          "speed": 45
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "burette",
+          "at": "supply_zone"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

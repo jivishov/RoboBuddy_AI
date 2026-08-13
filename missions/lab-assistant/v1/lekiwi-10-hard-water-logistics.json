@@ -1,0 +1,936 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "lekiwi-10-hard-water-logistics",
+  "robotId": "lekiwi_sim",
+  "rank": 10,
+  "assistanceLevel": "Challenge",
+  "title": "Gravimetry Circuit",
+  "brief": "Coordinate filtration, drying, cooling, and balance deliveries.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Advanced",
+  "skills": [
+    "multi-station logistics"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program LeKiwi to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Filtration Carrier",
+    "Place Filtration Carrier at Oven Zone",
+    "Dry: Drying Oven",
+    "Grasp Filtration Carrier",
+    "Place Filtration Carrier at Cooling Zone",
+    "Cool: Cooling Rack",
+    "Grasp Filtration Carrier",
+    "Place Filtration Carrier at Balance Zone"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "hard-water-gravimetry",
+      "basis": "M",
+      "actionIds": [
+        "filter-hard-water-mixture",
+        "rinse-precipitate",
+        "first-hard-water-drying",
+        "second-hard-water-drying",
+        "weigh-hard-water-combined"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the holonomic mobile manipulator."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "holonomic_drive",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "place",
+    "operate",
+    "set_gripper",
+    "drive"
+  ],
+  "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      740,
+      430,
+      800
+    ],
+    "targetMm": [
+      0,
+      140,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "filtration_zone",
+      "label": "Filtration Zone",
+      "positionMm": [
+        260,
+        0,
+        250
+      ],
+      "visualPositionMm": [
+        260,
+        0,
+        -250
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "oven_zone",
+      "label": "Oven Zone",
+      "positionMm": [
+        -420,
+        0,
+        180
+      ],
+      "visualPositionMm": [
+        -420,
+        0,
+        -180
+      ],
+      "radiusMm": 70,
+      "hazard": "hot zone"
+    },
+    {
+      "id": "cooling_zone",
+      "label": "Cooling Zone",
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "visualPositionMm": [
+        -320,
+        0,
+        -250
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "balance_zone",
+      "label": "Balance Zone",
+      "positionMm": [
+        280,
+        0,
+        120
+      ],
+      "visualPositionMm": [
+        280,
+        0,
+        -120
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 0,
+        "shoulder_lift": 0,
+        "elbow_flex": 0,
+        "wrist_flex": 0,
+        "wrist_roll": 0,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 8.39,
+        "shoulder_lift": -0.32,
+        "elbow_flex": 62.39,
+        "wrist_flex": 40.97,
+        "wrist_roll": 27.33,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 3.35,
+        "shoulder_lift": -31.52,
+        "elbow_flex": 88.03,
+        "wrist_flex": -22.4,
+        "wrist_roll": -63.93,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "filtration_zone": {
+      "id": "filtration_zone",
+      "label": "Filtration Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": -18.16,
+        "shoulder_lift": 43.28,
+        "elbow_flex": 93.91,
+        "wrist_flex": -13.99,
+        "wrist_roll": -51.82,
+        "gripper": 50
+      },
+      "positionMm": [
+        260,
+        0,
+        250
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "oven_zone": {
+      "id": "oven_zone",
+      "label": "Oven Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": -1.22,
+        "shoulder_lift": -48.54,
+        "elbow_flex": 84.82,
+        "wrist_flex": -26.98,
+        "wrist_roll": -70.53,
+        "gripper": 50
+      },
+      "positionMm": [
+        -420,
+        0,
+        180
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "cooling_zone": {
+      "id": "cooling_zone",
+      "label": "Cooling Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": 34.27,
+        "shoulder_lift": -63.99,
+        "elbow_flex": 61.75,
+        "wrist_flex": 40.06,
+        "wrist_roll": 26.02,
+        "gripper": 50
+      },
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "balance_zone": {
+      "id": "balance_zone",
+      "label": "Balance Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": 1.86,
+        "shoulder_lift": 43.89,
+        "elbow_flex": 75.28,
+        "wrist_flex": 59.39,
+        "wrist_roll": 53.85,
+        "gripper": 50
+      },
+      "positionMm": [
+        280,
+        0,
+        120
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "filtration_carrier",
+      "label": "Filtration Carrier",
+      "accessibleName": "Filtration Carrier",
+      "type": "secured_carrier",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "reagent-tray.png",
+      "visualVariant": "carrier",
+      "initialZone": "filtration_zone",
+      "positionMm": [
+        260,
+        0,
+        250
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "oven_zone",
+        "cooling_zone",
+        "balance_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": true,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "drying_oven",
+      "label": "Drying Oven",
+      "accessibleName": "Drying Oven",
+      "type": "oven",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "drying-oven.png",
+      "visualVariant": "default",
+      "initialZone": "oven_zone",
+      "positionMm": [
+        -420,
+        0,
+        180
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "cooling_rack",
+      "label": "Cooling Rack",
+      "accessibleName": "Cooling Rack",
+      "type": "cooling_rack",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "wire-gauze.png",
+      "visualVariant": "default",
+      "initialZone": "cooling_zone",
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "balance",
+      "label": "Balance",
+      "accessibleName": "Balance",
+      "type": "balance",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "analytical-balance.png",
+      "visualVariant": "default",
+      "initialZone": "balance_zone",
+      "positionMm": [
+        280,
+        0,
+        120
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "filter_flask_fixture",
+      "label": "Filter Flask Fixture",
+      "accessibleName": "Filter Flask Fixture",
+      "type": "filter_flask",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "side-arm-filter-flask.png",
+      "visualVariant": "default",
+      "initialZone": "filtration_zone",
+      "positionMm": [
+        260,
+        0,
+        250
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "buchner_funnel_fixture",
+      "label": "Buchner Funnel Fixture",
+      "accessibleName": "Buchner Funnel Fixture",
+      "type": "buchner_funnel",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "buchner-funnel.png",
+      "visualVariant": "default",
+      "initialZone": "filtration_zone",
+      "positionMm": [
+        260,
+        0,
+        250
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Filtration Carrier",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "filtration_carrier",
+        "at": "filtration_zone",
+        "requiredPose": "filtration_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:filtration_carrier"
+      },
+      "invalidFeedback": "Grasp Filtration Carrier is unavailable until the robot is at Filtration Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Filtration Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Place Filtration Carrier at Oven Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "filtration_carrier",
+        "zoneId": "oven_zone",
+        "requiredPose": "oven_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:filtration_carrier"
+      },
+      "invalidFeedback": "Place Filtration Carrier at Oven Zone is unavailable until the robot is at Oven Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Oven Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Dry: Drying Oven",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "drying_oven",
+        "mode": "dry",
+        "at": "oven_zone",
+        "requiredPose": "oven_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:drying_oven"
+      },
+      "invalidFeedback": "Dry: Drying Oven is unavailable until the robot is at Oven Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Oven Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Grasp Filtration Carrier",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "filtration_carrier",
+        "at": "oven_zone",
+        "requiredPose": "oven_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:filtration_carrier"
+      },
+      "invalidFeedback": "Grasp Filtration Carrier is unavailable until the robot is at Oven Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Oven Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Place Filtration Carrier at Cooling Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "filtration_carrier",
+        "zoneId": "cooling_zone",
+        "requiredPose": "cooling_zone"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:filtration_carrier"
+      },
+      "invalidFeedback": "Place Filtration Carrier at Cooling Zone is unavailable until the robot is at Cooling Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cooling Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-06",
+      "label": "Cool: Cooling Rack",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "cooling_rack",
+        "mode": "cool",
+        "at": "cooling_zone",
+        "value": "filtration_carrier",
+        "requiredPose": "cooling_zone"
+      },
+      "prerequisites": [
+        "cp-05"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:cooling_rack"
+      },
+      "invalidFeedback": "Cool: Cooling Rack is unavailable until the robot is at Cooling Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cooling Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-07",
+      "label": "Grasp Filtration Carrier",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "filtration_carrier",
+        "at": "cooling_zone",
+        "requiredPose": "cooling_zone"
+      },
+      "prerequisites": [
+        "cp-06"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:filtration_carrier"
+      },
+      "invalidFeedback": "Grasp Filtration Carrier is unavailable until the robot is at Cooling Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cooling Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-08",
+      "label": "Place Filtration Carrier at Balance Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "filtration_carrier",
+        "zoneId": "balance_zone",
+        "requiredPose": "balance_zone"
+      },
+      "prerequisites": [
+        "cp-07"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:filtration_carrier"
+      },
+      "invalidFeedback": "Place Filtration Carrier at Balance Zone is unavailable until the robot is at Balance Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Balance Zone, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": []
+    },
+    "python": {
+      "code": ""
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "drive",
+        "vx": 0.25229157271564956,
+        "vy": 0.24258805068812456,
+        "omega": 0,
+        "seconds": 1.0305536455355107,
+        "frame": "world",
+        "destinationId": "filtration_zone"
+      },
+      {
+        "type": "grasp",
+        "objectId": "filtration_carrier",
+        "at": "filtration_zone"
+      },
+      {
+        "type": "drive",
+        "vx": -0.34816015461156424,
+        "vy": -0.03584001591589632,
+        "omega": 0,
+        "seconds": 1.9531241326528688,
+        "frame": "world",
+        "destinationId": "oven_zone"
+      },
+      {
+        "type": "place",
+        "objectId": "filtration_carrier",
+        "zoneId": "oven_zone"
+      },
+      {
+        "type": "operate",
+        "controlId": "drying_oven",
+        "mode": "dry",
+        "at": "oven_zone"
+      },
+      {
+        "type": "grasp",
+        "objectId": "filtration_carrier",
+        "at": "oven_zone"
+      },
+      {
+        "type": "drive",
+        "vx": 0.2,
+        "vy": 0.14,
+        "omega": 0,
+        "seconds": 0.5,
+        "frame": "world",
+        "destinationId": "cooling_zone"
+      },
+      {
+        "type": "place",
+        "objectId": "filtration_carrier",
+        "zoneId": "cooling_zone"
+      },
+      {
+        "type": "operate",
+        "controlId": "cooling_rack",
+        "mode": "cool",
+        "at": "cooling_zone",
+        "value": "filtration_carrier"
+      },
+      {
+        "type": "grasp",
+        "objectId": "filtration_carrier",
+        "at": "cooling_zone"
+      },
+      {
+        "type": "drive",
+        "vx": 0.342063099009379,
+        "vy": -0.07411367145203211,
+        "omega": 0,
+        "seconds": 1.7540623403623805,
+        "frame": "world",
+        "destinationId": "balance_zone"
+      },
+      {
+        "type": "place",
+        "objectId": "filtration_carrier",
+        "zoneId": "balance_zone"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "filtration_carrier",
+          "at": "filtration_zone"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "drive",
+          "vx": 0.25229157271564956,
+          "vy": 0.24258805068812456,
+          "omega": 0,
+          "seconds": 1.0305536455355107,
+          "frame": "world",
+          "destinationId": "filtration_zone"
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "filtration_carrier",
+          "at": "filtration_zone"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Assemble complete SolU runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf site
+          mkdir site
+          cp ./*.html site/
+          cp -a assets css docs js missions robots simulator site/
+          test "$(find site -maxdepth 1 -type f -name '*.html' | wc -l)" -eq 11
+          test -f site/docs/unitree-g1-simulator.md
+          test -f site/docs/licenses/unitree_ros-BSD-3-Clause.txt
+          node --check site/robots/packs/unitree_g1_29dof/manifest.js
+          node --check site/simulator/js/robot-rig-configs.js
+          node --check site/simulator/js/robot-mesh-data-unitree-g1.js
+          for file in site/simulator/js/unitree-g1/*.js; do node --check "$file"; done
+          node -e "JSON.parse(require('fs').readFileSync('site/missions/tier1/unitree-g1-walk-grab-return.json', 'utf8'))"
+          for page in site/index.html site/python.html site/gemini.html; do grep -q 'unitree_g1_29dof/manifest.js?v=' "$page"; done
+          find site -type f | sort
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

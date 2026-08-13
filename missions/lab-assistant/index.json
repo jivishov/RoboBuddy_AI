@@ -1,0 +1,1118 @@
+{
+  "schema": "robobuddy.lab-catalog.v1",
+  "version": 1,
+  "generatedOn": "2026-08-12",
+  "audience": "High-school chemistry and introductory robotics",
+  "languages": [
+    "en"
+  ],
+  "robots": [
+    {
+      "id": "arduino_arm",
+      "label": "Arduino Arm",
+      "form": "single-arm manipulator",
+      "taskCount": 10,
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics."
+    },
+    {
+      "id": "so101_follower",
+      "label": "SO-101 Follower",
+      "form": "single-arm follower",
+      "taskCount": 10,
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics."
+    },
+    {
+      "id": "lekiwi_sim",
+      "label": "LeKiwi",
+      "form": "holonomic mobile manipulator",
+      "taskCount": 10,
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning."
+    },
+    {
+      "id": "openarm_v2_bimanual",
+      "label": "OpenArm V2 Bimanual",
+      "form": "bimanual manipulator",
+      "taskCount": 10,
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning."
+    },
+    {
+      "id": "unitree_g1_29dof",
+      "label": "Unitree G1",
+      "form": "humanoid lab runner",
+      "taskCount": 10,
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "arduino-arm-01-balance-placement",
+      "robotId": "arduino_arm",
+      "rank": 1,
+      "title": "Balance Placement",
+      "techniques": [
+        "weighing"
+      ],
+      "brief": "Place a dry watch glass on the balance and return home.",
+      "skills": [
+        "placement",
+        "homing"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-01-balance-placement.json"
+    },
+    {
+      "id": "arduino-arm-02-volume-staging",
+      "robotId": "arduino_arm",
+      "rank": 2,
+      "title": "Volume Station Setup",
+      "techniques": [
+        "measuring-volume"
+      ],
+      "brief": "Stage a graduated cylinder and sealed sample bottle in compatible measuring zones.",
+      "skills": [
+        "staging",
+        "compatibility"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-02-volume-staging.json"
+    },
+    {
+      "id": "arduino-arm-03-cuvette-insertion",
+      "robotId": "arduino_arm",
+      "rank": 3,
+      "title": "Cuvette Insertion",
+      "techniques": [
+        "blue1-percent-transmittance"
+      ],
+      "brief": "Insert an intact, correctly oriented cuvette in the spectrophotometer.",
+      "skills": [
+        "orientation",
+        "insertion"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-03-cuvette-insertion.json"
+    },
+    {
+      "id": "arduino-arm-04-filter-paper-setup",
+      "robotId": "arduino_arm",
+      "rank": 4,
+      "title": "Filter Paper Setup",
+      "techniques": [
+        "filtration"
+      ],
+      "brief": "Seat filter paper in the funnel and place the assembled funnel on its stand.",
+      "skills": [
+        "assembly",
+        "insertion"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-04-filter-paper-setup.json"
+    },
+    {
+      "id": "arduino-arm-05-flask-under-burette",
+      "robotId": "arduino_arm",
+      "rank": 5,
+      "title": "Receiver Placement",
+      "techniques": [
+        "titration-endpoint"
+      ],
+      "brief": "Position the receiving flask below the burette without an invalid collision.",
+      "skills": [
+        "precision placement"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-05-flask-under-burette.json"
+    },
+    {
+      "id": "arduino-arm-06-cool-then-weigh",
+      "robotId": "arduino_arm",
+      "rank": 6,
+      "title": "Cool, Then Weigh",
+      "techniques": [
+        "two-stage-precipitate-drying"
+      ],
+      "brief": "Obey the cooling gate before moving the dried assembly to the balance.",
+      "skills": [
+        "thermal gate",
+        "weighing"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-06-cool-then-weigh.json"
+    },
+    {
+      "id": "arduino-arm-07-chromatography-paper",
+      "robotId": "arduino_arm",
+      "rank": 7,
+      "title": "Paper Chamber Load",
+      "techniques": [
+        "paper-chromatography"
+      ],
+      "brief": "Orient the paper so its origin remains above the configured solvent line.",
+      "skills": [
+        "orientation",
+        "chromatography"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-07-chromatography-paper.json"
+    },
+    {
+      "id": "arduino-arm-08-blank-read-return",
+      "robotId": "arduino_arm",
+      "rank": 8,
+      "title": "Blank, Read, Return",
+      "techniques": [
+        "transmittance-dilution"
+      ],
+      "brief": "Load a blank, read the simulated instrument state, and return the cuvette.",
+      "skills": [
+        "instrument handling"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-08-blank-read-return.json"
+    },
+    {
+      "id": "arduino-arm-09-burette-condition-fill",
+      "robotId": "arduino_arm",
+      "rank": 9,
+      "title": "Condition and Fill",
+      "techniques": [
+        "titration-endpoint"
+      ],
+      "brief": "Condition and fill the burette, remove the filling funnel, then read the level.",
+      "skills": [
+        "sequence",
+        "burette setup"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-09-burette-condition-fill.json"
+    },
+    {
+      "id": "arduino-arm-10-two-stage-drying",
+      "robotId": "arduino_arm",
+      "rank": 10,
+      "title": "Two-Stage Drying Cycle",
+      "techniques": [
+        "two-stage-precipitate-drying"
+      ],
+      "brief": "Complete two drying stages followed by cooling and simulated balance reads.",
+      "skills": [
+        "multi-cycle thermal handling"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/arduino-arm-10-two-stage-drying.json"
+    },
+    {
+      "id": "so101-01-weigh-boat",
+      "robotId": "so101_follower",
+      "rank": 1,
+      "title": "Weigh Boat Placement",
+      "techniques": [
+        "weighing"
+      ],
+      "brief": "Place a clean, dry weigh boat on the balance without invalid contact.",
+      "skills": [
+        "placement",
+        "grip control"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-01-weigh-boat.json"
+    },
+    {
+      "id": "so101-02-mixing-station",
+      "robotId": "so101_follower",
+      "rank": 2,
+      "title": "Mixing Station Delivery",
+      "techniques": [
+        "making-solution"
+      ],
+      "brief": "Stage the reagent bottle and volumetric flask at the mixing station.",
+      "skills": [
+        "staging",
+        "compatibility"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-02-mixing-station.json"
+    },
+    {
+      "id": "so101-03-cuvette-orientation",
+      "robotId": "so101_follower",
+      "rank": 3,
+      "title": "Precision Cuvette Load",
+      "techniques": [
+        "blue1-percent-transmittance"
+      ],
+      "brief": "Insert, read, and remove an oriented cuvette.",
+      "skills": [
+        "precision insertion",
+        "instrument handling"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-03-cuvette-orientation.json"
+    },
+    {
+      "id": "so101-04-filter-assembly",
+      "robotId": "so101_follower",
+      "rank": 4,
+      "title": "Funnel Assembly",
+      "techniques": [
+        "filtration"
+      ],
+      "brief": "Assemble paper, funnel, stand, and receiver in the required order.",
+      "skills": [
+        "ordered assembly"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-04-filter-assembly.json"
+    },
+    {
+      "id": "so101-05-pipette-pump",
+      "robotId": "so101_follower",
+      "rank": 5,
+      "title": "Pipette Pump Coupling",
+      "techniques": [
+        "blue1-standard-dilutions"
+      ],
+      "brief": "Couple the assigned pump to its volumetric pipette.",
+      "skills": [
+        "coupling",
+        "compatibility"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-05-pipette-pump.json"
+    },
+    {
+      "id": "so101-06-quantitative-transfer",
+      "robotId": "so101_follower",
+      "rank": 6,
+      "title": "Transfer and Rinse",
+      "techniques": [
+        "dilution"
+      ],
+      "brief": "Transfer the configured aliquot into the flask and complete the required rinse.",
+      "skills": [
+        "transfer",
+        "rinse"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-06-quantitative-transfer.json"
+    },
+    {
+      "id": "so101-07-chromatography-spotting",
+      "robotId": "so101_follower",
+      "rank": 7,
+      "title": "Precision Spotting",
+      "techniques": [
+        "paper-chromatography"
+      ],
+      "brief": "Position the capillary and place separated simulated spots on the origin line.",
+      "skills": [
+        "precision positioning"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-07-chromatography-spotting.json"
+    },
+    {
+      "id": "so101-08-burette-initial-reading",
+      "robotId": "so101_follower",
+      "rank": 8,
+      "title": "Burette Setup",
+      "techniques": [
+        "titration-endpoint"
+      ],
+      "brief": "Mount, condition, fill, remove the filling funnel, and read the initial level.",
+      "skills": [
+        "burette sequence"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-08-burette-initial-reading.json"
+    },
+    {
+      "id": "so101-09-vacuum-filtration",
+      "robotId": "so101_follower",
+      "rank": 9,
+      "title": "Vacuum Filtration",
+      "techniques": [
+        "gravimetric-vacuum-filtration"
+      ],
+      "brief": "Assemble the vacuum filtration station, transfer the slurry, and wash the collected solid.",
+      "skills": [
+        "vacuum assembly",
+        "transfer"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-09-vacuum-filtration.json"
+    },
+    {
+      "id": "so101-10-endpoint-assistant",
+      "robotId": "so101_follower",
+      "rank": 10,
+      "title": "Endpoint Assistant",
+      "techniques": [
+        "titration-endpoint"
+      ],
+      "brief": "Prepare the receiver and deliver simulated titrant dropwise through the endpoint sequence.",
+      "skills": [
+        "coordinated delivery"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+      "definition": "missions/lab-assistant/v1/so101-10-endpoint-assistant.json"
+    },
+    {
+      "id": "lekiwi-01-beaker-courier",
+      "robotId": "lekiwi_sim",
+      "rank": 1,
+      "title": "Beaker Courier",
+      "techniques": [
+        "transfer"
+      ],
+      "brief": "Collect and deliver an empty beaker between stations.",
+      "skills": [
+        "mobile pickup",
+        "delivery"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-01-beaker-courier.json"
+    },
+    {
+      "id": "lekiwi-02-sample-fetch",
+      "robotId": "lekiwi_sim",
+      "rank": 2,
+      "title": "Sample Bottle Fetch",
+      "techniques": [
+        "measuring-volume"
+      ],
+      "brief": "Retrieve the assigned sealed sample carrier for the measuring station.",
+      "skills": [
+        "retrieval",
+        "docking"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-02-sample-fetch.json"
+    },
+    {
+      "id": "lekiwi-03-mobile-weighing",
+      "robotId": "lekiwi_sim",
+      "rank": 3,
+      "title": "Mobile Weighing Run",
+      "techniques": [
+        "weighing"
+      ],
+      "brief": "Dock and place a dry watch glass on the balance.",
+      "skills": [
+        "docking",
+        "placement"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-03-mobile-weighing.json"
+    },
+    {
+      "id": "lekiwi-04-cuvette-rack",
+      "robotId": "lekiwi_sim",
+      "rank": 4,
+      "title": "Cuvette Rack Courier",
+      "techniques": [
+        "blue1-percent-transmittance"
+      ],
+      "brief": "Move the locked cuvette rack to the instrument station.",
+      "skills": [
+        "mobile delivery"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-04-cuvette-rack.json"
+    },
+    {
+      "id": "lekiwi-05-waste-return",
+      "robotId": "lekiwi_sim",
+      "rank": 5,
+      "title": "Waste Carrier Return",
+      "techniques": [
+        "crystal-violet-waste-treatment"
+      ],
+      "brief": "Deliver the closed carrier to the configured waste station.",
+      "skills": [
+        "closed-waste transport"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-05-waste-return.json"
+    },
+    {
+      "id": "lekiwi-06-dilution-route",
+      "robotId": "lekiwi_sim",
+      "rank": 6,
+      "title": "Dilution Station Circuit",
+      "techniques": [
+        "dilution"
+      ],
+      "brief": "Visit stock, measuring, flask, and wash stations in order.",
+      "skills": [
+        "multi-stop route"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-06-dilution-route.json"
+    },
+    {
+      "id": "lekiwi-07-filtration-supply",
+      "robotId": "lekiwi_sim",
+      "rank": 7,
+      "title": "Filtration Supply Run",
+      "techniques": [
+        "gravimetric-vacuum-filtration"
+      ],
+      "brief": "Deliver filter paper, wash bottle, and sealed sample to filtration.",
+      "skills": [
+        "multi-item logistics"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-07-filtration-supply.json"
+    },
+    {
+      "id": "lekiwi-08-cooled-precipitate",
+      "robotId": "lekiwi_sim",
+      "rank": 8,
+      "title": "Cooled Sample Delivery",
+      "techniques": [
+        "two-stage-precipitate-drying"
+      ],
+      "brief": "Avoid the hot zone and deliver only the cooled secured tray.",
+      "skills": [
+        "thermal gate",
+        "route planning"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-08-cooled-precipitate.json"
+    },
+    {
+      "id": "lekiwi-09-spectro-route",
+      "robotId": "lekiwi_sim",
+      "rank": 9,
+      "title": "Spectrophotometry Route",
+      "techniques": [
+        "crystal-violet-spectrophotometer-calibration"
+      ],
+      "brief": "Move blank and sample racks through the configured station sequence.",
+      "skills": [
+        "instrument logistics"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-09-spectro-route.json"
+    },
+    {
+      "id": "lekiwi-10-hard-water-logistics",
+      "robotId": "lekiwi_sim",
+      "rank": 10,
+      "title": "Gravimetry Circuit",
+      "techniques": [
+        "hard-water-gravimetry"
+      ],
+      "brief": "Coordinate filtration, drying, cooling, and balance deliveries.",
+      "skills": [
+        "multi-station logistics"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic mobile base and arm; routes are authored station-to-station motions, not autonomous path planning.",
+      "definition": "missions/lab-assistant/v1/lekiwi-10-hard-water-logistics.json"
+    },
+    {
+      "id": "openarm-01-weighing-handoff",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 1,
+      "title": "Two-Hand Weighing Handoff",
+      "techniques": [
+        "weighing"
+      ],
+      "brief": "Coordinate watch-glass placement and spatula return with separate grippers.",
+      "skills": [
+        "bimanual ownership"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-01-weighing-handoff.json"
+    },
+    {
+      "id": "openarm-02-stabilized-solvent-addition",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 2,
+      "title": "Stabilized Addition",
+      "techniques": [
+        "making-solution"
+      ],
+      "brief": "Stabilize the flask while positioning the solvent bottle.",
+      "skills": [
+        "bimanual stabilization"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-02-stabilized-solvent-addition.json"
+    },
+    {
+      "id": "openarm-03-stopper-and-mix",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 3,
+      "title": "Stopper and Mix",
+      "techniques": [
+        "transmittance-dilution"
+      ],
+      "brief": "Hold the flask, seat the stopper, and execute the authored mixing operation.",
+      "skills": [
+        "bimanual sequence"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-03-stopper-and-mix.json"
+    },
+    {
+      "id": "openarm-04-pipette-loading",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 4,
+      "title": "Pipette and Pump Loading",
+      "techniques": [
+        "blue1-standard-dilutions"
+      ],
+      "brief": "Hold the pipette and attach the compatible pump.",
+      "skills": [
+        "bimanual coupling"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-04-pipette-loading.json"
+    },
+    {
+      "id": "openarm-05-filter-assembly",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 5,
+      "title": "Bimanual Filter Assembly",
+      "techniques": [
+        "filtration"
+      ],
+      "brief": "Stabilize the stand while assembling the filter.",
+      "skills": [
+        "bimanual assembly"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-05-filter-assembly.json"
+    },
+    {
+      "id": "openarm-06-controlled-pour",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 6,
+      "title": "Controlled Bimanual Pour",
+      "techniques": [
+        "transfer"
+      ],
+      "brief": "Stabilize the receiver and execute a discrete transfer without overflow.",
+      "skills": [
+        "bimanual transfer"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-06-controlled-pour.json"
+    },
+    {
+      "id": "openarm-07-buchner-station",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 7,
+      "title": "Buchner Station Assembly",
+      "techniques": [
+        "gravimetric-vacuum-filtration"
+      ],
+      "brief": "Assemble funnel, flask, paper, and vacuum connection.",
+      "skills": [
+        "vacuum assembly"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-07-buchner-station.json"
+    },
+    {
+      "id": "openarm-08-separatory-funnel",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 8,
+      "title": "Hold, Vent, and Recover",
+      "techniques": [
+        "quick-ache-extraction-recovery"
+      ],
+      "brief": "Preserve fraction identity through simulated mixing, venting, settling, and recovery.",
+      "skills": [
+        "bimanual fraction handling"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-08-separatory-funnel.json"
+    },
+    {
+      "id": "openarm-09-titration-coordination",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 9,
+      "title": "Stopcock and Flask Coordination",
+      "techniques": [
+        "titration-endpoint"
+      ],
+      "brief": "Coordinate receiver motion and stopcock operation through a configured endpoint event.",
+      "skills": [
+        "bimanual titration"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-09-titration-coordination.json"
+    },
+    {
+      "id": "openarm-10-gravimetric-workcell",
+      "robotId": "openarm_v2_bimanual",
+      "rank": 10,
+      "title": "Gravimetric Workcell",
+      "techniques": [
+        "hard-water-gravimetry"
+      ],
+      "brief": "Execute filtration, washing, drying transfer, cooling, and reweigh handling.",
+      "skills": [
+        "integrated workcell"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+      "definition": "missions/lab-assistant/v1/openarm-10-gravimetric-workcell.json"
+    },
+    {
+      "id": "g1-01-empty-tray",
+      "robotId": "unitree_g1_29dof",
+      "rank": 1,
+      "title": "Empty Tray Delivery",
+      "techniques": [
+        "transfer"
+      ],
+      "brief": "Collect, deliver, release, and return to a neutral posture.",
+      "skills": [
+        "secured carrier delivery"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-01-empty-tray.json"
+    },
+    {
+      "id": "g1-02-sealed-sample",
+      "robotId": "unitree_g1_29dof",
+      "rank": 2,
+      "title": "Sealed Sample Carrier",
+      "techniques": [
+        "measuring-volume"
+      ],
+      "brief": "Carry a secured sample tote to the preparation station.",
+      "skills": [
+        "fixed-hand transport"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-02-sealed-sample.json"
+    },
+    {
+      "id": "g1-03-cuvette-rack",
+      "robotId": "unitree_g1_29dof",
+      "rank": 3,
+      "title": "Cuvette Rack Courier",
+      "techniques": [
+        "blue1-percent-transmittance"
+      ],
+      "brief": "Transport a locked cuvette rack to the instrument station.",
+      "skills": [
+        "fixed-hand transport"
+      ],
+      "assistanceLevel": "Guided",
+      "complexity": "Foundational",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-03-cuvette-rack.json"
+    },
+    {
+      "id": "g1-04-filtration-kit",
+      "robotId": "unitree_g1_29dof",
+      "rank": 4,
+      "title": "Filtration Kit Delivery",
+      "techniques": [
+        "filtration"
+      ],
+      "brief": "Deliver a closed supply bin to filtration.",
+      "skills": [
+        "fixed-hand transport"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-04-filtration-kit.json"
+    },
+    {
+      "id": "g1-05-waste-carrier",
+      "robotId": "unitree_g1_29dof",
+      "rank": 5,
+      "title": "Sealed Waste Transfer",
+      "techniques": [
+        "crystal-violet-waste-treatment"
+      ],
+      "brief": "Move a closed waste carrier to the configured waste station.",
+      "skills": [
+        "closed-waste transport"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-05-waste-carrier.json"
+    },
+    {
+      "id": "g1-06-cooled-sample-tray",
+      "robotId": "unitree_g1_29dof",
+      "rank": 6,
+      "title": "Cooled Tray Transfer",
+      "techniques": [
+        "two-stage-precipitate-drying"
+      ],
+      "brief": "Obey the cooling gate before transporting the secured tray.",
+      "skills": [
+        "thermal gate",
+        "fixed-hand transport"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-06-cooled-sample-tray.json"
+    },
+    {
+      "id": "g1-07-reagent-tote",
+      "robotId": "unitree_g1_29dof",
+      "rank": 7,
+      "title": "Reagent Tote Delivery",
+      "techniques": [
+        "dilution"
+      ],
+      "brief": "Carry a sealed reagent tote while avoiding restricted zones.",
+      "skills": [
+        "restricted-zone transport"
+      ],
+      "assistanceLevel": "Builder",
+      "complexity": "Intermediate",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-07-reagent-tote.json"
+    },
+    {
+      "id": "g1-08-spectro-courier-loop",
+      "robotId": "unitree_g1_29dof",
+      "rank": 8,
+      "title": "Instrument Courier Loop",
+      "techniques": [
+        "crystal-violet-spectrophotometer-calibration"
+      ],
+      "brief": "Complete a multi-stop locked-rack route.",
+      "skills": [
+        "multi-stop humanoid route"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-08-spectro-courier-loop.json"
+    },
+    {
+      "id": "g1-09-gravimetry-logistics",
+      "robotId": "unitree_g1_29dof",
+      "rank": 9,
+      "title": "Gravimetry Logistics Loop",
+      "techniques": [
+        "hard-water-gravimetry"
+      ],
+      "brief": "Move secured carriers among filtration, drying, cooling, and weighing stations.",
+      "skills": [
+        "multi-station humanoid route"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-09-gravimetry-logistics.json"
+    },
+    {
+      "id": "g1-10-lab-runner-shift",
+      "robotId": "unitree_g1_29dof",
+      "rank": 10,
+      "title": "Lab Runner Shift",
+      "techniques": [
+        "transfer",
+        "filtration",
+        "two-stage-precipitate-drying"
+      ],
+      "brief": "Fulfill an ordered carrier queue without incompatible loads or restricted-zone entry.",
+      "skills": [
+        "queued logistics"
+      ],
+      "assistanceLevel": "Challenge",
+      "complexity": "Advanced",
+      "languages": [
+        "blockly",
+        "python"
+      ],
+      "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+      "definition": "missions/lab-assistant/v1/g1-10-lab-runner-shift.json"
+    }
+  ]
+}

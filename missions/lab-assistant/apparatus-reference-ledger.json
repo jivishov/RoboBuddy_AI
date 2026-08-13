@@ -1,0 +1,342 @@
+{
+  "schema": "robobuddy.lab-apparatus-reference-ledger.v2",
+  "version": 2,
+  "authority": "Lab Studio public/assets/equipment-realistic/v1",
+  "usage": "Visual references constrain procedural Three.js silhouettes, proportions, material families, functional landmarks, and interaction sockets. Source images are reviewed evidence and are not bundled or rendered by RoboBuddy.",
+  "limitations": "Single-view references do not establish exact dimensions or hidden geometry. Authored extensions identify configured educational geometry that is not directly visible in the cited image; they must not be presented as source-observed features.",
+  "entries": [
+    {
+      "id": "balance-default",
+      "runtimeMatch": { "type": "balance", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "analytical-balance.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["raised square stainless pan", "recessed front display", "two-small-over-one-large button cluster"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "watch-glass-default",
+      "runtimeMatch": { "type": "watch_glass", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "watch-glass.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["shallow concave circular dish", "thick transparent rim"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "weigh-boat-default",
+      "runtimeMatch": { "type": "weigh_boat", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "weigh-boat.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["low rectangular tray", "flared walls", "raised perimeter and corner tabs"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "beaker-default",
+      "runtimeMatch": { "type": "beaker", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "beaker-250ml.png",
+      "alternateReferences": ["beaker-150ml.png"],
+      "sourceFeatures": ["cylindrical transparent wall", "rolled rim", "pouring lip", "graduation marks"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "graduated-cylinder-default",
+      "runtimeMatch": { "type": "cylinder", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "graduated-cylinder-100ml.png",
+      "alternateReferences": ["graduated-cylinder-25ml.png"],
+      "sourceFeatures": ["tall narrow transparent body", "wide polygonal foot", "graduation marks", "small pouring lip"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "flask-erlenmeyer",
+      "runtimeMatch": { "type": "flask", "visualVariant": "erlenmeyer" },
+      "factoryVariant": "erlenmeyer",
+      "asset": "erlenmeyer-flask-250ml.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["conical transparent body", "short cylindrical neck", "rolled rim", "thick circular foot"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "flask-volumetric",
+      "runtimeMatch": { "type": "flask", "visualVariant": "volumetric_flask" },
+      "factoryVariant": "volumetric_flask",
+      "asset": "volumetric-flask.png",
+      "alternateReferences": ["volumetric-flask-stoppered.png"],
+      "sourceFeatures": ["pear-shaped bulb", "long narrow neck", "single calibration mark", "rolled rim"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "stopper-volumetric-flask",
+      "runtimeMatch": { "type": "stopper", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "volumetric-flask-stoppered.png",
+      "alternateReferences": ["rubber-stopper-set.png"],
+      "sourceFeatures": ["tapered black plug", "top flange", "seated relationship to a volumetric-flask neck"],
+      "authoredExtensions": ["standalone removable stopper extracted from the composite reference; hidden underside remains approximate"]
+    },
+    {
+      "id": "filter-flask-default",
+      "runtimeMatch": { "type": "filter_flask", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "side-arm-filter-flask.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["heavy conical transparent body", "oblique side arm", "hose-retention ridges", "thick foot and rim"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "cuvette-default",
+      "runtimeMatch": { "type": "cuvette", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "cuvette.png",
+      "alternateReferences": ["spectrophotometer-cuvette-inserted.png"],
+      "sourceFeatures": ["open rectangular optical cell", "thick transparent edges", "flat transparent bottom"],
+      "authoredExtensions": ["configured liquid fill is simulator state rather than a source-observed measurement"]
+    },
+    {
+      "id": "sample-rack-default",
+      "runtimeMatch": { "type": "rack", "visualVariant": "rack" },
+      "factoryVariant": "rack",
+      "asset": "sample-rack.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["two-level white frame", "six-by-three repeated circular openings", "corner supports"],
+      "authoredExtensions": ["single logical insertion socket represents a selected rack opening"]
+    },
+    {
+      "id": "spectrophotometer-default",
+      "runtimeMatch": { "type": "instrument", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "spectrophotometer.png",
+      "alternateReferences": ["spectrophotometer-cuvette-inserted.png"],
+      "sourceFeatures": ["rounded sloped chassis", "separate display and button panel", "deep cuvette bay", "sample-compartment cover"],
+      "authoredExtensions": ["display glow indicates configured simulator readiness and is not a measured value"]
+    },
+    {
+      "id": "filter-paper-gravity-cone",
+      "runtimeMatch": { "type": "filter_paper", "visualVariant": "gravity_cone" },
+      "factoryVariant": "gravity_cone",
+      "asset": "funnel-filter-paper.png",
+      "alternateReferences": ["filter-paper.png"],
+      "sourceFeatures": ["white textured paper folded into a cone", "paper seated inside a glass gravity funnel", "overlapping fold seam"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "filter-paper-buchner-disc",
+      "runtimeMatch": { "type": "filter_paper", "visualVariant": "buchner_disc" },
+      "factoryVariant": "buchner_disc",
+      "asset": "filter-paper.png",
+      "alternateReferences": ["buchner-funnel.png"],
+      "sourceFeatures": ["white textured filter-paper material", "thin paper edge", "folded presentation in the primary image"],
+      "authoredExtensions": ["flattened circular disc configured to seat on the Buchner perforated plate; that flat state is not directly depicted by the primary image"]
+    },
+    {
+      "id": "gravity-funnel-default",
+      "runtimeMatch": { "type": "funnel", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "funnel.png",
+      "alternateReferences": ["funnel-filter-paper.png"],
+      "sourceFeatures": ["wide transparent cone", "rolled rim", "long narrow stem"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "buchner-funnel-default",
+      "runtimeMatch": { "type": "buchner_funnel", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "buchner-funnel.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["white ceramic cup", "perforated plate", "tapered stem", "rounded rim"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "burette-stand-default",
+      "runtimeMatch": { "type": "burette", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "ring-stand-burette.png",
+      "alternateReferences": ["ring-stand-burette-funnel.png", "burette-50ml.png", "ring-stand-clamp.png"],
+      "sourceFeatures": ["heavy stand base and vertical rod", "connected clamp", "graduated burette tube", "transverse stopcock", "tapered delivery tip"],
+      "authoredExtensions": ["top insertion socket accepts the separately modeled filling funnel only in tasks that require it"]
+    },
+    {
+      "id": "ring-stand-default",
+      "runtimeMatch": { "type": "stand", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "ring-stand.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["heavy rectangular base", "vertical polished rod", "bosshead", "horizontal support ring"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "bottle-reagent",
+      "runtimeMatch": { "type": "bottle", "visualVariant": "reagent_bottle" },
+      "factoryVariant": "reagent_bottle",
+      "asset": "reagent-bottle.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["rectangular amber-glass body", "rounded shoulders", "short neck", "ribbed black screw cap"],
+      "authoredExtensions": ["front label carries only configured category text and no invented chemical result"]
+    },
+    {
+      "id": "bottle-wash",
+      "runtimeMatch": { "type": "bottle", "visualVariant": "wash_bottle" },
+      "factoryVariant": "wash_bottle",
+      "asset": "wash-bottle.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["white polymer body", "rounded shoulder", "threaded cap", "bent narrow dispensing spout"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "volumetric-pipette-default",
+      "runtimeMatch": { "type": "pipette", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "volumetric-pipette-10ml.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["long narrow transparent tube", "elongated central bulb", "single calibration line", "tapered delivery tip"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "pipette-pump-default",
+      "runtimeMatch": { "type": "pipette_pump", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "pipette-pump.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["rounded red polymer body", "grey upper thumbwheel", "black lower release control", "lateral pipette channel"],
+      "authoredExtensions": []
+    },
+    {
+      "id": "drying-oven-default",
+      "runtimeMatch": { "type": "oven", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "drying-oven.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["stainless cabinet", "windowed door", "vertical handle", "right control column", "short feet"],
+      "authoredExtensions": ["open chamber and insertion socket are configured interaction geometry; the primary image shows the door closed"]
+    },
+    {
+      "id": "wire-gauze-cooling-surface",
+      "runtimeMatch": { "type": "cooling_rack", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "wire-gauze.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["open square metal mesh", "wrapped reinforced border", "central circular ceramic pad"],
+      "authoredExtensions": ["used as a configured raised cooling surface; the source image does not establish a cooling-rack function"]
+    },
+    {
+      "id": "chromatography-paper-default",
+      "runtimeMatch": { "type": "chromatography_paper", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "chromatography-paper.png",
+      "alternateReferences": ["chromatography-chamber-with-paper.png"],
+      "sourceFeatures": ["vertical warm-white paper strip", "dashed origin line", "faint guide marks"],
+      "authoredExtensions": ["configured sample spots are simulator state rather than a reported experimental result"]
+    },
+    {
+      "id": "chromatography-chamber-default",
+      "runtimeMatch": { "type": "chromatography_chamber", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "chromatography-chamber-with-paper.png",
+      "alternateReferences": ["chromatography-chamber.png"],
+      "sourceFeatures": ["thick rectangular glass chamber", "overhanging lid", "cylindrical lid handle", "vertical paper orientation", "shallow solvent band"],
+      "authoredExtensions": ["solvent depth and paper progress remain configured visual state, not simulated measurements"]
+    },
+    {
+      "id": "separatory-funnel-default",
+      "runtimeMatch": { "type": "separatory_funnel", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "separatory-funnel.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["pear-shaped transparent vessel", "top stopper", "transverse stopcock", "colored control knob", "lower outlet tip"],
+      "authoredExtensions": ["stopcock operation is a discrete configured state; no fluid dynamics are implied"]
+    },
+    {
+      "id": "vacuum-source-default",
+      "runtimeMatch": { "type": "vacuum_source", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "vacuum-source.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["white rounded pump housing", "top carry handle", "front connection port and hose", "dark front panel", "side vents", "short feet"],
+      "authoredExtensions": ["status indicator communicates configured connection state only"]
+    },
+    {
+      "id": "wash-station-authored",
+      "runtimeMatch": { "type": "wash_station", "visualVariant": "default" },
+      "factoryVariant": "default",
+      "asset": "wash-bottle.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["curved narrow dispensing spout", "white fluid-handling surface family"],
+      "authoredExtensions": ["sink basin, faucet body, station footprint, and drain are authored workcell geometry not depicted by the wash-bottle reference"]
+    },
+    {
+      "id": "queue-station-rack",
+      "runtimeMatch": { "type": "queue_station", "visualVariant": "rack" },
+      "factoryVariant": "rack",
+      "asset": "sample-rack.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["two-level rack frame", "ordered repeated circular openings", "corner supports"],
+      "authoredExtensions": ["queue ordering and station footprint are configured workcell semantics"]
+    },
+    {
+      "id": "secured-carrier-rack",
+      "runtimeMatch": { "type": "secured_carrier", "visualVariant": "rack" },
+      "factoryVariant": "rack",
+      "asset": "sample-rack.png",
+      "alternateReferences": ["reagent-tray.png"],
+      "sourceFeatures": ["two-level rack frame", "repeated circular openings", "graspable rectangular footprint"],
+      "authoredExtensions": ["secured cover, transport handles, and clasps are authored logistics safeguards"]
+    },
+    {
+      "id": "secured-carrier-bin",
+      "runtimeMatch": { "type": "secured_carrier", "visualVariant": "bin" },
+      "factoryVariant": "bin",
+      "asset": "reagent-tray.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["long low rectangular footprint", "raised perimeter lip", "repeated internal wells"],
+      "authoredExtensions": ["deep opaque walls, secured lid, handles, clasps, and waste or supply labeling are authored logistics geometry"]
+    },
+    {
+      "id": "secured-carrier-tote",
+      "runtimeMatch": { "type": "secured_carrier", "visualVariant": "tote" },
+      "factoryVariant": "tote",
+      "asset": "reagent-tray.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["long low rectangular footprint", "raised perimeter lip", "repeated internal wells"],
+      "authoredExtensions": ["taller enclosure, secured lid, handles, and clasps are authored logistics geometry"]
+    },
+    {
+      "id": "secured-carrier-tray",
+      "runtimeMatch": { "type": "secured_carrier", "visualVariant": "tray" },
+      "factoryVariant": "tray",
+      "asset": "reagent-tray.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["long low rectangular footprint", "raised perimeter lip", "six repeated wells"],
+      "authoredExtensions": ["protective lid, transport handles, and clasps are authored logistics safeguards"]
+    },
+    {
+      "id": "secured-carrier-default",
+      "runtimeMatch": { "type": "secured_carrier", "visualVariant": "carrier" },
+      "factoryVariant": "carrier",
+      "asset": "reagent-tray.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["long low rectangular footprint", "raised perimeter lip", "repeated internal wells"],
+      "authoredExtensions": ["enclosure, secured lid, handles, clasps, and task-category labeling are authored logistics geometry"]
+    },
+    {
+      "id": "tool-capillary",
+      "runtimeMatch": { "type": "tool", "visualVariant": "capillary" },
+      "factoryVariant": "capillary",
+      "asset": "capillary-spotter.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["slender transparent tube", "open ends", "colored band and small configured sample spot"],
+      "authoredExtensions": ["sample color is configured visual state, not an experimental result"]
+    },
+    {
+      "id": "tool-scoop",
+      "runtimeMatch": { "type": "tool", "visualVariant": "scoop" },
+      "factoryVariant": "scoop",
+      "asset": "lab-scoop.png",
+      "alternateReferences": [],
+      "sourceFeatures": ["shallow circular metal scoop", "long flat handle", "rounded handle end"],
+      "authoredExtensions": []
+    }
+  ]
+}

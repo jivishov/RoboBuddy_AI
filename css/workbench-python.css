@@ -1,0 +1,1160 @@
+body.python-draft-page {
+  overflow: hidden;
+  background: #fff;
+}
+
+body.python-draft-page [hidden] {
+  display: none !important;
+}
+
+body.python-draft-page > .topbar .topbar__controls {
+  flex: 1 1 auto;
+}
+
+body.python-draft-page > .topbar .topbar__robot-select select {
+  width: clamp(148px, 15vw, 224px);
+  padding-right: 40px;
+  border: 1px solid var(--wb-line);
+  color: var(--wb-ink);
+  background-color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+body.python-draft-page > .topbar .btn {
+  min-width: max-content;
+  padding-inline: 16px;
+  border: 1px solid var(--wb-line);
+  background: #fff;
+  color: var(--wb-ink);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+body.python-draft-page > .topbar .btn:hover {
+  border-color: color-mix(in oklch, var(--wb-primary) 32%, var(--wb-line));
+  background: color-mix(in oklch, var(--wb-primary) 4%, white);
+}
+
+body.python-draft-page > .topbar .btn--stop-big,
+body.python-draft-page > .topbar .btn--stop-big:hover {
+  border-color: var(--wb-danger);
+  background: var(--wb-danger);
+  color: #fff;
+}
+
+.python-workbench {
+  height: 100%;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(240px, 30.5vw, 440px);
+  background: #fff;
+}
+
+.python-workbench__program {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  border-right: 1px solid var(--wb-line);
+  background: #fff;
+}
+
+.python-workbench__program-header {
+  position: relative;
+  z-index: 20;
+  min-width: 0;
+  min-height: 90px;
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  border-bottom: 1px solid var(--wb-line);
+  background: #fff;
+}
+
+.python-mode-tabs {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-md);
+  overflow: hidden;
+}
+
+.python-mode-tab {
+  min-width: 104px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-right: 1px solid var(--wb-line);
+  border-radius: 0;
+  background: #fff;
+  color: var(--wb-ink);
+  font: 700 0.95rem/1 "DM Sans", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.python-mode-tab:last-child {
+  border-right: 0;
+}
+
+.python-mode-tab[aria-selected="true"] {
+  background: var(--wb-primary);
+  color: #fff;
+}
+
+.python-file-state {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--wb-ink);
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 0.96rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.python-file-state__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.python-file-state__dot {
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--wb-success);
+}
+
+.python-file-state[data-state="dirty"] .python-file-state__dot {
+  background: var(--wb-warning);
+}
+
+.python-toolbar-menus {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.python-menu {
+  position: relative;
+}
+
+.python-menu__trigger {
+  min-height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+  color: var(--wb-ink);
+  font: 700 0.9rem/1 "DM Sans", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.python-menu__trigger:hover,
+.python-menu__trigger[aria-expanded="true"] {
+  border-color: color-mix(in oklch, var(--wb-primary) 42%, var(--wb-line));
+  background: color-mix(in oklch, var(--wb-primary) 5%, white);
+}
+
+.python-menu__trigger svg {
+  width: 18px;
+  height: 18px;
+}
+
+.python-menu__popover {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(340px, 52vw);
+  max-height: min(360px, 52vh);
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-md);
+  background: #fff;
+}
+
+.python-menu__popover--file {
+  width: 236px;
+}
+
+.python-menu__items {
+  display: grid;
+  gap: 2px;
+}
+
+.python-menu__item,
+.python-draft__example-item {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+  color: var(--wb-ink);
+  font: 500 0.9rem/1.3 "DM Sans", "Segoe UI", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.python-menu__item:hover,
+.python-menu__item:focus-visible,
+.python-draft__example-item:hover,
+.python-draft__example-item:focus-visible {
+  border-color: color-mix(in oklch, var(--wb-primary) 22%, var(--wb-line));
+  background: color-mix(in oklch, var(--wb-primary) 6%, white);
+}
+
+.python-menu__item--danger {
+  color: var(--wb-danger);
+}
+
+.python-menu__item svg,
+.python-draft__example-item svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+}
+
+.python-menu__item span,
+.python-draft__example-item span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.python-draft__example-item strong {
+  font-size: 0.9rem;
+}
+
+.python-draft__example-item small,
+.python-draft__example-empty {
+  color: var(--wb-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.python-draft__example-empty {
+  margin: 0;
+  padding: 12px 10px;
+}
+
+.python-command-bar {
+  min-width: 0;
+  min-height: 72px;
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid var(--wb-line);
+  background: color-mix(in oklch, var(--wb-canvas) 62%, white);
+}
+
+.python-motors {
+  min-height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+  color: var(--wb-ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.python-motors input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.python-motors:has(input:focus-visible) {
+  outline: 3px solid color-mix(in oklch, var(--wb-primary) 72%, white);
+  outline-offset: 2px;
+}
+
+.python-motors:has(input:checked) {
+  border-color: color-mix(in oklch, var(--wb-success) 42%, var(--wb-line));
+  color: color-mix(in oklch, var(--wb-success) 76%, black);
+  background: color-mix(in oklch, var(--wb-success) 8%, white);
+}
+
+.python-motors:has(input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.python-motors svg {
+  width: 20px;
+  height: 20px;
+}
+
+.python-command-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.python-command {
+  min-height: 44px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+  color: var(--wb-ink);
+  font: 700 0.9rem/1 "DM Sans", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.python-command:hover:not(:disabled) {
+  border-color: color-mix(in oklch, var(--wb-primary) 42%, var(--wb-line));
+  background: color-mix(in oklch, var(--wb-primary) 5%, white);
+}
+
+.python-command--primary,
+.python-command--primary:hover:not(:disabled) {
+  border-color: var(--wb-primary);
+  background: var(--wb-primary);
+  color: #fff;
+}
+
+.python-command:disabled {
+  color: color-mix(in oklch, var(--wb-muted) 68%, white);
+  background: color-mix(in oklch, var(--wb-canvas) 68%, white);
+  cursor: not-allowed;
+}
+
+.python-command svg {
+  width: 19px;
+  height: 19px;
+}
+
+.python-program-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.python-program-panel--blockly {
+  padding: 0;
+}
+
+#pythonBlocklyDiv {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.python-program-panel--python {
+  position: relative;
+}
+
+.python-program-panel--python > .CodeMirror {
+  position: absolute;
+  inset: 0;
+}
+
+body.python-draft-page .python-program-panel .python-draft__editor,
+body.python-draft-page .python-program-panel .CodeMirror {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: var(--wb-ink);
+  font: 1.02rem/1.72 "IBM Plex Mono", Consolas, monospace;
+}
+
+body.python-draft-page .python-program-panel .python-draft__editor {
+  padding: 24px 28px;
+  resize: none;
+}
+
+body.python-draft-page .python-program-panel .CodeMirror-focused {
+  border: 0;
+  box-shadow: none;
+}
+
+body.python-draft-page .python-program-panel .CodeMirror-lines {
+  padding: 22px 0 48px;
+}
+
+body.python-draft-page .python-program-panel .CodeMirror pre.CodeMirror-line,
+body.python-draft-page .python-program-panel .CodeMirror pre.CodeMirror-line-like {
+  padding: 0 24px;
+}
+
+body.python-draft-page .python-program-panel .CodeMirror-gutters {
+  min-width: 52px;
+  border-right: 1px solid var(--wb-line);
+  background: #fff;
+}
+
+body.python-draft-page .python-program-panel .CodeMirror-linenumber {
+  padding: 0 15px 0 8px;
+  color: var(--wb-muted);
+}
+
+.python-output-drawer {
+  position: relative;
+  z-index: 15;
+  min-width: 0;
+  border-top: 1px solid var(--wb-line);
+  background: #fff;
+}
+
+.python-output-drawer__summary {
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: max-content minmax(124px, auto) minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 20px;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: var(--wb-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.python-output-drawer__summary:hover {
+  background: color-mix(in oklch, var(--wb-primary) 3%, white);
+}
+
+.python-output-drawer__title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.python-output-drawer__status {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--wb-muted);
+  font-size: 0.84rem;
+}
+
+.python-output-drawer__status:last-of-type {
+  justify-self: start;
+  overflow: hidden;
+}
+
+.python-output-drawer__status :is(.status-text, #programStatus) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.python-output-drawer__status .bottombar__status-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  color: var(--wb-muted);
+}
+
+.python-output-drawer__chevron {
+  width: 20px;
+  height: 20px;
+  transition: transform 140ms ease;
+}
+
+.python-output-drawer__summary[aria-expanded="true"] .python-output-drawer__chevron {
+  transform: rotate(180deg);
+}
+
+.python-output-drawer__copy-status {
+  position: relative;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid color-mix(in oklch, var(--wb-primary) 30%, var(--wb-line));
+  border-radius: 7px;
+  background: #fff;
+  color: var(--wb-primary);
+  cursor: pointer;
+}
+
+.python-output-drawer__copy-status[hidden] {
+  display: none;
+}
+
+.python-output-drawer__copy-status:hover {
+  background: color-mix(in oklch, var(--wb-primary) 8%, white);
+}
+
+.python-output-drawer__copy-status:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--wb-primary) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.python-output-drawer__copy-status::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+
+.python-output-drawer__copy-status svg {
+  width: 17px;
+  height: 17px;
+}
+
+.python-output-drawer__body {
+  max-height: min(326px, 43vh);
+  padding: 0 24px 20px;
+  overflow: auto;
+  border-top: 1px solid var(--wb-line);
+  background: color-mix(in oklch, var(--wb-canvas) 55%, white);
+}
+
+.python-output-drawer__diagnostics {
+  padding: 14px 0;
+  display: grid;
+  grid-template-columns: minmax(160px, 0.72fr) minmax(240px, 1.3fr) minmax(160px, 0.7fr);
+  gap: 10px;
+}
+
+.python-output-drawer__diagnostics > * {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+  color: var(--wb-muted);
+  font-size: 0.8rem;
+}
+
+.python-output-drawer__diagnostics .python-draft__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.python-output-drawer__effect {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.python-output-drawer__effect .blockly-controls__status {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1.45;
+}
+
+.python-output-drawer__effect[data-tone="error"] {
+  border-color: color-mix(in oklch, var(--wb-danger) 32%, var(--wb-line));
+  background: color-mix(in oklch, var(--wb-danger) 7%, white);
+}
+
+.python-output-drawer__diagnostics [data-tone="ready"] {
+  color: color-mix(in oklch, var(--wb-success) 72%, black);
+}
+
+.python-output-drawer__diagnostics [data-tone="warning"] {
+  color: var(--wb-warning-ink);
+}
+
+.python-output-drawer__diagnostics [data-tone="error"] {
+  color: var(--wb-danger);
+}
+
+.python-output-drawer__consoles {
+  min-height: 190px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.python-output-drawer .python-draft__console {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  grid-template-rows: 38px minmax(130px, 1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+}
+
+.python-output-drawer .python-draft__panel-header {
+  min-width: 0;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.python-output-drawer .python-draft__panel-header h3 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.python-output-clear {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--wb-muted);
+  cursor: pointer;
+}
+
+.python-output-clear svg {
+  width: 17px;
+  height: 17px;
+}
+
+.python-output-drawer .python-draft__log {
+  min-height: 130px;
+  padding: 10px;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in oklch, var(--wb-rail) 95%, black);
+  color: #e8edf4;
+  font: 0.78rem/1.5 "IBM Plex Mono", Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.python-preview {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 64px minmax(250px, 0.58fr) minmax(230px, 0.42fr);
+  overflow: hidden;
+  background: #fff;
+}
+
+.python-preview__header,
+.python-preview__joints > h2 {
+  margin: 0;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--wb-line);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.python-preview__header h2,
+.python-preview__joints > h2 {
+  margin: 0;
+  font: inherit;
+}
+
+.python-preview__stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--wb-line);
+  background: var(--wb-canvas);
+}
+
+.python-preview__stage > * {
+  position: absolute;
+  inset: 0;
+}
+
+.python-preview .python-draft__preview-panel,
+.python-preview .arm-preview-container,
+.python-preview .arm-preview-3d,
+.python-preview .arm-preview-3d__viewport,
+.python-preview .robot-sim-preview {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.python-preview .arm-preview-container--3d {
+  background: var(--wb-canvas);
+}
+
+.python-preview #pythonArm3dFallbackSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.python-preview .arm-preview-3d__toolbar {
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+  left: auto;
+}
+
+.python-preview .arm-preview-3d__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.python-preview .arm-preview-3d__reset {
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--wb-radius-sm);
+  background: #fff;
+  color: var(--wb-ink);
+}
+
+.python-preview .arm-preview-3d__reset span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.python-preview__joints {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 56px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.python-preview__joints > h2 {
+  border-bottom: 0;
+}
+
+.python-preview .python-draft__joints {
+  min-height: 0;
+  padding: 0 28px 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 0;
+  overflow: auto;
+}
+
+.python-preview .python-draft__joints:focus-visible {
+  outline: 3px solid var(--wb-primary);
+  outline-offset: -3px;
+}
+
+.python-preview .python-draft__joints > div {
+  min-width: 0;
+  min-height: 43px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklch, var(--wb-line) 64%, white);
+  border-radius: 0;
+  background: transparent;
+}
+
+.python-preview .python-draft__joints > div:last-child {
+  border-bottom: 0;
+}
+
+.python-preview .python-draft__joints svg {
+  width: 19px;
+  height: 19px;
+  color: var(--wb-ink);
+}
+
+.python-preview .python-draft__joints span {
+  overflow: hidden;
+  color: var(--wb-ink);
+  font: 500 0.92rem/1.2 "DM Sans", "Segoe UI", sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.python-preview .python-draft__joints strong {
+  color: var(--wb-ink);
+  font: 500 0.9rem/1.2 "IBM Plex Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 900px) and (max-width: 1279px) {
+  body.python-draft-page > .topbar .topbar__brand {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  body.python-draft-page > .topbar .topbar__controls {
+    width: 100%;
+  }
+
+  .python-workbench__program-header,
+  .python-command-bar {
+    padding-inline: 20px;
+  }
+
+  .python-workbench__program-header {
+    gap: 16px;
+  }
+
+  .python-mode-tab {
+    min-width: 88px;
+    padding-inline: 12px;
+  }
+
+  .python-toolbar-menus {
+    gap: 10px;
+  }
+
+  .python-command-bar,
+  .python-command-group {
+    gap: 8px;
+  }
+
+  .python-command {
+    padding-inline: 12px;
+  }
+
+  .python-output-drawer__summary {
+    padding-inline: 20px;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  body.python-draft-page > .topbar .topbar__robot-select select {
+    width: 138px;
+    padding-inline: 10px 30px;
+  }
+
+  body.python-draft-page > .topbar .btn {
+    padding-inline: 10px;
+    font-size: 0.78rem;
+  }
+
+  body.python-draft-page > .topbar .workbench-target {
+    padding-inline: 10px;
+    font-size: 0.76rem;
+  }
+
+  .python-workbench__program-header {
+    min-height: 82px;
+    padding: 14px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .python-mode-tab {
+    min-width: 78px;
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: 0.78rem;
+  }
+
+  .python-file-state {
+    font-size: 0.8rem;
+  }
+
+  .python-toolbar-menus {
+    gap: 8px;
+  }
+
+  .python-menu__trigger {
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: 0.76rem;
+  }
+
+  .python-command-bar {
+    min-height: 64px;
+    padding: 10px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .python-motors,
+  .python-command {
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: 0.74rem;
+  }
+
+  .python-command-group {
+    gap: 6px;
+  }
+
+  .python-command svg,
+  .python-motors svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  body.python-draft-page .python-program-panel .CodeMirror {
+    font-size: 0.88rem;
+  }
+
+  body.python-draft-page .python-program-panel .CodeMirror-lines {
+    padding-top: 16px;
+  }
+
+  body.python-draft-page .python-program-panel .CodeMirror pre.CodeMirror-line,
+  body.python-draft-page .python-program-panel .CodeMirror pre.CodeMirror-line-like {
+    padding-inline: 14px;
+  }
+
+  .python-output-drawer__summary {
+    min-height: 54px;
+    padding-inline: 16px;
+    grid-template-columns: max-content minmax(0, 1fr) 20px;
+    gap: 10px;
+  }
+
+  .python-output-drawer__summary .python-output-drawer__connection-status {
+    display: none;
+  }
+
+  .python-output-drawer__diagnostics {
+    grid-template-columns: 1fr;
+  }
+
+  .python-output-drawer__consoles {
+    grid-template-columns: 1fr;
+  }
+
+  .python-preview {
+    grid-template-rows: 54px minmax(210px, 0.52fr) minmax(250px, 0.48fr);
+  }
+
+  .python-preview__header,
+  .python-preview__joints > h2,
+  .python-preview .python-draft__joints {
+    padding-inline: 16px;
+  }
+
+  .python-preview .python-draft__joints > div {
+    grid-template-columns: 20px minmax(0, 1fr) max-content;
+    gap: 6px;
+  }
+
+  .python-preview .python-draft__joints span,
+  .python-preview .python-draft__joints strong {
+    font-size: 0.76rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899px) {
+  body.python-draft-page > .topbar .topbar__controls {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  body.python-draft-page > .topbar .topbar__robot-select {
+    flex: 1 1 132px;
+  }
+
+  body.python-draft-page > .topbar .topbar__robot-select select {
+    width: 100%;
+  }
+
+  body.python-draft-page > .topbar .workbench-target span,
+  body.python-draft-page > .topbar #btnHome span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  body.python-draft-page > .topbar .workbench-target {
+    flex: 0 0 46px;
+    width: 46px;
+    min-width: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  body.python-draft-page > .topbar #btnConnect,
+  body.python-draft-page > .topbar #btnHome,
+  body.python-draft-page > .topbar #btnEmergencyStop {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+    padding-inline: 10px;
+    white-space: nowrap;
+  }
+
+  body.python-draft-page > .topbar #btnHome::after {
+    content: "Home";
+  }
+
+  .python-workbench {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+
+  .python-workbench__program-header {
+    align-content: center;
+  }
+
+  .python-file-state {
+    order: 3;
+    max-width: 156px;
+  }
+
+  .python-toolbar-menus {
+    margin-left: auto;
+  }
+
+  .python-command-bar {
+    align-content: center;
+  }
+
+  .python-command-group {
+    margin-left: 0;
+  }
+
+  .python-command span {
+    white-space: nowrap;
+  }
+
+  .python-preview__header,
+  .python-preview__joints > h2 {
+    font-size: 0.78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .python-output-drawer__chevron {
+    transition: none;
+  }
+}
+
+/* 2026-07-19 remediation: persistent resizable program and preview panes. */
+.python-workbench:not(.is-split-fallback) {
+  display: grid;
+  overflow: hidden;
+}
+
+.python-workbench__program {
+  border-right: 0;
+}
+
+.python-preview {
+  grid-template-rows: 56px minmax(280px, 1fr) auto;
+  border-left: 0;
+}
+
+.python-preview__joints {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.python-preview .workbench-joint-state__toggle {
+  min-height: 54px;
+  padding-inline: 16px;
+  border-bottom: 0;
+}
+
+.python-preview .python-draft__joints.workbench-joint-state__body {
+  min-height: 0;
+  max-height: min(310px, 39vh);
+  padding: 0;
+  display: block;
+  overflow: auto;
+}
+
+.python-preview .python-draft__joints.workbench-joint-state__body > div {
+  min-height: 42px;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 10px;
+}
+
+.python-output-drawer__summary.workbench-collapsible__toggle {
+  min-height: 58px;
+}
+
+.python-workbench.is-split-fallback {
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto auto;
+  align-content: start;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.python-workbench.is-split-fallback .python-workbench__program {
+  min-height: 720px;
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.python-workbench.is-split-fallback .python-preview {
+  min-height: 660px;
+  grid-template-rows: 56px minmax(360px, 1fr) auto;
+}

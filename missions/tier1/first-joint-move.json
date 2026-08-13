@@ -1,0 +1,14 @@
+{
+  "id": "first-joint-move-01",
+  "title": "First Joint Move",
+  "robotIds": ["arduino_arm", "so101_follower"],
+  "difficulty": "beginner",
+  "skills": ["joint_control", "limits"],
+  "brief": "Move one joint safely away from home, then return home.",
+  "starterPython": "robot.home()\njoints = robot.get_joints()\njoint = \"shoulder_pan\" if \"shoulder_pan\" in joints else \"base\"\nrobot.move_joint(joint, 20, speed=40)\nrobot.wait(0.4)\nrobot.home()",
+  "successCriteria": [
+    "uses one move_joint command",
+    "stays within joint limits",
+    "returns home"
+  ]
+}

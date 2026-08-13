@@ -1,0 +1,15 @@
+{
+  "id": "unitree-g1-walk-grab-return-01",
+  "title": "G1 Walk, Grab, Return",
+  "robotIds": ["unitree_g1_29dof"],
+  "difficulty": "intermediate",
+  "skills": ["humanoid_walk", "posture", "fixed_hand_interaction", "sequence"],
+  "brief": "Preview the complete scripted Unitree G1 walk, fixed-hand grab, and return sequence.",
+  "starterPython": "robot.home()\nrobot.set_posture(\"wide_stance\", seconds=0.8)\nrobot.walk(\"forward\", steps=3, step_length=0.08, speed=45)\nrobot.set_posture(\"work_reach\", seconds=0.8)\nrobot.pick_nearest(\"right_hand\")\nrobot.set_posture(\"wide_stance\", seconds=0.8)\nrobot.turn(180, seconds=1.4)\nrobot.walk(\"forward\", steps=3, step_length=0.08, speed=45)\nrobot.release(\"right_hand\")\nrobot.home()",
+  "successCriteria": [
+    "uses only Unitree G1 manifest joint, posture, and hand identifiers",
+    "uses finite scripted steps and turns",
+    "returns to the neutral posture",
+    "keeps the simulation STOP control available"
+  ]
+}

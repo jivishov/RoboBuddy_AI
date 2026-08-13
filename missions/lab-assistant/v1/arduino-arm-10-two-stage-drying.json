@@ -1,0 +1,827 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "arduino-arm-10-two-stage-drying",
+  "robotId": "arduino_arm",
+  "rank": 10,
+  "assistanceLevel": "Challenge",
+  "title": "Two-Stage Drying Cycle",
+  "brief": "Complete two drying stages followed by cooling and simulated balance reads.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Advanced",
+  "skills": [
+    "multi-cycle thermal handling"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program Arduino Arm to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Dry Stage 1: Drying Oven",
+    "Dry Stage 2: Drying Oven",
+    "Cool: Cooling Rack",
+    "Grasp Dried Watch Glass",
+    "Place Dried Watch Glass at Balance Zone",
+    "Read Balance",
+    "Record Cooled Combined Mass"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "two-stage-precipitate-drying",
+      "basis": "M",
+      "actionIds": [
+        "first-practice-drying",
+        "second-practice-drying",
+        "cool-practice-assembly",
+        "weigh-practice-combined"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the single-arm manipulator."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "home",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "operate",
+    "grasp",
+    "place",
+    "read_instrument",
+    "record_observation",
+    "set_gripper"
+  ],
+  "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      620,
+      350,
+      690
+    ],
+    "targetMm": [
+      0,
+      110,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        -234
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "oven_zone",
+      "label": "Oven Zone",
+      "positionMm": [
+        -420,
+        0,
+        180
+      ],
+      "visualPositionMm": [
+        -378,
+        0,
+        162
+      ],
+      "radiusMm": 70,
+      "hazard": "hot zone"
+    },
+    {
+      "id": "cooling_zone",
+      "label": "Cooling Zone",
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "visualPositionMm": [
+        -288,
+        0,
+        225
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "balance_zone",
+      "label": "Balance Zone",
+      "positionMm": [
+        280,
+        0,
+        120
+      ],
+      "visualPositionMm": [
+        252,
+        0,
+        108
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "base": 90,
+        "shoulder": 90,
+        "elbow": 90,
+        "wrist_rot": 90,
+        "wrist_tilt": 90,
+        "gripper": 90
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "base": 87.82,
+        "shoulder": 67.13,
+        "elbow": 109.75,
+        "wrist_rot": 122.74,
+        "wrist_tilt": 60.01,
+        "gripper": 90
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "base": 65.97,
+        "shoulder": 91.84,
+        "elbow": 94.14,
+        "wrist_rot": 100.41,
+        "wrist_tilt": 115.3,
+        "gripper": 90
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "oven_zone": {
+      "id": "oven_zone",
+      "label": "Oven Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base": 87,
+        "shoulder": 75.5,
+        "elbow": 89.33,
+        "wrist_rot": 57.78,
+        "wrist_tilt": 61.68,
+        "gripper": 90
+      },
+      "positionMm": [
+        -420,
+        0,
+        180
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "cooling_zone": {
+      "id": "cooling_zone",
+      "label": "Cooling Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base": 38.27,
+        "shoulder": 117.44,
+        "elbow": 84.15,
+        "wrist_rot": 122.07,
+        "wrist_tilt": 114.89,
+        "gripper": 90
+      },
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "balance_zone": {
+      "id": "balance_zone",
+      "label": "Balance Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base": 109.29,
+        "shoulder": 93.91,
+        "elbow": 115.59,
+        "wrist_rot": 107.18,
+        "wrist_tilt": 58.42,
+        "gripper": 90
+      },
+      "positionMm": [
+        280,
+        0,
+        120
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "drying_oven",
+      "label": "Drying Oven",
+      "accessibleName": "Drying Oven",
+      "type": "oven",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "drying-oven.png",
+      "visualVariant": "default",
+      "initialZone": "oven_zone",
+      "positionMm": [
+        -420,
+        0,
+        180
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "cooling_rack",
+      "label": "Cooling Rack",
+      "accessibleName": "Cooling Rack",
+      "type": "cooling_rack",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "wire-gauze.png",
+      "visualVariant": "default",
+      "initialZone": "cooling_zone",
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "dried_watch_glass",
+      "label": "Dried Watch Glass",
+      "accessibleName": "Dried Watch Glass",
+      "type": "watch_glass",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "watch-glass.png",
+      "visualVariant": "default",
+      "initialZone": "cooling_zone",
+      "positionMm": [
+        -320,
+        0,
+        250
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "balance_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "requires cooling gate",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "balance",
+      "label": "Balance",
+      "accessibleName": "Balance",
+      "type": "balance",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "analytical-balance.png",
+      "visualVariant": "default",
+      "initialZone": "balance_zone",
+      "positionMm": [
+        280,
+        0,
+        120
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "configured readiness only",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": true,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Dry Stage 1: Drying Oven",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "drying_oven",
+        "mode": "dry_stage_1",
+        "at": "oven_zone",
+        "requiredPose": "oven_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:drying_oven"
+      },
+      "invalidFeedback": "Dry Stage 1: Drying Oven is unavailable until the robot is at Oven Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Oven Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Dry Stage 2: Drying Oven",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "drying_oven",
+        "mode": "dry_stage_2",
+        "at": "oven_zone",
+        "requiredPose": "oven_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:drying_oven"
+      },
+      "invalidFeedback": "Dry Stage 2: Drying Oven is unavailable until the robot is at Oven Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Oven Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Cool: Cooling Rack",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "cooling_rack",
+        "mode": "cool",
+        "at": "cooling_zone",
+        "value": "dried_watch_glass",
+        "requiredPose": "cooling_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:cooling_rack"
+      },
+      "invalidFeedback": "Cool: Cooling Rack is unavailable until the robot is at Cooling Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cooling Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Grasp Dried Watch Glass",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "dried_watch_glass",
+        "at": "cooling_zone",
+        "requiredPose": "cooling_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:dried_watch_glass"
+      },
+      "invalidFeedback": "Grasp Dried Watch Glass is unavailable until the robot is at Cooling Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cooling Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Place Dried Watch Glass at Balance Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "dried_watch_glass",
+        "zoneId": "balance_zone",
+        "requiredPose": "balance_zone"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:dried_watch_glass"
+      },
+      "invalidFeedback": "Place Dried Watch Glass at Balance Zone is unavailable until the robot is at Balance Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Balance Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-06",
+      "label": "Read Balance",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "read_instrument",
+        "instrumentId": "balance",
+        "at": "balance_zone",
+        "requiredPose": "balance_zone"
+      },
+      "prerequisites": [
+        "cp-05"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "read_instrument:balance"
+      },
+      "invalidFeedback": "Read Balance is unavailable until the robot is at Balance Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Balance Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-07",
+      "label": "Record Cooled Combined Mass",
+      "sourceBasis": [
+        "C"
+      ],
+      "expected": {
+        "type": "record_observation",
+        "fieldId": "cooled_combined_mass",
+        "value": "simulated_readout",
+        "requiredPose": "current"
+      },
+      "prerequisites": [
+        "cp-06"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "record_observation:cooled_combined_mass"
+      },
+      "invalidFeedback": "Record Cooled Combined Mass is unavailable until the robot is at Current and earlier checkpoints are complete.",
+      "recovery": "Move to Current, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": []
+    },
+    "python": {
+      "code": ""
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 87,
+          "shoulder": 75.5,
+          "elbow": 89.33,
+          "wrist_rot": 57.78,
+          "wrist_tilt": 61.68,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "drying_oven",
+        "mode": "dry_stage_1",
+        "at": "oven_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 87,
+          "shoulder": 75.5,
+          "elbow": 89.33,
+          "wrist_rot": 57.78,
+          "wrist_tilt": 61.68,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "drying_oven",
+        "mode": "dry_stage_2",
+        "at": "oven_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 38.27,
+          "shoulder": 117.44,
+          "elbow": 84.15,
+          "wrist_rot": 122.07,
+          "wrist_tilt": 114.89,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "cooling_rack",
+        "mode": "cool",
+        "at": "cooling_zone",
+        "value": "dried_watch_glass"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 38.27,
+          "shoulder": 117.44,
+          "elbow": 84.15,
+          "wrist_rot": 122.07,
+          "wrist_tilt": 114.89,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "dried_watch_glass",
+        "at": "cooling_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 109.29,
+          "shoulder": 93.91,
+          "elbow": 115.59,
+          "wrist_rot": 107.18,
+          "wrist_tilt": 58.42,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "place",
+        "objectId": "dried_watch_glass",
+        "zoneId": "balance_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 109.29,
+          "shoulder": 93.91,
+          "elbow": 115.59,
+          "wrist_rot": 107.18,
+          "wrist_tilt": 58.42,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "read_instrument",
+        "instrumentId": "balance",
+        "at": "balance_zone"
+      },
+      {
+        "type": "record_observation",
+        "fieldId": "cooled_combined_mass",
+        "value": "simulated_readout"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "operate",
+          "controlId": "drying_oven",
+          "mode": "dry_stage_1",
+          "at": "oven_zone"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_joints",
+          "joints": {
+            "base": 87,
+            "shoulder": 75.5,
+            "elbow": 89.33,
+            "wrist_rot": 57.78,
+            "wrist_tilt": 61.68,
+            "gripper": 90
+          },
+          "speed": 45
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "operate",
+          "controlId": "drying_oven",
+          "mode": "dry_stage_1",
+          "at": "oven_zone"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

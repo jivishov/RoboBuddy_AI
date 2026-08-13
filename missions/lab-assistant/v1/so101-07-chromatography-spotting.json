@@ -1,0 +1,631 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "so101-07-chromatography-spotting",
+  "robotId": "so101_follower",
+  "rank": 7,
+  "assistanceLevel": "Builder",
+  "title": "Precision Spotting",
+  "brief": "Position the capillary and place separated simulated spots on the origin line.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Intermediate",
+  "skills": [
+    "precision positioning"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program SO-101 Follower to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Capillary",
+    "Spot 1: Chromatography Paper",
+    "Spot 2: Chromatography Paper",
+    "Place Capillary at Supply Zone"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "paper-chromatography",
+      "basis": "M",
+      "actionIds": [
+        "spot-sample"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the single-arm follower."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "home",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "operate",
+    "place",
+    "set_gripper"
+  ],
+  "limitations": "Kinematic follower arm; no force sensing, collision planner, or fluid physics.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      620,
+      350,
+      690
+    ],
+    "targetMm": [
+      0,
+      110,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        -234
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "visualPositionMm": [
+        -234,
+        0,
+        90
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "chromatography_zone",
+      "label": "Chromatography Zone",
+      "positionMm": [
+        -160,
+        0,
+        280
+      ],
+      "visualPositionMm": [
+        -144,
+        0,
+        252
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": 0,
+        "shoulder_lift": -90,
+        "elbow_flex": 85,
+        "wrist_flex": 72,
+        "wrist_roll": 88,
+        "gripper": 85
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": -15.24,
+        "shoulder_lift": 10.68,
+        "elbow_flex": 98.07,
+        "wrist_flex": -8.06,
+        "wrist_roll": -43.27,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": -16.37,
+        "shoulder_lift": -23.09,
+        "elbow_flex": 74.69,
+        "wrist_flex": 58.54,
+        "wrist_roll": 52.63,
+        "gripper": 50
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "supply_zone": {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "helperAvailable": false,
+      "joints": {
+        "shoulder_pan": -30.97,
+        "shoulder_lift": 18.89,
+        "elbow_flex": 40.66,
+        "wrist_flex": 9.93,
+        "wrist_roll": -17.37,
+        "gripper": 50
+      },
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "chromatography_zone": {
+      "id": "chromatography_zone",
+      "label": "Chromatography Zone",
+      "helperAvailable": true,
+      "joints": {
+        "shoulder_pan": -52.28,
+        "shoulder_lift": -20.26,
+        "elbow_flex": 91.13,
+        "wrist_flex": -17.97,
+        "wrist_roll": -57.55,
+        "gripper": 50
+      },
+      "positionMm": [
+        -160,
+        0,
+        280
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "capillary",
+      "label": "Capillary",
+      "accessibleName": "Capillary",
+      "type": "tool",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "capillary-spotter.png",
+      "visualVariant": "capillary",
+      "initialZone": "supply_zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "supply_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "chromatography_paper",
+      "label": "Chromatography Paper",
+      "accessibleName": "Chromatography Paper",
+      "type": "chromatography_paper",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "chromatography-paper.png",
+      "visualVariant": "default",
+      "initialZone": "chromatography_zone",
+      "positionMm": [
+        -160,
+        0,
+        280
+      ],
+      "orientation": "origin_above_solvent_line",
+      "requiredInsertionOrientation": "origin_above_solvent_line",
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": true,
+        "pourable": false,
+        "receivable": false,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "chromatography_chamber",
+      "label": "Chromatography Chamber",
+      "accessibleName": "Chromatography Chamber",
+      "type": "chromatography_chamber",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "chromatography-chamber-with-paper.png",
+      "visualVariant": "default",
+      "initialZone": "chromatography_zone",
+      "positionMm": [
+        -160,
+        0,
+        280
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Capillary",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "capillary",
+        "at": "supply_zone",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:capillary"
+      },
+      "invalidFeedback": "Grasp Capillary is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Spot 1: Chromatography Paper",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "chromatography_paper",
+        "mode": "spot_1",
+        "at": "chromatography_zone",
+        "requiredPose": "chromatography_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:chromatography_paper"
+      },
+      "invalidFeedback": "Spot 1: Chromatography Paper is unavailable until the robot is at Chromatography Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Chromatography Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Spot 2: Chromatography Paper",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "chromatography_paper",
+        "mode": "spot_2",
+        "at": "chromatography_zone",
+        "requiredPose": "chromatography_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:chromatography_paper"
+      },
+      "invalidFeedback": "Spot 2: Chromatography Paper is unavailable until the robot is at Chromatography Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Chromatography Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Place Capillary at Supply Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "capillary",
+        "zoneId": "supply_zone",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:capillary"
+      },
+      "invalidFeedback": "Place Capillary at Supply Zone is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": [
+        {
+          "type": "move_joints",
+          "joints": {
+            "shoulder_pan": -30.97,
+            "shoulder_lift": 18.89,
+            "elbow_flex": 40.66,
+            "wrist_flex": 9.93,
+            "wrist_roll": -17.37,
+            "gripper": 50
+          },
+          "speed": 45
+        },
+        {
+          "type": "grasp",
+          "objectId": "capillary",
+          "at": "supply_zone"
+        }
+      ]
+    },
+    "python": {
+      "code": "robot.move_joints(joints={\"shoulder_pan\":-30.97,\"shoulder_lift\":18.89,\"elbow_flex\":40.66,\"wrist_flex\":9.93,\"wrist_roll\":-17.37,\"gripper\":50}, speed=45)\nrobot.grasp(object_id=\"capillary\", at=\"supply_zone\")"
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": -30.97,
+          "shoulder_lift": 18.89,
+          "elbow_flex": 40.66,
+          "wrist_flex": 9.93,
+          "wrist_roll": -17.37,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "capillary",
+        "at": "supply_zone"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "chromatography_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "operate",
+        "controlId": "chromatography_paper",
+        "mode": "spot_1",
+        "at": "chromatography_zone"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "chromatography_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "operate",
+        "controlId": "chromatography_paper",
+        "mode": "spot_2",
+        "at": "chromatography_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "shoulder_pan": -30.97,
+          "shoulder_lift": 18.89,
+          "elbow_flex": 40.66,
+          "wrist_flex": 9.93,
+          "wrist_roll": -17.37,
+          "gripper": 50
+        },
+        "speed": 45
+      },
+      {
+        "type": "place",
+        "objectId": "capillary",
+        "zoneId": "supply_zone"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "capillary",
+          "at": "supply_zone"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_joints",
+          "joints": {
+            "shoulder_pan": -30.97,
+            "shoulder_lift": 18.89,
+            "elbow_flex": 40.66,
+            "wrist_flex": 9.93,
+            "wrist_roll": -17.37,
+            "gripper": 50
+          },
+          "speed": 45
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "capillary",
+          "at": "supply_zone"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

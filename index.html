@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoboBuddy</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R8K8CD1Y8S"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R8K8CD1Y8S');
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260811-unitree-g1-solu-1">
+  <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260718-calm-workbench-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260719-remediation-1">
+  <link rel="stylesheet" href="css/workbench-main.css?v=20260719-remediation-1">
+  <link rel="stylesheet" href="css/phone-leader.css?v=20260719-phone-leader-a4-1">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.184.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="workbench-page workbench-page--operational index-3d-page" data-page="main" data-workbench-mode="blockly">
+  <a class="workbench-skip" href="#main-content">Skip to main workbench</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html" aria-current="page"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="lab-scenarios.html"><i data-lucide="flask-conical" aria-hidden="true"></i><span>Lab Tasks</span></a>
+      <a class="workbench-rail__link" href="python-docs.html"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+  <header class="topbar">
+    <div class="topbar__brand">
+      <div class="topbar__logo topbar__logo--image" aria-hidden="true">
+        <img src="assets/logo.png" alt="" width="52" height="52">
+      </div>
+      <div>
+        <h1 class="topbar__title"><i class="topbar__title-icon" data-lucide="layout-dashboard" aria-hidden="true"></i> RoboBuddy</h1>
+        <p class="topbar__subtitle">Robotic Arm Control</p>
+      </div>
+    </div>
+
+    <div class="topbar__controls">
+      <label class="topbar__robot-select" for="robotChooser">
+        <span class="visually-hidden">Robot</span>
+        <select id="robotChooser" aria-label="Robot"></select>
+      </label>
+      <div class="workbench-target" data-execution-target="simulation" aria-label="Execution target: Simulation">
+        <i data-lucide="monitor" aria-hidden="true"></i><span>Simulation</span>
+      </div>
+      <button class="btn btn--connect" id="btnConnect" title="Connect Serial (USB/Bluetooth) (Ctrl+B)" aria-keyshortcuts="Control+B" data-hint="Connect Serial (USB/Bluetooth) (Ctrl+B)">
+        <i data-lucide="plug"></i>
+        <span>Connect</span>
+      </button>
+      <button class="btn btn--home" id="btnHome" title="Move arm to home position (Ctrl+H)" aria-label="Move arm to home position" aria-keyshortcuts="Control+H" data-hint="Move arm to home position (Ctrl+H)">
+        <svg class="btn__robot-arm-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M159-120v-120h124L181-574q-27-15-44.5-44T119-680q0-50 35-85t85-35q39 0 69.5 22.5T351-720h128v-40q0-17 11.5-28.5T519-800q9 0 17.5 4t14.5 12l68-64q9-9 21.5-11.5T665-856l156 72q12 6 16.5 17.5T837-744q-6 12-17.5 15.5T797-730l-144-66-94 88v56l94 86 144-66q11-5 23-1t17 15q6 12 1 23t-17 17l-156 74q-12 6-24.5 3.5T619-512l-68-64q-6 6-14.5 11t-17.5 5q-17 0-28.5-11.5T479-600v-40H351q-3 8-6.5 15t-9.5 15l200 370h144v120H159Zm80-520q17 0 28.5-11.5T279-680q0-17-11.5-28.5T239-720q-17 0-28.5 11.5T199-680q0 17 11.5 28.5T239-640Zm126 400h78L271-560h-4l98 320Zm78 0Z"/>
+        </svg>
+        <span>Move Arm Home</span>
+      </button>
+      <button class="btn btn--stop-big" id="btnEmergencyStop" title="Emergency Stop (Esc)" aria-keyshortcuts="Escape" data-hint="Emergency Stop (Esc)">
+        <i data-lucide="octagon-alert"></i>
+        <span>Emergency Stop</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace workspace--index" id="main-content" tabindex="-1">
+    <section class="workspace-panel workspace-panel--block" id="panelBlock">
+      <section class="index-3d-workbench" aria-label="RoboBuddy 3D workbench">
+        <div class="manual-mode-selector workbench-mode-strip" id="manualModeSelector" role="tablist" aria-label="Workbench mode">
+          <button type="button" role="tab" id="workbenchModeBlockly" data-workbench-mode-option="blockly" aria-controls="blocklyDiv" aria-selected="true">Blockly</button>
+          <button type="button" role="tab" id="manualModeJoints" data-workbench-mode-option="joints" data-manual-mode-option="joints" aria-controls="manualJointsPanel" aria-selected="false" tabindex="-1">Joints</button>
+          <button type="button" role="tab" id="manualModeLeader" data-workbench-mode-option="leader" data-manual-mode-option="leader" aria-controls="virtualLeaderPanel" aria-selected="false" aria-disabled="true" data-disabled-reason="Leader is available for the SO-101 follower." tabindex="-1">Leader</button>
+          <button type="button" role="tab" id="manualModeTeach" data-workbench-mode-option="teach" data-manual-mode-option="teach" aria-controls="teachControlsPanel" aria-selected="false" aria-disabled="true" data-disabled-reason="Teach is unavailable for this robot." tabindex="-1">Teach</button>
+        </div>
+        <div class="index-3d-main-split" data-3d-split-scope="inner"
+          data-split-layout data-split-id="main" data-split-version="2"
+          data-split-storage-key="robobuddy:layout:main:v2"
+          data-split-names="workspace,bridge,preview"
+          data-split-labels="Active workspace,Bridge &amp; Consoles,Arm Preview"
+          data-split-defaults="0.43,0.33,0.24" data-split-mins="480,360,280">
+          <div class="index-3d-block-manual-group" id="mainWorkspacePane" data-split-pane="workspace" data-3d-split-scope="outer">
+          <section class="workspace__editor workspace__editor--block index-3d-block-card">
+            <div class="index-3d-card-header workspace__editor-title">
+              <div class="panel-label"><i data-lucide="puzzle"></i> Blockly</div>
+            </div>
+            <div id="blocklyDiv"></div>
+            <div class="python-draft__runbar python-draft__actionbar index-3d-block-actionbar">
+              <label class="motors-toggle motors-toggle--block" for="motorsEnabled">
+                <i data-lucide="power"></i>
+                <span>Motors Enabled</span>
+                <input type="checkbox" id="motorsEnabled">
+              </label>
+              <span class="python-draft__action-divider" aria-hidden="true"></span>
+              <div class="python-draft__actions python-draft__actions--run index-3d-block-actions" aria-label="Block Editor Controls">
+                <span class="python-draft__tool" data-button-hint-host data-hint="Run Program (Space)">
+                  <button class="btn btn--run btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnRun" title="Run Program (Space)" aria-label="Run Program (Space)" aria-keyshortcuts="Space" data-hint="Run Program (Space)">
+                    <i data-lucide="play"></i>
+                    <span>Run</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Pause Program (P)">
+                  <button class="btn btn--home btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnPause" title="Pause Program (P)" aria-label="Pause Program (P)" aria-keyshortcuts="P" data-hint="Pause Program (P)">
+                    <i data-lucide="pause"></i>
+                    <span>Pause</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Stop Program (Space)">
+                  <button class="btn btn--stop btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnStop" title="Stop Program (Space)" aria-label="Stop Program (Space)" aria-keyshortcuts="Space" data-hint="Stop Program (Space)">
+                    <i data-lucide="square"></i>
+                    <span>Stop</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Reset all joints to 90 deg default">
+                  <button class="btn btn--home btn--icon-only btn--reset-default python-draft__icon-btn python-draft__action-btn" id="btnResetDefault" title="Reset all joints to 90 deg default" aria-label="Reset to default 90 degrees" data-hint="Reset all joints to 90 deg default">
+                    <i data-lucide="rotate-ccw"></i>
+                    <span>Reset</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Load from templates">
+                  <button class="btn btn--load btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnLoad" title="Load from templates" aria-label="Load from templates" data-hint="Load from templates">
+                    <i data-lucide="folder-open"></i>
+                    <span>Load from templates</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Save user blocks (Ctrl+S)">
+                  <button class="btn btn--save btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnSave" title="Save user blocks (Ctrl+S)" aria-label="Save user blocks (Ctrl+S)" aria-keyshortcuts="Control+S" data-hint="Save user blocks (Ctrl+S)">
+                    <i data-lucide="save"></i>
+                    <span>Save</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Load user blocks">
+                  <button class="btn btn--load btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnLoadUserBlocks" title="Load user blocks" aria-label="Load user blocks" data-hint="Load user blocks">
+                    <i data-lucide="upload"></i>
+                    <span>Load user blocks</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Legacy browser saves" hidden>
+                  <button class="btn btn--load btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnLegacyBrowserSaves" title="Legacy browser saves" aria-label="Legacy browser saves" data-hint="Legacy browser saves" hidden>
+                    <i data-lucide="archive"></i>
+                    <span>Legacy browser saves</span>
+                  </button>
+                </span>
+                <span class="python-draft__tool" data-button-hint-host data-hint="Clear Workspace">
+                  <button class="btn btn--clear btn--icon-only python-draft__icon-btn python-draft__action-btn" id="btnClear" title="Clear Workspace" aria-label="Clear Workspace" data-hint="Clear Workspace">
+                    <i data-lucide="trash-2"></i>
+                    <span>Clear</span>
+                  </button>
+                </span>
+              </div>
+            </div>
+            <xml id="toolbox" style="display: none"></xml>
+          </section>
+
+            <section class="sidebar-card sidebar__controls index-3d-manual-card">
+              <div class="index-3d-card-header">
+                <div class="panel-label" data-workbench-inspector-title><i data-lucide="sliders-horizontal"></i> Joint Control</div>
+              </div>
+              <section class="virtual-leader" id="virtualLeaderPanel" role="tabpanel" aria-labelledby="manualModeLeader" hidden>
+                <div class="virtual-leader__readiness">
+                  <div>
+                    <span class="virtual-leader__eyebrow">Joint-space follower</span>
+                    <strong id="leaderReadinessTitle">Align before driving</strong>
+                  </div>
+                  <span class="virtual-leader__state" id="leaderStateChip" data-tone="idle">Unaligned</span>
+                </div>
+                <p class="virtual-leader__status" id="leaderStatus" role="status" aria-live="polite" aria-atomic="true">Select Align to copy the complete measured pose. No motion is sent.</p>
+                <div class="virtual-leader__actions">
+                  <button class="btn virtual-leader__align" id="leaderAlign" type="button">
+                    <i data-lucide="scan-line" aria-hidden="true"></i>
+                    <span>Align to robot</span>
+                  </button>
+                </div>
+                <section class="range-recovery" id="leaderRangeRecovery" aria-labelledby="leaderRangeRecoveryTitle" hidden>
+                  <strong id="leaderRangeRecoveryTitle">Bounded recovery required</strong>
+                  <p id="leaderRangeRecoveryMessage">One joint is outside the conservative Leader range.</p>
+                  <button class="btn range-recovery__hold" id="leaderRangeRecoveryHold" type="button">
+                    <i data-lucide="corner-up-left" aria-hidden="true"></i>
+                    <span>Hold to return toward range</span>
+                  </button>
+                  <small>Only the named joint can move, inward at Fine speed. Release holds the measured pose.</small>
+                </section>
+                <div class="leader-pair-selector" role="group" aria-label="Linked joint pair">
+                  <button type="button" data-leader-pair="base" aria-pressed="true"><span>1</span> Base</button>
+                  <button type="button" data-leader-pair="bend" aria-pressed="false"><span>2</span> Bend</button>
+                  <button type="button" data-leader-pair="tool" aria-pressed="false"><span>3</span> Tool</button>
+                </div>
+                <div class="leader-pad-wrap">
+                  <div class="leader-pad" id="leaderPad" role="group" tabindex="0" aria-label="Linked velocity pad. Hold and drag to drive the selected joint pair." aria-describedby="leaderPadHint">
+                    <span class="leader-pad__axis leader-pad__axis--horizontal" id="leaderPadHorizontal">Shoulder Pan</span>
+                    <span class="leader-pad__axis leader-pad__axis--vertical" id="leaderPadVertical">Shoulder Lift</span>
+                    <span class="leader-pad__cross" aria-hidden="true"></span>
+                    <span class="leader-pad__dead-zone" aria-hidden="true"></span>
+                    <span class="leader-pad__thumb" id="leaderPadThumb" aria-hidden="true"></span>
+                  </div>
+                  <p id="leaderPadHint">Press and hold to drive. Return to center to pause; release to hold.</p>
+                </div>
+                <div class="leader-speed-selector" role="group" aria-label="Leader speed">
+                  <button type="button" data-leader-speed="fine" aria-pressed="false">Fine</button>
+                  <button type="button" data-leader-speed="normal" aria-pressed="true">Normal</button>
+                  <button type="button" data-leader-speed="coarse" aria-pressed="false">Coarse</button>
+                </div>
+                <button class="btn virtual-leader__cancel" id="leaderCancel" type="button" disabled>
+                  <i data-lucide="hand" aria-hidden="true"></i>
+                  <span>Cancel &amp; hold</span>
+                </button>
+                <section class="leader-gamepad" id="leaderGamepad" aria-labelledby="leaderGamepadTitle" data-state="off">
+                  <button class="btn virtual-leader__controller" id="leaderGamepadQuickEnable" type="button" aria-controls="leaderGamepad">
+                    <i data-lucide="gamepad-2" aria-hidden="true"></i>
+                    <span>Set up controller</span>
+                  </button>
+                  <div class="leader-gamepad__header">
+                    <div>
+                      <span class="virtual-leader__eyebrow">Xbox / standard gamepad</span>
+                      <strong id="leaderGamepadTitle">Controller input</strong>
+                    </div>
+                    <span class="leader-gamepad__state" id="leaderGamepadState" data-tone="idle">Off</span>
+                  </div>
+                  <p class="leader-gamepad__status" id="leaderGamepadStatus" role="status" aria-live="polite" aria-atomic="true">Pair the controller in Windows, then enable discovery here. RoboBuddy does not use Web Bluetooth.</p>
+                  <div class="leader-gamepad__actions">
+                    <button class="btn leader-gamepad__enable" id="leaderGamepadEnable" type="button">Enable controller</button>
+                    <button class="btn leader-gamepad__disable" id="leaderGamepadDisable" type="button" disabled>Disable</button>
+                  </div>
+                  <div class="leader-gamepad__picker" id="leaderGamepadPicker" hidden>
+                    <label for="leaderGamepadSelect">Detected controller</label>
+                    <div>
+                      <select id="leaderGamepadSelect" aria-describedby="leaderGamepadStatus"></select>
+                      <button class="btn" id="leaderGamepadUse" type="button" disabled>Use controller</button>
+                    </div>
+                  </div>
+                  <div class="leader-gamepad__readouts" role="group" aria-label="Controller readouts">
+                    <span id="leaderGamepadControllerName">Controller &mdash;</span>
+                    <span id="leaderGamepadPair">Pair Base</span>
+                    <span id="leaderGamepadSpeed">Speed Normal</span>
+                    <span id="leaderGamepadFreshness">Reports —</span>
+                  </div>
+                  <details class="leader-gamepad__mapping" id="leaderGamepadMapping">
+                    <summary>Xbox mapping</summary>
+                    <dl>
+                      <div><dt>Left stick</dt><dd>Selected joint pair</dd></div>
+                      <div><dt>RT</dt><dd>Hold-to-drive deadman</dd></div>
+                      <div><dt>LB</dt><dd>Fine while held</dd></div>
+                      <div><dt>D-pad ←/→</dt><dd>Pair while idle</dd></div>
+                      <div><dt>X</dt><dd>Cancel &amp; measured hold</dd></div>
+                      <div><dt>B</dt><dd>Emergency STOP</dd></div>
+                    </dl>
+                    <p>Right stick, LT, RB, A, Y, Menu, View, and haptics are unused in this profile.</p>
+                  </details>
+                </section>
+                <div class="leader-precision" id="leaderPrecision" aria-label="Selected pair precision controls">
+                  <div class="leader-precision__row">
+                    <span id="leaderPrecisionHorizontalLabel">Shoulder Pan</span>
+                    <button type="button" data-leader-precision-axis="horizontal" data-leader-direction="-1" aria-label="Decrease horizontal joint">−</button>
+                    <output id="leaderPrecisionHorizontalValue">0.0°</output>
+                    <button type="button" data-leader-precision-axis="horizontal" data-leader-direction="1" aria-label="Increase horizontal joint">+</button>
+                  </div>
+                  <div class="leader-precision__row">
+                    <span id="leaderPrecisionVerticalLabel">Shoulder Lift</span>
+                    <button type="button" data-leader-precision-axis="vertical" data-leader-direction="-1" aria-label="Decrease vertical joint">−</button>
+                    <output id="leaderPrecisionVerticalValue">−90.0°</output>
+                    <button type="button" data-leader-precision-axis="vertical" data-leader-direction="1" aria-label="Increase vertical joint">+</button>
+                  </div>
+                </div>
+                <details class="leader-values" id="leaderValues">
+                  <summary>All six values</summary>
+                  <div class="leader-values__table-wrap">
+                    <table>
+                      <thead><tr><th>Joint</th><th>Input</th><th>Target</th><th>Measured</th><th>Δ</th></tr></thead>
+                      <tbody id="leaderValuesBody"></tbody>
+                    </table>
+                  </div>
+                </details>
+                <div class="leader-telemetry" aria-label="Leader telemetry">
+                  <span id="leaderMeasuredAge">Measured —</span>
+                  <span id="leaderOwner">Owner idle</span>
+                  <span id="leaderFrameRate">REST 30 Hz max</span>
+                </div>
+                <button class="leader-diagnostics-export" id="leaderExportDiagnostics" type="button">Export safe diagnostics</button>
+              </section>
+              <section class="teach-controls" id="teachControlsPanel" role="tabpanel" aria-labelledby="manualModeTeach" aria-label="Teach mode controls">
+                <div class="teach-controls__row">
+                  <label class="motors-toggle teach-controls__toggle" for="teachModeEnabled">
+                    <span>Teach Mode</span>
+                    <input type="checkbox" id="teachModeEnabled">
+                  </label>
+                  <div class="teach-controls__actions" role="group" aria-label="Teach session actions">
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Start teach recording">
+                      <button class="btn btn--run btn--icon-only" id="btnTeachStart" aria-label="Start teach recording" title="Start teach recording" data-hint="Start teach recording">
+                        <i data-lucide="circle-dot"></i>
+                        <span>Start</span>
+                      </button>
+                    </span>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Pause teach recording">
+                      <button class="btn btn--home btn--icon-only" id="btnTeachPause" aria-label="Pause teach recording" title="Pause teach recording" data-hint="Pause teach recording">
+                        <i data-lucide="pause"></i>
+                        <span>Pause</span>
+                      </button>
+                    </span>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Resume teach recording">
+                      <button class="btn btn--run btn--icon-only" id="btnTeachResume" aria-label="Resume teach recording" title="Resume teach recording" data-hint="Resume teach recording">
+                        <i data-lucide="play"></i>
+                        <span>Resume</span>
+                      </button>
+                    </span>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Stop teach recording">
+                      <button class="btn btn--stop btn--icon-only" id="btnTeachStop" aria-label="Stop teach recording" title="Stop teach recording" data-hint="Stop teach recording">
+                        <i data-lucide="square"></i>
+                        <span>Stop</span>
+                      </button>
+                    </span>
+                    <details class="teach-secondary-menu">
+                      <summary>Session</summary>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Discard current teach session">
+                      <button class="btn btn--clear btn--icon-only" id="btnTeachDiscard" aria-label="Discard current teach session" title="Discard current teach session" data-hint="Discard current teach session">
+                        <i data-lucide="x"></i>
+                        <span>Discard</span>
+                      </button>
+                    </span>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Replay saved teach session">
+                      <button class="btn btn--run btn--icon-only" id="btnTeachReplay" aria-label="Replay saved teach session" title="Replay saved teach session" data-hint="Replay saved teach session">
+                        <i data-lucide="history"></i>
+                        <span>Replay</span>
+                      </button>
+                    </span>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Save current teach session">
+                      <button class="btn btn--save btn--icon-only" id="btnTeachSave" aria-label="Save current teach session" title="Save current teach session" data-hint="Save current teach session">
+                        <i data-lucide="save"></i>
+                        <span>Save</span>
+                      </button>
+                    </span>
+                    <span class="teach-controls__tool" data-button-hint-host data-hint="Load teach workflow">
+                      <button class="btn btn--load btn--icon-only" id="btnTeachLoad" aria-label="Load teach workflow" title="Load teach workflow" data-hint="Load teach workflow">
+                        <i data-lucide="folder-open"></i>
+                        <span>Load</span>
+                      </button>
+                    </span>
+                    </details>
+                  </div>
+                </div>
+                <p class="teach-controls__status" id="teachStatusText" aria-live="polite" data-tone="ready">Teach mode off. Enable Teach Mode to begin.</p>
+              </section>
+              <div class="robot-drive-controls" id="robotDriveControls" hidden></div>
+              <div class="robot-humanoid-controls" id="robotHumanoidControls" hidden></div>
+              <div id="manualJointsPanel" role="tabpanel" aria-labelledby="manualModeJoints">
+              <div class="manual-control-meta" id="manualControlMeta" data-tone="preview" aria-label="Preview. Default software limits are active.">
+                <span class="manual-control-meta__dot" aria-hidden="true"></span>
+                <span id="manualControlMetaText" role="status" aria-live="polite" aria-atomic="true">Preview · Default limits</span>
+                <button class="manual-control-meta__arm" id="manualArmAction" type="button" hidden>Arm</button>
+                <button class="manual-control-meta__info" id="manualLimitInfo" type="button" aria-label="About safe limits" aria-expanded="false" aria-controls="manualLimitDetails" hidden>
+                  <i data-lucide="info"></i>
+                </button>
+                <span class="manual-control-meta__details" id="manualLimitDetails" role="note" hidden>Usable targets stay 5° or 5% inside the servo-register limits. Wrist Roll manual control is temporarily limited to −43.2° through 52.2°. These limits do not prevent self-collision.</span>
+              </div>
+              <div class="servo-sliders">
+                <div class="servo-channel servo-channel--base">
+                  <label class="servo-channel__label" for="slider0"><span class="servo-channel__dot"></span>Base</label>
+                  <input type="range" class="servo-slider" id="slider0" min="20" max="130" value="90" data-servo="0" aria-describedby="val0">
+                  <span class="servo-channel__value" id="val0">90 deg</span>
+                </div>
+
+                <div class="servo-channel servo-channel--shoulder">
+                  <label class="servo-channel__label" for="slider1"><span class="servo-channel__dot"></span>Shoulder</label>
+                  <input type="range" class="servo-slider" id="slider1" min="15" max="165" value="90" data-servo="1" aria-describedby="val1">
+                  <span class="servo-channel__value" id="val1">90 deg</span>
+                </div>
+
+                <div class="servo-channel servo-channel--elbow">
+                  <label class="servo-channel__label" for="slider2"><span class="servo-channel__dot"></span>Elbow</label>
+                  <input type="range" class="servo-slider" id="slider2" min="0" max="180" value="90" data-servo="2" aria-describedby="val2">
+                  <span class="servo-channel__value" id="val2">90 deg</span>
+                </div>
+
+                <div class="servo-channel servo-channel--wrist-rot">
+                  <label class="servo-channel__label" for="slider3"><span class="servo-channel__dot"></span>Wrist Rot</label>
+                  <input type="range" class="servo-slider" id="slider3" min="0" max="180" value="90" data-servo="3" aria-describedby="val3">
+                  <span class="servo-channel__value" id="val3">90 deg</span>
+                </div>
+
+                <div class="servo-channel servo-channel--wrist-tilt">
+                  <label class="servo-channel__label" for="slider4"><span class="servo-channel__dot"></span>Wrist Tilt</label>
+                  <input type="range" class="servo-slider" id="slider4" min="0" max="180" value="90" data-servo="4" aria-describedby="val4">
+                  <span class="servo-channel__value" id="val4">90 deg</span>
+                </div>
+
+                <div class="servo-channel servo-channel--gripper">
+                  <label class="servo-channel__label" for="slider5"><span class="servo-channel__dot"></span>Gripper</label>
+                  <input type="range" class="servo-slider" id="slider5" min="25" max="130" value="90" data-servo="5" aria-describedby="val5">
+                  <span class="servo-channel__value" id="val5">90 deg</span>
+                </div>
+              </div>
+              </div>
+              <section class="robot-bridge-panel" id="robotBridgePanel" hidden aria-label="SO-101 local bridge">
+                <div class="robot-bridge-panel__header">
+                  <div class="panel-label"><i data-lucide="radio-tower"></i> Local Bridge</div>
+                  <div class="robot-bridge-panel__steps" role="list" aria-label="SO-101 hardware readiness">
+                    <span class="robot-bridge-step" id="bridgeStepBridge" role="listitem" data-state="pending" data-label="Bridge" data-short="Link" title="Bridge: pending" aria-label="Bridge: pending">Bridge</span>
+                    <span class="robot-bridge-step" id="bridgeStepPort" role="listitem" data-state="pending" data-label="Port" data-short="Port" title="Port: pending" aria-label="Port: pending">Port</span>
+                    <span class="robot-bridge-step" id="bridgeStepCalibration" role="listitem" data-state="pending" data-label="Calibration" data-short="Cal" title="Calibration: pending" aria-label="Calibration: pending">Calibration</span>
+                    <span class="robot-bridge-step" id="bridgeStepMotion" role="listitem" data-state="pending" data-label="Arm Motion" data-short="Arm" title="Arm Motion: pending" aria-label="Arm Motion: pending">Arm Motion</span>
+                  </div>
+                </div>
+                <div class="robot-bridge-panel__port-row">
+                  <label class="robot-bridge-panel__field" for="bridgePortSelect">
+                    <span>SO-101 port</span>
+                    <select id="bridgePortSelect">
+                      <option value="">Test bridge to load ports</option>
+                    </select>
+                  </label>
+                  <button class="btn btn--load" id="btnBridgeHealth" type="button" title="Test bridge" data-hint="Test bridge">
+                    <i data-lucide="activity"></i>
+                    <span>Test Bridge</span>
+                  </button>
+                </div>
+                <div class="robot-bridge-panel__connect-row">
+                  <button class="btn btn--connect" id="btnBridgeConnect" type="button" title="Connect SO-101" data-hint="Connect SO-101">
+                    <i data-lucide="plug-zap"></i>
+                    <span>Connect SO-101</span>
+                  </button>
+                  <button class="btn btn--clear" id="btnBridgeDisconnect" type="button" title="Disconnect SO-101" data-hint="Disconnect SO-101" hidden>
+                    <i data-lucide="unplug"></i>
+                    <span>Disconnect</span>
+                  </button>
+                </div>
+                <div class="robot-bridge-panel__session-row">
+                  <label class="robot-bridge-panel__check robot-bridge-panel__check--arm" for="bridgeSafetyConfirm">
+                    <input id="bridgeSafetyConfirm" type="checkbox" disabled>
+                    <span>Arm motion for this session</span>
+                  </label>
+                  <p class="robot-bridge-panel__status" id="bridgeStatus" data-tone="warning" aria-live="polite">Bridge not tested. Hardware motion is blocked.</p>
+                </div>
+                <details class="robot-bridge-panel__advanced">
+                  <summary>Diagnostics</summary>
+                  <label class="robot-bridge-panel__field" for="bridgeUrl">
+                    <span>Bridge URL</span>
+                    <input id="bridgeUrl" type="url" value="http://127.0.0.1:8765" spellcheck="false">
+                  </label>
+                  <label class="robot-bridge-panel__field" for="bridgeRobotInstance">
+                    <span>Robot instance id</span>
+                    <input id="bridgeRobotInstance" type="text" value="classroom_so101_01" spellcheck="false">
+                  </label>
+                  <label class="robot-bridge-panel__field" for="bridgeGripperMapping">
+                    <span>Gripper direction</span>
+                    <select id="bridgeGripperMapping">
+                      <option value="closed_at_min" selected>Closes toward lower raw limit</option>
+                      <option value="closed_at_max">Closes toward upper raw limit</option>
+                    </select>
+                  </label>
+                  <div class="robot-bridge-panel__auth-row">
+                    <label class="robot-bridge-panel__field" for="bridgeToken">
+                      <span>Bridge token</span>
+                      <input id="bridgeToken" type="password" autocomplete="off" spellcheck="false">
+                    </label>
+                    <label class="robot-bridge-panel__check robot-bridge-panel__check--local" for="bridgeLocalNoToken" title="Use only with a bridge started using --no-token or -NoToken">
+                      <input id="bridgeLocalNoToken" type="checkbox">
+                      <span>No-token local</span>
+                    </label>
+                  </div>
+                  <section class="robot-bridge-panel__limit-diagnostics" id="bridgeLimitDiagnostics" aria-labelledby="bridgeLimitDiagnosticsTitle" hidden>
+                    <div class="robot-bridge-panel__limit-heading">
+                      <strong id="bridgeLimitDiagnosticsTitle">Servo limits</strong>
+                      <span id="bridgeLimitDiagnosticsStatus">Hardware</span>
+                    </div>
+                    <div class="robot-bridge-panel__limit-list" id="bridgeLimitDiagnosticsRows"></div>
+                  </section>
+                </details>
+              </section>
+            </section>
+          </div>
+
+            <aside class="index-3d-side-column" aria-label="Persistent Bridge and robot preview panes">
+                <div class="workbench-splitter" id="mainWorkspaceBridgeSplitter" data-splitter-index="0"
+                  role="separator" aria-orientation="vertical" aria-label="Resize Active workspace and Bridge &amp; Consoles"
+                  aria-controls="mainWorkspacePane mainBridgePane" tabindex="0"
+                  title="Resize Active workspace and Bridge &amp; Consoles. Arrow keys resize; Enter resets."></div>
+
+                <section class="gemini-draft__arm-console index-3d-console-panel workbench-collapsible" id="mainBridgePane" data-split-pane="bridge" aria-label="Bridge &amp; Consoles">
+                  <button class="gemini-draft__console-toggle workbench-collapsible__toggle" id="btnIndexConsoleToggle" type="button" aria-expanded="true" aria-controls="indexConsolePanelBody" aria-label="Hide Bridge &amp; Consoles" title="Hide Bridge &amp; Consoles" data-hint="Hide Bridge &amp; Consoles">
+                    <span class="panel-label"><i data-lucide="shield"></i> Bridge &amp; Consoles</span>
+                    <span class="workbench-drawer__summary">
+                      <span class="topbar__status" aria-live="polite">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span class="status-text" id="statusText">Disconnected</span>
+                      </span>
+                      <span aria-hidden="true">&middot;</span>
+                      <span id="workbenchBridgeSummary">Hardware motion blocked</span>
+                    </span>
+                    <span class="gemini-draft__console-toggle-icon workbench-collapsible__chevron" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                  </button>
+                  <div class="gemini-draft__arm-console-content index-3d-console-body workbench-collapsible__body" id="indexConsolePanelBody">
+                    <div class="workbench-drawer__tabs" role="tablist" aria-label="Bridge and console panels">
+                      <button type="button" role="tab" data-drawer-tab="bridge" aria-controls="drawerPanelBridge" aria-selected="true">Bridge</button>
+                      <button type="button" role="tab" data-drawer-tab="leader" aria-controls="drawerPanelLeader" aria-selected="false" tabindex="-1">Leader details</button>
+                      <button type="button" role="tab" data-drawer-tab="serial" aria-controls="drawerPanelSerial" aria-selected="false" tabindex="-1">Serial</button>
+                      <button type="button" role="tab" data-drawer-tab="debug" aria-controls="drawerPanelDebug" aria-selected="false" tabindex="-1">Debug</button>
+                      <button type="button" role="tab" data-drawer-tab="program" aria-controls="drawerPanelProgram" aria-selected="false" tabindex="-1">Program Status</button>
+                    </div>
+                    <div class="workbench-drawer__panels">
+                      <section class="workbench-drawer__panel" id="drawerPanelBridge" role="tabpanel" data-drawer-panel="bridge">
+                        <div id="workbenchBridgeMount"></div>
+                        <section class="phone-leader" id="phoneLeaderPanel" aria-labelledby="phoneLeaderTitle" data-availability="unavailable">
+                          <header class="phone-leader__entry">
+                            <div class="phone-leader__entry-title">
+                              <span class="phone-leader__eyebrow">Cartesian supervision</span>
+                              <h2 id="phoneLeaderTitle"><i data-lucide="smartphone" aria-hidden="true"></i> Phone Leader</h2>
+                            </div>
+                            <span class="phone-leader__state" id="phoneLeaderStateChip" data-tone="warning">Bridge update required</span>
+                            <button class="phone-leader__toggle" id="phoneLeaderToggle" type="button" aria-expanded="false" aria-controls="phoneLeaderBody">
+                              <span>Open supervisor</span>
+                              <i data-lucide="chevron-down" aria-hidden="true"></i>
+                            </button>
+                          </header>
+                          <p class="phone-leader__status" id="phoneLeaderStatus" data-tone="warning">
+                            Update the local bridge to a version with Phone Leader v1. Existing simulation and joint controls remain available.
+                          </p>
+                          <span class="visually-hidden" id="phoneLeaderAnnouncements" role="status" aria-live="polite" aria-atomic="true"></span>
+
+                          <div class="phone-leader__body" id="phoneLeaderBody" hidden>
+                            <div class="phone-leader__summary" aria-label="Phone Leader state summary">
+                              <span><b>Robot</b><output id="phoneLeaderRobotState">BRIDGE_UNAVAILABLE</output></span>
+                              <span><b>Phone</b><output id="phoneLeaderSourceState">UNPAIRED</output></span>
+                              <span><b>Owner</b><output id="phoneLeaderOwner">idle</output></span>
+                            </div>
+
+                            <section class="phone-leader__section" aria-labelledby="phoneLeaderReadinessTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">Motion gate</span>
+                                  <h3 id="phoneLeaderReadinessTitle">Readiness chain</h3>
+                                </div>
+                                <button class="phone-leader__icon-button" id="phoneLeaderRefresh" type="button" aria-label="Refresh Phone Leader status" title="Refresh status">
+                                  <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                                </button>
+                              </div>
+                              <ol class="phone-leader__readiness" aria-label="Phone Leader readiness">
+                                <li data-phone-readiness="bridge" data-state="pending"><span>1</span><div><b>Bridge</b><small>Unavailable</small></div></li>
+                                <li data-phone-readiness="robot" data-state="pending"><span>2</span><div><b>Robot</b><small>Disconnected</small></div></li>
+                                <li data-phone-readiness="calibration" data-state="pending"><span>3</span><div><b>Calibration</b><small>Not verified</small></div></li>
+                                <li data-phone-readiness="limits" data-state="pending"><span>4</span><div><b>Limits</b><small>Not verified</small></div></li>
+                                <li data-phone-readiness="arm" data-state="pending"><span>5</span><div><b>Arm</b><small>Disarmed</small></div></li>
+                                <li data-phone-readiness="phone" data-state="pending"><span>6</span><div><b>Phone</b><small>Unpaired</small></div></li>
+                                <li data-phone-readiness="tracking" data-state="pending"><span>7</span><div><b>Tracking</b><small>Unavailable</small></div></li>
+                                <li data-phone-readiness="alignment" data-state="pending"><span>8</span><div><b>Alignment</b><small>Required</small></div></li>
+                                <li data-phone-readiness="owner" data-state="pending"><span>9</span><div><b>Owner</b><small>Idle</small></div></li>
+                              </ol>
+                            </section>
+
+                            <section class="phone-leader__section phone-leader__pairing" aria-labelledby="phoneLeaderPairingTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">Short-lived access</span>
+                                  <h3 id="phoneLeaderPairingTitle">Pair Android phone</h3>
+                                </div>
+                                <span class="phone-leader__pair-expiry" id="phoneLeaderPairExpiry">No active code</span>
+                              </div>
+                              <div class="phone-leader__pair-grid">
+                                <div class="phone-leader__qr" id="phoneLeaderQrFrame" data-state="empty">
+                                  <img id="phoneLeaderQrImage" alt="One-time Phone Leader pairing QR code" hidden>
+                                  <span id="phoneLeaderQrPlaceholder"><i data-lucide="qr-code" aria-hidden="true"></i>QR supplied by bridge</span>
+                                </div>
+                                <div class="phone-leader__pair-copy">
+                                  <p>Pairing never arms the robot. Scan only while this local window is open.</p>
+                                  <a id="phoneLeaderPairLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Open one-time phone link</a>
+                                  <div class="phone-leader__button-row">
+                                    <button class="btn" id="phoneLeaderPair" type="button">Create pairing</button>
+                                    <button class="btn" id="phoneLeaderCancelPair" type="button" disabled>Cancel code</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </section>
+
+                            <section class="phone-leader__section" aria-labelledby="phoneLeaderControlTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">Before engagement</span>
+                                  <h3 id="phoneLeaderControlTitle">Control profile</h3>
+                                </div>
+                                <span class="phone-leader__lock-note" id="phoneLeaderConfigLock">Editable while idle</span>
+                              </div>
+                              <fieldset class="phone-leader__choice" id="phoneLeaderMode" data-phone-config-group>
+                                <legend>Orientation</legend>
+                                <label><input type="radio" name="phoneLeaderOrientation" value="position_only" checked> <span>Position only</span></label>
+                                <label><input type="radio" name="phoneLeaderOrientation" value="soft_orientation"> <span>Soft orientation — best effort</span></label>
+                              </fieldset>
+                              <fieldset class="phone-leader__choice" id="phoneLeaderScale" data-phone-config-group>
+                                <legend>Scale</legend>
+                                <label><input type="radio" name="phoneLeaderScale" value="fine"> <span>Fine</span></label>
+                                <label><input type="radio" name="phoneLeaderScale" value="normal" checked> <span>Normal</span></label>
+                                <label><input type="radio" name="phoneLeaderScale" value="coarse"> <span>Coarse</span></label>
+                              </fieldset>
+                              <div class="phone-leader__fields">
+                                <label for="phoneLeaderWorkspace">
+                                  <span>Workspace</span>
+                                  <select id="phoneLeaderWorkspace" data-phone-config>
+                                    <option value="conservative">Conservative desk</option>
+                                    <option value="narrow">Narrow qualification</option>
+                                  </select>
+                                </label>
+                                <label for="phoneLeaderGripperSpeed">
+                                  <span>Gripper speed <output id="phoneLeaderGripperSpeedValue">35%/s</output></span>
+                                  <input id="phoneLeaderGripperSpeed" data-phone-config type="range" min="5" max="35" step="5" value="35">
+                                </label>
+                              </div>
+                              <aside class="phone-leader__recenter">
+                                <i data-lucide="locate-fixed" aria-hidden="true"></i>
+                                <p><b>Recenter before Align.</b> Hold the phone comfortably inside the tracking area, release the move control, then align. Release to stop motion.</p>
+                              </aside>
+                            </section>
+
+                            <section class="phone-leader__section" aria-labelledby="phoneLeaderActionsTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">Supervisory requests</span>
+                                  <h3 id="phoneLeaderActionsTitle">Robot actions</h3>
+                                </div>
+                                <span class="phone-leader__owner-note">Bridge confirms ownership</span>
+                              </div>
+                              <div class="phone-leader__actions">
+                                <button class="btn" id="phoneLeaderAlign" type="button" disabled><i data-lucide="scan-line" aria-hidden="true"></i>Align</button>
+                                <button class="btn" id="phoneLeaderArm" type="button" disabled><i data-lucide="shield-check" aria-hidden="true"></i>Arm</button>
+                                <button class="btn" id="phoneLeaderDisarm" type="button" disabled><i data-lucide="shield-off" aria-hidden="true"></i>Disarm</button>
+                                <button class="btn" id="phoneLeaderHome" type="button" disabled><i data-lucide="house" aria-hidden="true"></i>Home</button>
+                                <button class="btn phone-leader__stop" id="phoneLeaderStop" type="button" disabled><i data-lucide="octagon" aria-hidden="true"></i>Stop phone motion</button>
+                              </div>
+                              <p class="phone-leader__action-note">The red STOP in the header remains the global emergency action at all times.</p>
+                            </section>
+
+                            <section class="phone-leader__section" aria-labelledby="phoneLeaderAuthoritiesTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">Three authorities</span>
+                                  <h3 id="phoneLeaderAuthoritiesTitle">Pose comparison</h3>
+                                </div>
+                              </div>
+                              <div class="phone-leader__authorities">
+                                <article data-authority="input"><span>Phone input</span><strong id="phoneLeaderInputPose">—</strong><small>desired EE</small></article>
+                                <article data-authority="target"><span>Applied target</span><strong id="phoneLeaderTargetPose">—</strong><small>accepted by controller</small></article>
+                                <article data-authority="measured"><span>Measured</span><strong id="phoneLeaderMeasuredPose">—</strong><small>follower observation</small></article>
+                              </div>
+                            </section>
+
+                            <section class="phone-leader__section" aria-labelledby="phoneLeaderTelemetryTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">5–10 Hz display</span>
+                                  <h3 id="phoneLeaderTelemetryTitle">Telemetry</h3>
+                                </div>
+                              </div>
+                              <dl class="phone-leader__telemetry">
+                                <div><dt>Source sample age</dt><dd id="phoneLeaderSourceAge">—</dd></div>
+                                <div><dt>Controller rate</dt><dd id="phoneLeaderControllerRate">—</dd></div>
+                                <div><dt>Measured age</dt><dd id="phoneLeaderMeasuredAge">—</dd></div>
+                                <div><dt>Action / observation cycle</dt><dd id="phoneLeaderCycleTime">—</dd></div>
+                              </dl>
+                              <div class="phone-leader__fault" id="phoneLeaderFault" data-tone="idle" tabindex="-1">
+                                <i data-lucide="circle-check" aria-hidden="true"></i>
+                                <div><b id="phoneLeaderFaultTitle">No active fault</b><p id="phoneLeaderFaultMessage">Phone motion remains blocked until every readiness gate is confirmed.</p></div>
+                              </div>
+                            </section>
+
+                            <section class="phone-leader__section phone-leader__session-tools" aria-labelledby="phoneLeaderSessionTitle">
+                              <div class="phone-leader__section-heading">
+                                <div>
+                                  <span class="phone-leader__eyebrow">Local evidence</span>
+                                  <h3 id="phoneLeaderSessionTitle">Recording &amp; diagnostics</h3>
+                                </div>
+                                <span id="phoneLeaderRecordingState">Not recording</span>
+                              </div>
+                              <div class="phone-leader__button-row">
+                                <button class="btn" id="phoneLeaderRecordStart" type="button" disabled><i data-lucide="circle-dot" aria-hidden="true"></i>Start recording</button>
+                                <button class="btn" id="phoneLeaderRecordStop" type="button" disabled><i data-lucide="square" aria-hidden="true"></i>Stop recording</button>
+                                <button class="btn" id="phoneLeaderExport" type="button" disabled><i data-lucide="download" aria-hidden="true"></i>Export safe diagnostics</button>
+                              </div>
+                            </section>
+                          </div>
+                        </section>
+                      </section>
+                      <section class="workbench-drawer__panel workbench-leader-details" id="drawerPanelLeader" role="tabpanel" data-drawer-panel="leader" hidden>
+                        <div id="workbenchLeaderDetailsMount"></div>
+                      </section>
+                      <section class="workbench-drawer__panel" id="drawerPanelSerial" role="tabpanel" data-drawer-panel="serial" hidden>
+                        <section class="console-pane">
+                          <div class="console-pane__title">Serial</div>
+                          <div class="serial-console" id="serialConsoleLog" aria-live="polite"></div>
+                          <div class="serial-console__actions">
+                            <button class="btn btn--load btn--icon-only" id="btnConsoleCopy" title="Copy serial log" data-hint="Copy serial log"><i data-lucide="copy"></i><span>Copy</span></button>
+                            <button class="btn btn--clear btn--icon-only" id="btnConsoleClear" title="Clear serial log" data-hint="Clear serial log"><i data-lucide="eraser"></i><span>Clear</span></button>
+                          </div>
+                        </section>
+                      </section>
+                      <section class="workbench-drawer__panel" id="drawerPanelDebug" role="tabpanel" data-drawer-panel="debug" hidden>
+                        <section class="console-pane console-pane--debug">
+                          <div class="console-pane__title">Debug</div>
+                          <button class="console-debug__toggle" id="debugTelemetryToggle" type="button" aria-expanded="false" aria-controls="debugTelemetryDetails" title="Show telemetry" data-hint="Show telemetry"><span class="console-debug__toggle-label">Show telemetry</span><i data-lucide="chevron-down"></i></button>
+                          <div class="console-debug__details" id="debugTelemetryDetails" role="region" aria-label="Debug telemetry details" tabindex="0" hidden>
+                            <div class="console-debug__chips">
+                              <div class="debug-chip"><span class="debug-chip__label">Mode</span><span class="debug-chip__value" id="debugChipMode">Idle</span></div>
+                              <div class="debug-chip"><span class="debug-chip__label">Trajectory</span><span class="debug-chip__value" id="debugChipTrajectory">N/A</span></div>
+                              <div class="debug-chip"><span class="debug-chip__label">Queue</span><span class="debug-chip__value" id="debugChipQueue">0</span></div>
+                              <div class="debug-chip"><span class="debug-chip__label">Waiters</span><span class="debug-chip__value" id="debugChipWaiters">0</span></div>
+                            </div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">Protocol</span><span class="debug-detail__value" id="debugDetailProtocol">N/A (disconnected)</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">In-flight</span><span class="debug-detail__value" id="debugDetailInFlight">none</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">Motion</span><span class="debug-detail__value" id="debugDetailMotion">None</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">State</span><span class="debug-detail__value" id="debugDetailState">Disconnected</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">Active</span><span class="debug-detail__value" id="debugDetailActive">None</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">Limit</span><span class="debug-detail__value" id="debugDetailLimit">No joint at hard limit</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">Last TX</span><span class="debug-detail__value" id="debugDetailTx">-</span></div>
+                            <div class="debug-detail-row"><span class="debug-detail__label">Last RX</span><span class="debug-detail__value" id="debugDetailRx">-</span></div>
+                          </div>
+                          <div class="serial-console serial-console--debug" id="debugConsoleLog" aria-live="polite"></div>
+                          <div class="serial-console__actions"><button class="btn btn--clear btn--icon-only" id="btnDebugClear" title="Clear debug log" data-hint="Clear debug log"><i data-lucide="eraser"></i><span>Clear</span></button></div>
+                        </section>
+                      </section>
+                      <section class="workbench-drawer__panel workbench-program-status" id="drawerPanelProgram" role="tabpanel" data-drawer-panel="program" hidden>
+                        <div id="workbenchProgramStatusMount"></div>
+                        <button class="btn" id="leaderOpenProgramWorkspace" type="button" hidden><i data-lucide="puzzle" aria-hidden="true"></i><span>Open Blockly workspace</span></button>
+                      </section>
+                    </div>
+                  </div>
+                </section>
+
+                <div class="workbench-splitter" id="mainBridgePreviewSplitter" data-splitter-index="1"
+                  role="separator" aria-orientation="vertical" aria-label="Resize Bridge &amp; Consoles and Arm Preview"
+                  aria-controls="mainBridgePane mainPreviewPane" tabindex="0"
+                  title="Resize Bridge &amp; Consoles and Arm Preview. Arrow keys resize; Enter resets."></div>
+
+              <section class="sidebar-card sidebar__preview index-3d-preview-card" id="mainPreviewPane" data-split-pane="preview">
+                <div class="index-3d-preview-header">
+                  <div class="panel-label"><i data-lucide="eye"></i> 3D Arm Preview</div>
+                  <div class="leader-layer-controls" id="leaderLayerControls" role="group" aria-label="Virtual Leader pose layers" hidden>
+                    <button type="button" data-leader-layer="input" aria-pressed="true"><span aria-hidden="true">···</span>Input</button>
+                    <button type="button" data-leader-layer="target" aria-pressed="true"><span aria-hidden="true">◎</span>Target</button>
+                    <button type="button" data-leader-layer="measured" aria-pressed="true"><span aria-hidden="true">●</span>Measured</button>
+                    <button type="button" id="leaderValuesFocus">Values</button>
+                  </div>
+                </div>
+                <div id="armPreview" class="arm-preview-container arm-preview-container--3d">
+                  <div id="robotSimPreview" class="robot-sim-preview" hidden></div>
+                  <div class="arm-preview-3d" data-arm-preview-3d hidden>
+                    <div class="arm-preview-3d__viewport" data-arm-preview-3d-viewport aria-label="3D robot arm preview"></div>
+                    <div class="arm-preview-3d__toolbar">
+                      <span class="arm-preview-3d__status" data-arm-preview-3d-status role="status" aria-live="polite">Loading 3D arm...</span>
+                      <button class="arm-preview-3d__reset" type="button" data-arm-preview-3d-reset title="Reset 3D camera" data-hint="Reset 3D camera">
+                        <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+                        <span>Camera</span>
+                      </button>
+                    </div>
+                  </div>
+                  <p class="arm-preview-3d__fallback-status" data-arm-preview-3d-fallback-status role="status" aria-live="polite" hidden></p>
+                </div>
+              </section>
+            </aside>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="bottombar bottombar--messages">
+    <div class="bottombar__messages" aria-label="Block Editor status">
+      <p class="blockly-controls__status" id="programControlHint" aria-live="polite" data-tone="ready">
+        Ready to run.
+      </p>
+      <p class="blockly-controls__status" id="legacyBrowserSavesNotice" aria-live="polite" data-tone="warning" hidden>
+        Older browser-saved programs were found. Export them to files.
+      </p>
+    </div>
+    <div class="bottombar__status">
+      <i data-lucide="circle-check" id="programStatusIcon" class="bottombar__status-icon"></i>
+      <span id="programStatus">Ready</span>
+    </div>
+  </footer>
+
+  <dialog id="loadDialog" class="modal" aria-labelledby="loadDialogTitle">
+    <div class="modal__content">
+      <h2 class="modal__title" id="loadDialogTitle"><i data-lucide="folder-open"></i> Load from templates</h2>
+      <div id="programList" class="modal__list"></div>
+      <div class="modal__actions">
+        <button class="btn btn--clear" id="loadDialogCancel" type="button" title="Close" data-hint="Close">
+          <span>Close</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="legacyBrowserSavesDialog" class="modal" aria-labelledby="legacyBrowserSavesDialogTitle">
+    <div class="modal__content">
+      <h2 class="modal__title" id="legacyBrowserSavesDialogTitle"><i data-lucide="archive"></i> Legacy browser saves</h2>
+      <p class="modal__subtitle">Download each older browser-saved program as a .robobuddy-blocks.json file.</p>
+      <div id="legacyBrowserSavesList" class="modal__list"></div>
+      <div class="modal__actions">
+        <button class="btn btn--clear" id="legacyBrowserSavesClose" type="button" title="Close" data-hint="Close">
+          <span>Close</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="scriptDialog" class="modal" aria-labelledby="scriptDialogTitle">
+    <div class="modal__content modal__content--script">
+      <h2 class="modal__title" id="scriptDialogTitle"><i data-lucide="file-text"></i> Script Export</h2>
+      <p class="modal__subtitle" id="scriptDialogName"></p>
+      <textarea
+        id="scriptDialogText"
+        class="modal__textarea"
+        readonly
+        spellcheck="false"
+        aria-label="Program script export"
+      ></textarea>
+      <div class="modal__actions">
+        <button class="btn btn--load" id="scriptDialogCopy" type="button" title="Copy" data-hint="Copy">
+          <i data-lucide="copy"></i>
+          <span>Copy</span>
+        </button>
+        <button class="btn btn--clear" id="scriptDialogClose" type="button" title="Close" data-hint="Close">
+          <span>Close</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/blockly@12.5.1/blockly.min.js" integrity="sha384-SxxR8fpocVLJMl6kYyBm33uuy9U1yy0gMrMavfyCd3lQRer3qaBMlcVb0VSAfzop" crossorigin="anonymous"></script>
+  <script src="robots/registry.js"></script>
+  <script src="robots/packs/arduino_arm/manifest.js?v=20260702-robot-labels-3"></script>
+  <script src="robots/packs/so101_follower/manifest.js?v=20260713-xbox-gamepad-4"></script>
+  <script src="robots/packs/lekiwi_sim/manifest.js?v=20260707-closed-initial-pose"></script>
+  <script src="robots/packs/openarm_v2_bimanual/manifest.js?v=20260811-openarm-solu-v1"></script>
+  <script src="robots/packs/unitree_g1_29dof/manifest.js?v=20260812-g1-registration-fix-1"></script>
+  <script src="robots/safety.js?v=20260713-xbox-gamepad-2"></script>
+  <script src="robots/commandSchema.js?v=20260812-openarm-g1-solu-1"></script>
+  <script src="robots/adapters/simulation/simulation.js?v=20260812-openarm-g1-solu-1"></script>
+  <script src="robots/adapters/hardware/hardware.js?v=20260729-bridge-session-1"></script>
+  <script src="robots/runtime.js?v=20260729-bounded-program-motion-1"></script>
+  <script src="js/serial.js"></script>
+  <script src="js/blocks.js?v=20260812-openarm-g1-solu-1"></script>
+  <script src="js/generators.js?v=20260812-openarm-g1-solu-1"></script>
+  <script src="js/runner.js?v=20260812-openarm-g1-solu-1"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260812-g1-registration-fix-2"></script>
+  <script src="js/storage.js?v=20260701-robot-preview"></script>
+  <script src="js/file-workflows.js"></script>
+  <script src="js/button-hints.js?v=20260612-3d-pages1"></script>
+  <script src="js/gamepad-input.js?v=20260713-xbox-gamepad-4"></script>
+  <script src="js/virtual-leader.js?v=20260718-calm-workbench-1"></script>
+  <script src="js/workbench-layout.js?v=20260719-remediation-1"></script>
+  <script src="js/app.js?v=20260811-unitree-g1-solu-1"></script>
+  <script src="js/phone-leader-ui.js?v=20260719-phone-leader-a4-1"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

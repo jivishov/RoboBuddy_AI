@@ -1,0 +1,489 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "g1-01-empty-tray",
+  "robotId": "unitree_g1_29dof",
+  "rank": 1,
+  "assistanceLevel": "Guided",
+  "title": "Empty Tray Delivery",
+  "brief": "Collect, deliver, release, and return to a neutral posture.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Foundational",
+  "skills": [
+    "secured carrier delivery"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program Unitree G1 to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Secure Empty Tray with Right Hand",
+    "Release Empty Tray at Transfer Zone",
+    "Return robot home"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "transfer",
+      "basis": "M",
+      "actionIds": [
+        "place-beaker",
+        "transfer-sample"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the humanoid lab runner."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "fixed_hand_interaction",
+    "home",
+    "secured_carrier_attachment"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "pick_nearest",
+    "release_object",
+    "humanoid_walk",
+    "humanoid_turn",
+    "set_posture"
+  ],
+  "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      1320,
+      910,
+      1510
+    ],
+    "targetMm": [
+      0,
+      660,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "visualPositionMm": [
+        -260,
+        0,
+        -100
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "transfer_zone",
+      "label": "Transfer Zone",
+      "positionMm": [
+        160,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        160,
+        0,
+        260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "left_hip_pitch_joint": 0,
+        "left_hip_roll_joint": 0,
+        "left_hip_yaw_joint": 0,
+        "left_knee_joint": 0,
+        "left_ankle_pitch_joint": 0,
+        "left_ankle_roll_joint": 0,
+        "right_hip_pitch_joint": 0,
+        "right_hip_roll_joint": 0,
+        "right_hip_yaw_joint": 0,
+        "right_knee_joint": 0,
+        "right_ankle_pitch_joint": 0,
+        "right_ankle_roll_joint": 0,
+        "waist_yaw_joint": 0,
+        "waist_roll_joint": 0,
+        "waist_pitch_joint": 0,
+        "left_shoulder_pitch_joint": 0,
+        "left_shoulder_roll_joint": 0,
+        "left_shoulder_yaw_joint": 0,
+        "left_elbow_joint": 0,
+        "left_wrist_roll_joint": 0,
+        "left_wrist_pitch_joint": 0,
+        "left_wrist_yaw_joint": 0,
+        "right_shoulder_pitch_joint": 0,
+        "right_shoulder_roll_joint": 0,
+        "right_shoulder_yaw_joint": 0,
+        "right_elbow_joint": 0,
+        "right_wrist_roll_joint": 0,
+        "right_wrist_pitch_joint": 0,
+        "right_wrist_yaw_joint": 0
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {},
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {},
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "supply_zone": {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "helperAvailable": true,
+      "joints": {},
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "transfer_zone": {
+      "id": "transfer_zone",
+      "label": "Transfer Zone",
+      "helperAvailable": true,
+      "joints": {},
+      "positionMm": [
+        160,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "empty_tray",
+      "label": "Empty Tray",
+      "accessibleName": "Empty Tray",
+      "type": "secured_carrier",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "reagent-tray.png",
+      "visualVariant": "tray",
+      "initialZone": "supply_zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "transfer_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": true,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left_hand",
+        "right_hand"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Secure Empty Tray with Right Hand",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "pick_nearest",
+        "objectId": "empty_tray",
+        "at": "supply_zone",
+        "hand": "right_hand",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "pick_nearest:empty_tray"
+      },
+      "invalidFeedback": "Secure Empty Tray with Right Hand is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Release Empty Tray at Transfer Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "release_object",
+        "objectId": "empty_tray",
+        "zoneId": "transfer_zone",
+        "hand": "right_hand",
+        "requiredPose": "transfer_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "release_object:empty_tray"
+      },
+      "invalidFeedback": "Release Empty Tray at Transfer Zone is unavailable until the robot is at Transfer Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Transfer Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Return robot home",
+      "sourceBasis": [
+        "C"
+      ],
+      "expected": {
+        "type": "home",
+        "requiredPose": "home"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "home:robot"
+      },
+      "invalidFeedback": "Return robot home is unavailable until the robot is at Home and earlier checkpoints are complete.",
+      "recovery": "Move to Home, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": [
+        {
+          "type": "move_to_pose",
+          "poseId": "supply_zone",
+          "seconds": 1.2
+        },
+        {
+          "type": "pick_nearest",
+          "objectId": "empty_tray",
+          "at": "supply_zone",
+          "hand": "right_hand"
+        },
+        {
+          "type": "move_to_pose",
+          "poseId": "transfer_zone",
+          "seconds": 1.2
+        },
+        {
+          "type": "release_object",
+          "objectId": "empty_tray",
+          "zoneId": "transfer_zone",
+          "hand": "right_hand"
+        }
+      ]
+    },
+    "python": {
+      "code": "robot.move_to_pose(pose_id=\"supply_zone\", seconds=1.2)\nrobot.pick_nearest(object_id=\"empty_tray\", at=\"supply_zone\", hand=\"right_hand\")\nrobot.move_to_pose(pose_id=\"transfer_zone\", seconds=1.2)\nrobot.release_object(object_id=\"empty_tray\", zone_id=\"transfer_zone\", hand=\"right_hand\")"
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_to_pose",
+        "poseId": "supply_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "pick_nearest",
+        "objectId": "empty_tray",
+        "at": "supply_zone",
+        "hand": "right_hand"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "transfer_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "release_object",
+        "objectId": "empty_tray",
+        "zoneId": "transfer_zone",
+        "hand": "right_hand"
+      },
+      {
+        "type": "home"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "pick_nearest",
+          "objectId": "empty_tray",
+          "at": "supply_zone",
+          "hand": "right_hand"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_to_pose",
+          "poseId": "supply_zone",
+          "seconds": 1.2
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "pick_nearest",
+          "objectId": "empty_tray",
+          "at": "supply_zone",
+          "hand": "right_hand"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

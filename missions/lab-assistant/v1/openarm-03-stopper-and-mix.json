@@ -1,0 +1,681 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "openarm-03-stopper-and-mix",
+  "robotId": "openarm_v2_bimanual",
+  "rank": 3,
+  "assistanceLevel": "Guided",
+  "title": "Stopper and Mix",
+  "brief": "Hold the flask, seat the stopper, and execute the authored mixing operation.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Foundational",
+  "skills": [
+    "bimanual sequence"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Volumetric Flask",
+    "Grasp Flask Stopper",
+    "Insert Flask Stopper into Volumetric Flask",
+    "Invert Mix: Volumetric Flask",
+    "Place Volumetric Flask at Mixing Zone"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "transmittance-dilution",
+      "basis": "M",
+      "actionIds": [
+        "stopper-flask",
+        "invert-to-mix"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the bimanual manipulator."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "bimanual_control",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "insert_into",
+    "operate",
+    "place",
+    "set_gripper"
+  ],
+  "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      790,
+      490,
+      870
+    ],
+    "targetMm": [
+      0,
+      200,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        -260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "mixing_zone",
+      "label": "Mixing Zone",
+      "positionMm": [
+        300,
+        0,
+        -120
+      ],
+      "visualPositionMm": [
+        300,
+        0,
+        -120
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "visualPositionMm": [
+        -260,
+        0,
+        100
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": 0,
+        "left_j1": -25,
+        "left_j2": -35,
+        "left_j3": 0,
+        "left_j4": 75,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": 25,
+        "right_j2": 35,
+        "right_j3": 0,
+        "right_j4": 75,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": -11.29,
+        "left_j1": 21.65,
+        "left_j2": -47.09,
+        "left_j3": 0,
+        "left_j4": 54.04,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -21.65,
+        "right_j2": 30.83,
+        "right_j3": 0,
+        "right_j4": 54.04,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": -68.28,
+        "left_j1": 21.51,
+        "left_j2": -46.19,
+        "left_j3": 0,
+        "left_j4": 95.94,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -21.51,
+        "right_j2": 11.7,
+        "right_j3": 0,
+        "right_j4": 95.94,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "mixing_zone": {
+      "id": "mixing_zone",
+      "label": "Mixing Zone",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": 59.03,
+        "left_j1": 4,
+        "left_j2": -43.29,
+        "left_j3": 0,
+        "left_j4": 102.25,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -4,
+        "right_j2": 54.44,
+        "right_j3": 0,
+        "right_j4": 102.25,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        300,
+        0,
+        -120
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "supply_zone": {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": 15.36,
+        "left_j1": -31.17,
+        "left_j2": -49.83,
+        "left_j3": 0,
+        "left_j4": 72.83,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": 31.17,
+        "right_j2": 39.78,
+        "right_j3": 0,
+        "right_j4": 72.83,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "volumetric_flask",
+      "label": "Volumetric Flask",
+      "accessibleName": "Volumetric Flask",
+      "type": "flask",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "volumetric-flask.png",
+      "visualVariant": "volumetric_flask",
+      "initialZone": "mixing_zone",
+      "positionMm": [
+        300,
+        0,
+        -120
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "mixing_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": true,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "id": "flask_stopper",
+      "label": "Flask Stopper",
+      "accessibleName": "Flask Stopper",
+      "type": "stopper",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "volumetric-flask-stoppered.png",
+      "visualVariant": "default",
+      "initialZone": "supply_zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": "upright",
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [
+        "volumetric_flask"
+      ],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left",
+        "right"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Volumetric Flask",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "volumetric_flask",
+        "at": "mixing_zone",
+        "effector": "left",
+        "requiredPose": "mixing_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:volumetric_flask"
+      },
+      "invalidFeedback": "Grasp Volumetric Flask is unavailable until the robot is at Mixing Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Mixing Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Grasp Flask Stopper",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "flask_stopper",
+        "at": "supply_zone",
+        "effector": "right",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:flask_stopper"
+      },
+      "invalidFeedback": "Grasp Flask Stopper is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Insert Flask Stopper into Volumetric Flask",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "insert_into",
+        "objectId": "flask_stopper",
+        "targetId": "volumetric_flask",
+        "at": "mixing_zone",
+        "effector": "right",
+        "requiredPose": "mixing_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "insert_into:flask_stopper"
+      },
+      "invalidFeedback": "Insert Flask Stopper into Volumetric Flask is unavailable until the robot is at Mixing Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Mixing Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Invert Mix: Volumetric Flask",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "volumetric_flask",
+        "mode": "invert_mix",
+        "at": "mixing_zone",
+        "effector": "left",
+        "requiredPose": "mixing_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:volumetric_flask"
+      },
+      "invalidFeedback": "Invert Mix: Volumetric Flask is unavailable until the robot is at Mixing Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Mixing Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Place Volumetric Flask at Mixing Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "volumetric_flask",
+        "zoneId": "mixing_zone",
+        "effector": "left",
+        "requiredPose": "mixing_zone"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:volumetric_flask"
+      },
+      "invalidFeedback": "Place Volumetric Flask at Mixing Zone is unavailable until the robot is at Mixing Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Mixing Zone, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": [
+        {
+          "type": "move_to_pose",
+          "poseId": "mixing_zone",
+          "seconds": 1.2
+        },
+        {
+          "type": "grasp",
+          "objectId": "volumetric_flask",
+          "at": "mixing_zone",
+          "effector": "left"
+        },
+        {
+          "type": "move_to_pose",
+          "poseId": "supply_zone",
+          "seconds": 1.2
+        },
+        {
+          "type": "grasp",
+          "objectId": "flask_stopper",
+          "at": "supply_zone",
+          "effector": "right"
+        }
+      ]
+    },
+    "python": {
+      "code": "robot.move_to_pose(pose_id=\"mixing_zone\", seconds=1.2)\nrobot.grasp(object_id=\"volumetric_flask\", at=\"mixing_zone\", effector=\"left\")\nrobot.move_to_pose(pose_id=\"supply_zone\", seconds=1.2)\nrobot.grasp(object_id=\"flask_stopper\", at=\"supply_zone\", effector=\"right\")"
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_to_pose",
+        "poseId": "mixing_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "grasp",
+        "objectId": "volumetric_flask",
+        "at": "mixing_zone",
+        "effector": "left"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "supply_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "grasp",
+        "objectId": "flask_stopper",
+        "at": "supply_zone",
+        "effector": "right"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "mixing_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "insert_into",
+        "objectId": "flask_stopper",
+        "targetId": "volumetric_flask",
+        "at": "mixing_zone",
+        "effector": "right"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "mixing_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "operate",
+        "controlId": "volumetric_flask",
+        "mode": "invert_mix",
+        "at": "mixing_zone",
+        "effector": "left"
+      },
+      {
+        "type": "move_to_pose",
+        "poseId": "mixing_zone",
+        "seconds": 1.2
+      },
+      {
+        "type": "place",
+        "objectId": "volumetric_flask",
+        "zoneId": "mixing_zone",
+        "effector": "left"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "volumetric_flask",
+          "at": "mixing_zone",
+          "effector": "left"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_to_pose",
+          "poseId": "mixing_zone",
+          "seconds": 1.2
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "volumetric_flask",
+          "at": "mixing_zone",
+          "effector": "left"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

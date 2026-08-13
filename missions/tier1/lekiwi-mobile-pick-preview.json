@@ -1,0 +1,15 @@
+{
+  "id": "lekiwi-mobile-pick-preview-01",
+  "title": "Mobile Pick Preview",
+  "robotIds": ["lekiwi_sim"],
+  "difficulty": "intermediate",
+  "skills": ["drive_2d", "arm", "gripper"],
+  "brief": "Drive near an object, move the arm, and close the gripper in simulation.",
+  "starterPython": "robot.home()\nrobot.open_gripper()\nrobot.drive_forward(30, seconds=1.0)\nrobot.move_joint(\"shoulder_lift\", -25, speed=35)\nrobot.move_joint(\"elbow_flex\", 45, speed=35)\nrobot.close_gripper()\nrobot.stop()",
+  "successCriteria": [
+    "uses drive command",
+    "moves at least one arm joint",
+    "closes the gripper",
+    "LeKiwi remains simulation-only"
+  ]
+}

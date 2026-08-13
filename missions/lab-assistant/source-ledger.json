@@ -1,0 +1,254 @@
+{
+  "schema": "robobuddy.lab-source-ledger.v1",
+  "version": 1,
+  "authority": "Reviewed Lab Studio public technique definitions supplied by the user as the procedural source. The runtime does not import Lab Studio.",
+  "evidenceLegend": {
+    "M": "Manual/source-stated",
+    "F": "Figure/table-supported",
+    "R": "Real-life implicit",
+    "C": "Configuration choice"
+  },
+  "provenanceCategories": [
+    "configured",
+    "simulator-generated",
+    "learner-recorded",
+    "calculated",
+    "extrapolated"
+  ],
+  "techniques": [
+    {
+      "id": "weighing",
+      "title": "Weigh a Solid",
+      "basis": "M",
+      "reviewedActionIds": [
+        "place-watch-glass",
+        "weigh-solid"
+      ],
+      "sourceLocator": "Lab Studio technique:weighing",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "measuring-volume",
+      "title": "Measure Liquid Volume",
+      "basis": "M",
+      "reviewedActionIds": [
+        "place-cylinder",
+        "measure-20ml"
+      ],
+      "sourceLocator": "Lab Studio technique:measuring-volume",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "making-solution",
+      "title": "Make a Solution",
+      "basis": "M",
+      "reviewedActionIds": [
+        "add-solvent",
+        "dissolve-solid"
+      ],
+      "sourceLocator": "Lab Studio technique:making-solution",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "dilution",
+      "title": "Dilute a Stock Solution",
+      "basis": "M",
+      "reviewedActionIds": [
+        "transfer-aliquot",
+        "dilute-to-mark"
+      ],
+      "sourceLocator": "Lab Studio technique:dilution",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "transmittance-dilution",
+      "title": "Analyze Transmittance of a Dilution",
+      "basis": "M",
+      "reviewedActionIds": [
+        "stopper-flask",
+        "invert-to-mix",
+        "wipe-blank-cuvette",
+        "zero-with-blank",
+        "record-percent-transmittance"
+      ],
+      "sourceLocator": "Lab Studio technique:transmittance-dilution",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "transfer",
+      "title": "Transfer Liquid",
+      "basis": "M",
+      "reviewedActionIds": [
+        "place-beaker",
+        "transfer-sample"
+      ],
+      "sourceLocator": "Lab Studio technique:transfer",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "filtration",
+      "title": "Filter a Precipitate",
+      "basis": "M",
+      "reviewedActionIds": [
+        "assemble-funnel-stand",
+        "place-filter-paper",
+        "place-filtration-receiver",
+        "filter-mixture",
+        "rinse-precipitate"
+      ],
+      "sourceLocator": "Lab Studio technique:filtration",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "paper-chromatography",
+      "title": "Paper Chromatography",
+      "basis": "M",
+      "reviewedActionIds": [
+        "spot-sample",
+        "develop-paper"
+      ],
+      "sourceLocator": "Lab Studio technique:paper-chromatography",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "titration-endpoint",
+      "title": "Acid-Base Titration to an Indicator Endpoint",
+      "basis": "M",
+      "reviewedActionIds": [
+        "condition-burette",
+        "fill-burette",
+        "remove-burette-funnel",
+        "read-initial-burette",
+        "position-flask-under-burette",
+        "deliver-titrant"
+      ],
+      "sourceLocator": "Lab Studio technique:titration-endpoint",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "blue1-standard-dilutions",
+      "title": "Blue #1 Standard Dilutions",
+      "basis": "M",
+      "reviewedActionIds": [
+        "i1-r8-2-measure-stock",
+        "i1-r8-2-transfer-stock",
+        "i1-r8-2-mix"
+      ],
+      "sourceLocator": "Lab Studio technique:blue1-standard-dilutions",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "blue1-percent-transmittance",
+      "title": "Blue #1 Percent-Transmittance Measurement",
+      "basis": "M",
+      "reviewedActionIds": [
+        "i1-insert-blank-cuvette",
+        "i1-zero-instrument",
+        "i1-remove-blank-cuvette",
+        "i1-r8-2-condition-orient-cuvette",
+        "i1-r8-2-insert-cuvette",
+        "i1-r8-2-read-percent-t"
+      ],
+      "sourceLocator": "Lab Studio technique:blue1-percent-transmittance",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "gravimetric-vacuum-filtration",
+      "title": "Gravimetric Vacuum Filtration",
+      "basis": "M",
+      "reviewedActionIds": [
+        "place-practice-buchner",
+        "seat-practice-filter-paper",
+        "attach-practice-filter-flask",
+        "confirm-practice-vacuum-connection",
+        "filter-practice-mixture",
+        "wash-practice-precipitate"
+      ],
+      "sourceLocator": "Lab Studio technique:gravimetric-vacuum-filtration",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "two-stage-precipitate-drying",
+      "title": "Two-Stage Precipitate Drying",
+      "basis": "M",
+      "reviewedActionIds": [
+        "first-practice-drying",
+        "second-practice-drying",
+        "cool-practice-assembly",
+        "weigh-practice-combined"
+      ],
+      "sourceLocator": "Lab Studio technique:two-stage-precipitate-drying",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "hard-water-gravimetry",
+      "title": "Hard Water Gravimetry",
+      "basis": "M",
+      "reviewedActionIds": [
+        "filter-hard-water-mixture",
+        "rinse-precipitate",
+        "first-hard-water-drying",
+        "second-hard-water-drying",
+        "weigh-hard-water-combined"
+      ],
+      "sourceLocator": "Lab Studio technique:hard-water-gravimetry",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "crystal-violet-spectrophotometer-calibration",
+      "title": "Crystal Violet Spectrophotometer Calibration",
+      "basis": "M",
+      "reviewedActionIds": [
+        "cv11-insert-blank",
+        "cv11-zero-spectrophotometer",
+        "cv11-remove-blank",
+        "cv11-insert-cuvette-05",
+        "cv11-read-absorbance-05"
+      ],
+      "sourceLocator": "Lab Studio technique:crystal-violet-spectrophotometer-calibration",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "crystal-violet-waste-treatment",
+      "title": "Crystal Violet Waste Treatment",
+      "basis": "M",
+      "reviewedActionIds": [
+        "cv11-transfer-cv-waste",
+        "cv11-verify-neutralization-and-disposal"
+      ],
+      "sourceLocator": "Lab Studio technique:crystal-violet-waste-treatment",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    },
+    {
+      "id": "quick-ache-extraction-recovery",
+      "title": "Quick Ache Extraction, Recovery, and Gravimetry",
+      "basis": "M",
+      "reviewedActionIds": [
+        "qar-mix-and-vent",
+        "qar-settle-and-observe-layers",
+        "qar-identify-layer-from-evidence",
+        "qar-drain-lower-layer",
+        "qar-drain-upper-layer"
+      ],
+      "sourceLocator": "Lab Studio technique:quick-ache-extraction-recovery",
+      "browserClaim": "Only named action identities and ordering constraints are copied; no local paths, hashes, hidden results, or numeric endpoints are included."
+    }
+  ],
+  "globalClaims": [
+    {
+      "id": "claim-simulation-only",
+      "basis": "C",
+      "statement": "All tasks are simulation-only procedural and robot-programming exercises."
+    },
+    {
+      "id": "claim-kinematic",
+      "basis": "C",
+      "statement": "Robot and apparatus movement is deterministic and kinematic; no fluid, torque, rigid-body, autonomous planning, or dynamic-balance claim is made."
+    },
+    {
+      "id": "claim-morphology",
+      "basis": "R",
+      "statement": "Technique actions are assigned to each robot morphology only where its simulated effector and movement model can represent the handling role."
+    }
+  ]
+}

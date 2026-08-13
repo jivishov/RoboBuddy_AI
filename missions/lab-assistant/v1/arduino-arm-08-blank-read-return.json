@@ -1,0 +1,671 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "arduino-arm-08-blank-read-return",
+  "robotId": "arduino_arm",
+  "rank": 8,
+  "assistanceLevel": "Challenge",
+  "title": "Blank, Read, Return",
+  "brief": "Load a blank, read the simulated instrument state, and return the cuvette.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Advanced",
+  "skills": [
+    "instrument handling"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program Arduino Arm to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Blank Cuvette",
+    "Insert Blank Cuvette into Spectrophotometer",
+    "Read Spectrophotometer",
+    "Grasp Blank Cuvette",
+    "Place Blank Cuvette at Cuvette Rack Zone"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "transmittance-dilution",
+      "basis": "M",
+      "actionIds": [
+        "wipe-blank-cuvette",
+        "zero-with-blank",
+        "record-percent-transmittance"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the single-arm manipulator."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "home",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "insert_into",
+    "read_instrument",
+    "place",
+    "set_gripper"
+  ],
+  "limitations": "Kinematic six-servo arm; no force sensing, collision planner, or fluid physics.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      620,
+      350,
+      690
+    ],
+    "targetMm": [
+      0,
+      110,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        -234
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "cuvette_rack_zone",
+      "label": "Cuvette Rack Zone",
+      "positionMm": [
+        -260,
+        0,
+        -100
+      ],
+      "visualPositionMm": [
+        -234,
+        0,
+        -90
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "instrument_zone",
+      "label": "Instrument Zone",
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        324,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "base": 90,
+        "shoulder": 90,
+        "elbow": 90,
+        "wrist_rot": 90,
+        "wrist_tilt": 90,
+        "gripper": 90
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "base": 87.82,
+        "shoulder": 67.13,
+        "elbow": 109.75,
+        "wrist_rot": 122.74,
+        "wrist_tilt": 60.01,
+        "gripper": 90
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "base": 65.97,
+        "shoulder": 91.84,
+        "elbow": 94.14,
+        "wrist_rot": 100.41,
+        "wrist_tilt": 115.3,
+        "gripper": 90
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "cuvette_rack_zone": {
+      "id": "cuvette_rack_zone",
+      "label": "Cuvette Rack Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base": 49.23,
+        "shoulder": 102.71,
+        "elbow": 55.04,
+        "wrist_rot": 63.56,
+        "wrist_tilt": 122.44,
+        "gripper": 90
+      },
+      "positionMm": [
+        -260,
+        0,
+        -100
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "instrument_zone": {
+      "id": "instrument_zone",
+      "label": "Instrument Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base": 98.09,
+        "shoulder": 104.25,
+        "elbow": 63.73,
+        "wrist_rot": 43.63,
+        "wrist_tilt": 91.87,
+        "gripper": 90
+      },
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "blank_cuvette",
+      "label": "Blank Cuvette",
+      "accessibleName": "Blank Cuvette",
+      "type": "cuvette",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "cuvette.png",
+      "visualVariant": "default",
+      "initialZone": "cuvette_rack_zone",
+      "positionMm": [
+        -260,
+        0,
+        -100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": "upright",
+      "contentsCategory": "configured blank",
+      "allowedZones": [
+        "cuvette_rack_zone"
+      ],
+      "compatibleTargets": [
+        "spectrophotometer"
+      ],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": true,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "spectrophotometer",
+      "label": "Spectrophotometer",
+      "accessibleName": "Spectrophotometer",
+      "type": "instrument",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "spectrophotometer.png",
+      "visualVariant": "default",
+      "initialZone": "instrument_zone",
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "configured readiness only",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": true,
+        "operable": false,
+        "readable": true,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "cuvette_rack_fixture",
+      "label": "Cuvette Rack Fixture",
+      "accessibleName": "Cuvette Rack Fixture",
+      "type": "rack",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "sample-rack.png",
+      "visualVariant": "rack",
+      "initialZone": "cuvette_rack_zone",
+      "positionMm": [
+        -260,
+        0,
+        -100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Blank Cuvette",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "blank_cuvette",
+        "at": "cuvette_rack_zone",
+        "requiredPose": "cuvette_rack_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:blank_cuvette"
+      },
+      "invalidFeedback": "Grasp Blank Cuvette is unavailable until the robot is at Cuvette Rack Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cuvette Rack Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Insert Blank Cuvette into Spectrophotometer",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "insert_into",
+        "objectId": "blank_cuvette",
+        "targetId": "spectrophotometer",
+        "at": "instrument_zone",
+        "requiredPose": "instrument_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "insert_into:blank_cuvette"
+      },
+      "invalidFeedback": "Insert Blank Cuvette into Spectrophotometer is unavailable until the robot is at Instrument Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Instrument Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Read Spectrophotometer",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "read_instrument",
+        "instrumentId": "spectrophotometer",
+        "at": "instrument_zone",
+        "requiredPose": "instrument_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "read_instrument:spectrophotometer"
+      },
+      "invalidFeedback": "Read Spectrophotometer is unavailable until the robot is at Instrument Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Instrument Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Grasp Blank Cuvette",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "blank_cuvette",
+        "at": "instrument_zone",
+        "requiredPose": "instrument_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:blank_cuvette"
+      },
+      "invalidFeedback": "Grasp Blank Cuvette is unavailable until the robot is at Instrument Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Instrument Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Place Blank Cuvette at Cuvette Rack Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "blank_cuvette",
+        "zoneId": "cuvette_rack_zone",
+        "requiredPose": "cuvette_rack_zone"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:blank_cuvette"
+      },
+      "invalidFeedback": "Place Blank Cuvette at Cuvette Rack Zone is unavailable until the robot is at Cuvette Rack Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Cuvette Rack Zone, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": []
+    },
+    "python": {
+      "code": ""
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 49.23,
+          "shoulder": 102.71,
+          "elbow": 55.04,
+          "wrist_rot": 63.56,
+          "wrist_tilt": 122.44,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "blank_cuvette",
+        "at": "cuvette_rack_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 98.09,
+          "shoulder": 104.25,
+          "elbow": 63.73,
+          "wrist_rot": 43.63,
+          "wrist_tilt": 91.87,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "insert_into",
+        "objectId": "blank_cuvette",
+        "targetId": "spectrophotometer",
+        "at": "instrument_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 98.09,
+          "shoulder": 104.25,
+          "elbow": 63.73,
+          "wrist_rot": 43.63,
+          "wrist_tilt": 91.87,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "read_instrument",
+        "instrumentId": "spectrophotometer",
+        "at": "instrument_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 98.09,
+          "shoulder": 104.25,
+          "elbow": 63.73,
+          "wrist_rot": 43.63,
+          "wrist_tilt": 91.87,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "blank_cuvette",
+        "at": "instrument_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base": 49.23,
+          "shoulder": 102.71,
+          "elbow": 55.04,
+          "wrist_rot": 63.56,
+          "wrist_tilt": 122.44,
+          "gripper": 90
+        },
+        "speed": 45
+      },
+      {
+        "type": "place",
+        "objectId": "blank_cuvette",
+        "zoneId": "cuvette_rack_zone"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "blank_cuvette",
+          "at": "cuvette_rack_zone"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_joints",
+          "joints": {
+            "base": 49.23,
+            "shoulder": 102.71,
+            "elbow": 55.04,
+            "wrist_rot": 63.56,
+            "wrist_tilt": 122.44,
+            "gripper": 90
+          },
+          "speed": 45
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "blank_cuvette",
+          "at": "cuvette_rack_zone"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

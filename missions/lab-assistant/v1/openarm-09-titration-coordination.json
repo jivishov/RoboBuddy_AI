@@ -1,0 +1,895 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "openarm-09-titration-coordination",
+  "robotId": "openarm_v2_bimanual",
+  "rank": 9,
+  "assistanceLevel": "Challenge",
+  "title": "Stopcock and Flask Coordination",
+  "brief": "Coordinate receiver motion and stopcock operation through a configured endpoint event.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Advanced",
+  "skills": [
+    "bimanual titration"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program OpenArm V2 Bimanual to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Grasp Erlenmeyer Flask",
+    "Place Erlenmeyer Flask at Burette Receiver Zone",
+    "Dropwise: Burette Stopcock",
+    "Read Endpoint Indicator",
+    "Close: Burette Stopcock"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "titration-endpoint",
+      "basis": "M",
+      "actionIds": [
+        "position-flask-under-burette",
+        "deliver-titrant"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the bimanual manipulator."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "joint_control",
+    "bimanual_control",
+    "gripper_control"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "grasp",
+    "place",
+    "operate",
+    "read_instrument",
+    "set_gripper"
+  ],
+  "limitations": "Kinematic dual-arm visualization without torque planning, force sensing, or full collision planning.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      790,
+      490,
+      870
+    ],
+    "targetMm": [
+      0,
+      200,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        -260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "visualPositionMm": [
+        -260,
+        0,
+        100
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "burette_receiver_zone",
+      "label": "Burette Receiver Zone",
+      "positionMm": [
+        80,
+        0,
+        220
+      ],
+      "visualPositionMm": [
+        80,
+        0,
+        220
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "burette_zone",
+      "label": "Burette Zone",
+      "positionMm": [
+        80,
+        0,
+        300
+      ],
+      "visualPositionMm": [
+        80,
+        0,
+        300
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": 0,
+        "left_j1": -25,
+        "left_j2": -35,
+        "left_j3": 0,
+        "left_j4": 75,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": 25,
+        "right_j2": 35,
+        "right_j3": 0,
+        "right_j4": 75,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": -11.29,
+        "left_j1": 21.65,
+        "left_j2": -47.09,
+        "left_j3": 0,
+        "left_j4": 54.04,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -21.65,
+        "right_j2": 30.83,
+        "right_j3": 0,
+        "right_j4": 54.04,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {
+        "base_yaw": -68.28,
+        "left_j1": 21.51,
+        "left_j2": -46.19,
+        "left_j3": 0,
+        "left_j4": 95.94,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -21.51,
+        "right_j2": 11.7,
+        "right_j3": 0,
+        "right_j4": 95.94,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "supply_zone": {
+      "id": "supply_zone",
+      "label": "Supply Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base_yaw": 15.36,
+        "left_j1": -31.17,
+        "left_j2": -49.83,
+        "left_j3": 0,
+        "left_j4": 72.83,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": 31.17,
+        "right_j2": 39.78,
+        "right_j3": 0,
+        "right_j4": 72.83,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "burette_receiver_zone": {
+      "id": "burette_receiver_zone",
+      "label": "Burette Receiver Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base_yaw": 43.05,
+        "left_j1": 1.25,
+        "left_j2": -28.3,
+        "left_j3": 0,
+        "left_j4": 105.51,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -1.25,
+        "right_j2": 49.07,
+        "right_j3": 0,
+        "right_j4": 105.51,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        80,
+        0,
+        220
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "burette_zone": {
+      "id": "burette_zone",
+      "label": "Burette Zone",
+      "helperAvailable": false,
+      "joints": {
+        "base_yaw": 39.76,
+        "left_j1": 6.18,
+        "left_j2": -51.08,
+        "left_j3": 0,
+        "left_j4": 100.74,
+        "left_j5": 0,
+        "left_j6": -5,
+        "left_j7": 0,
+        "left_gripper": 12,
+        "right_j1": -6.18,
+        "right_j2": 47.97,
+        "right_j3": 0,
+        "right_j4": 100.74,
+        "right_j5": 0,
+        "right_j6": 5,
+        "right_j7": 0,
+        "right_gripper": 12
+      },
+      "positionMm": [
+        80,
+        0,
+        300
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "erlenmeyer_flask",
+      "label": "Erlenmeyer Flask",
+      "accessibleName": "Erlenmeyer Flask",
+      "type": "flask",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "erlenmeyer-flask-250ml.png",
+      "visualVariant": "erlenmeyer",
+      "initialZone": "supply_zone",
+      "positionMm": [
+        -260,
+        0,
+        100
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "burette_receiver_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "id": "burette_stopcock",
+      "label": "Burette Stopcock",
+      "accessibleName": "Burette Stopcock",
+      "type": "control",
+      "sceneOnly": false,
+      "visualParentId": "burette",
+      "visualReference": "ring-stand-burette.png",
+      "visualVariant": "default",
+      "initialZone": "burette_zone",
+      "positionMm": [
+        80,
+        0,
+        300
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": true,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "id": "endpoint_indicator",
+      "label": "Endpoint Indicator",
+      "accessibleName": "Endpoint Indicator",
+      "type": "control",
+      "sceneOnly": false,
+      "visualParentId": "erlenmeyer_flask",
+      "visualReference": "erlenmeyer-flask-250ml.png",
+      "visualVariant": "default",
+      "initialZone": "burette_receiver_zone",
+      "positionMm": [
+        80,
+        0,
+        220
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "configured readiness only",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": true,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "id": "burette",
+      "label": "Burette",
+      "accessibleName": "Burette",
+      "type": "burette",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "ring-stand-burette.png",
+      "visualVariant": "default",
+      "initialZone": "burette_zone",
+      "positionMm": [
+        80,
+        0,
+        300
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left",
+        "right"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Grasp Erlenmeyer Flask",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "grasp",
+        "objectId": "erlenmeyer_flask",
+        "at": "supply_zone",
+        "effector": "left",
+        "requiredPose": "supply_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "grasp:erlenmeyer_flask"
+      },
+      "invalidFeedback": "Grasp Erlenmeyer Flask is unavailable until the robot is at Supply Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Supply Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Place Erlenmeyer Flask at Burette Receiver Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "place",
+        "objectId": "erlenmeyer_flask",
+        "zoneId": "burette_receiver_zone",
+        "effector": "left",
+        "requiredPose": "burette_receiver_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "place:erlenmeyer_flask"
+      },
+      "invalidFeedback": "Place Erlenmeyer Flask at Burette Receiver Zone is unavailable until the robot is at Burette Receiver Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Receiver Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Dropwise: Burette Stopcock",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "burette_stopcock",
+        "mode": "dropwise",
+        "at": "burette_zone",
+        "effector": "right",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:burette_stopcock"
+      },
+      "invalidFeedback": "Dropwise: Burette Stopcock is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Read Endpoint Indicator",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "read_instrument",
+        "instrumentId": "endpoint_indicator",
+        "at": "burette_receiver_zone",
+        "requiredPose": "burette_receiver_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "read_instrument:endpoint_indicator"
+      },
+      "invalidFeedback": "Read Endpoint Indicator is unavailable until the robot is at Burette Receiver Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Receiver Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Close: Burette Stopcock",
+      "sourceBasis": [
+        "M",
+        "R"
+      ],
+      "expected": {
+        "type": "operate",
+        "controlId": "burette_stopcock",
+        "mode": "close",
+        "at": "burette_zone",
+        "effector": "right",
+        "requiredPose": "burette_zone"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "operate:burette_stopcock"
+      },
+      "invalidFeedback": "Close: Burette Stopcock is unavailable until the robot is at Burette Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Burette Zone, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": []
+    },
+    "python": {
+      "code": ""
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "move_joints",
+        "joints": {
+          "base_yaw": 15.36,
+          "left_j1": -31.17,
+          "left_j2": -49.83,
+          "left_j3": 0,
+          "left_j4": 72.83,
+          "left_j5": 0,
+          "left_j6": -5,
+          "left_j7": 0,
+          "left_gripper": 12,
+          "right_j1": 31.17,
+          "right_j2": 39.78,
+          "right_j3": 0,
+          "right_j4": 72.83,
+          "right_j5": 0,
+          "right_j6": 5,
+          "right_j7": 0,
+          "right_gripper": 12
+        },
+        "speed": 45
+      },
+      {
+        "type": "grasp",
+        "objectId": "erlenmeyer_flask",
+        "at": "supply_zone",
+        "effector": "left"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base_yaw": 43.05,
+          "left_j1": 1.25,
+          "left_j2": -28.3,
+          "left_j3": 0,
+          "left_j4": 105.51,
+          "left_j5": 0,
+          "left_j6": -5,
+          "left_j7": 0,
+          "left_gripper": 12,
+          "right_j1": -1.25,
+          "right_j2": 49.07,
+          "right_j3": 0,
+          "right_j4": 105.51,
+          "right_j5": 0,
+          "right_j6": 5,
+          "right_j7": 0,
+          "right_gripper": 12
+        },
+        "speed": 45
+      },
+      {
+        "type": "place",
+        "objectId": "erlenmeyer_flask",
+        "zoneId": "burette_receiver_zone",
+        "effector": "left"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base_yaw": 39.76,
+          "left_j1": 6.18,
+          "left_j2": -51.08,
+          "left_j3": 0,
+          "left_j4": 100.74,
+          "left_j5": 0,
+          "left_j6": -5,
+          "left_j7": 0,
+          "left_gripper": 12,
+          "right_j1": -6.18,
+          "right_j2": 47.97,
+          "right_j3": 0,
+          "right_j4": 100.74,
+          "right_j5": 0,
+          "right_j6": 5,
+          "right_j7": 0,
+          "right_gripper": 12
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "burette_stopcock",
+        "mode": "dropwise",
+        "at": "burette_zone",
+        "effector": "right"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base_yaw": 43.05,
+          "left_j1": 1.25,
+          "left_j2": -28.3,
+          "left_j3": 0,
+          "left_j4": 105.51,
+          "left_j5": 0,
+          "left_j6": -5,
+          "left_j7": 0,
+          "left_gripper": 12,
+          "right_j1": -1.25,
+          "right_j2": 49.07,
+          "right_j3": 0,
+          "right_j4": 105.51,
+          "right_j5": 0,
+          "right_j6": 5,
+          "right_j7": 0,
+          "right_gripper": 12
+        },
+        "speed": 45
+      },
+      {
+        "type": "read_instrument",
+        "instrumentId": "endpoint_indicator",
+        "at": "burette_receiver_zone"
+      },
+      {
+        "type": "move_joints",
+        "joints": {
+          "base_yaw": 39.76,
+          "left_j1": 6.18,
+          "left_j2": -51.08,
+          "left_j3": 0,
+          "left_j4": 100.74,
+          "left_j5": 0,
+          "left_j6": -5,
+          "left_j7": 0,
+          "left_gripper": 12,
+          "right_j1": -6.18,
+          "right_j2": 47.97,
+          "right_j3": 0,
+          "right_j4": 100.74,
+          "right_j5": 0,
+          "right_j6": 5,
+          "right_j7": 0,
+          "right_gripper": 12
+        },
+        "speed": 45
+      },
+      {
+        "type": "operate",
+        "controlId": "burette_stopcock",
+        "mode": "close",
+        "at": "burette_zone",
+        "effector": "right"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "erlenmeyer_flask",
+          "at": "supply_zone",
+          "effector": "left"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "move_joints",
+          "joints": {
+            "base_yaw": 15.36,
+            "left_j1": -31.17,
+            "left_j2": -49.83,
+            "left_j3": 0,
+            "left_j4": 72.83,
+            "left_j5": 0,
+            "left_j6": -5,
+            "left_j7": 0,
+            "left_gripper": 12,
+            "right_j1": 31.17,
+            "right_j2": 39.78,
+            "right_j3": 0,
+            "right_j4": 72.83,
+            "right_j5": 0,
+            "right_j6": 5,
+            "right_j7": 0,
+            "right_gripper": 12
+          },
+          "speed": 45
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "grasp",
+          "objectId": "erlenmeyer_flask",
+          "at": "supply_zone",
+          "effector": "left"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}

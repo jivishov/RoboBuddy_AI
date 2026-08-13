@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoboBuddy Lab Tasks</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css?v=20260811-unitree-g1-solu-1">
+  <link rel="stylesheet" href="css/workbench-shell.css?v=20260719-remediation-1">
+  <link rel="stylesheet" href="lab/css/styles.css?v=20260812-lab-scenarios-2">
+</head>
+<body class="workbench-page lab-page lab-catalog-page" data-page="lab-scenarios">
+  <a class="workbench-skip" href="#main-content">Skip to lab task catalog</a>
+  <aside class="workbench-rail" aria-label="RoboBuddy primary navigation">
+    <a class="workbench-rail__brand" href="index.html" aria-label="RoboBuddy Main">
+      <img src="assets/logo.png" alt="" width="68" height="68">
+    </a>
+    <nav class="workbench-rail__nav" aria-label="Primary">
+      <a class="workbench-rail__link" href="index.html"><i data-lucide="house" aria-hidden="true"></i><span>Main</span></a>
+      <a class="workbench-rail__link" href="python.html"><i data-lucide="square-code" aria-hidden="true"></i><span>Python</span></a>
+      <a class="workbench-rail__link" href="gemini.html"><i data-lucide="sparkles" aria-hidden="true"></i><span>Gemini</span></a>
+      <a class="workbench-rail__link" href="lab-scenarios.html" aria-current="page"><i data-lucide="flask-conical" aria-hidden="true"></i><span>Lab Tasks</span></a>
+      <a class="workbench-rail__link" href="python-docs.html"><i data-lucide="file-text" aria-hidden="true"></i><span>Docs</span></a>
+    </nav>
+  </aside>
+
+  <header class="topbar">
+    <div class="lab-topbar__identity">
+      <h1>Chemistry Lab Assistant Tasks</h1>
+      <p>Choose one of 50 simulation-only robot-programming scenarios grounded in reviewed Lab Studio techniques.</p>
+    </div>
+    <div class="topbar__controls">
+      <span class="lab-status-chip"><i data-lucide="monitor-check" aria-hidden="true"></i>Simulation only</span>
+      <span class="lab-meta-chip"><i data-lucide="list-checks" aria-hidden="true"></i><span id="labResultCount" data-readout>Loading</span></span>
+    </div>
+  </header>
+
+  <main class="lab-catalog-shell" id="main-content" tabindex="-1">
+    <section class="lab-panel" aria-labelledby="labRobotFilterTitle">
+      <div class="lab-filter-panel__intro">
+        <span class="lab-kicker">Robot morphology</span>
+        <h2 id="labRobotFilterTitle">Choose a robot</h2>
+        <p>Each robot has 10 tasks ordered from Guided to Challenge.</p>
+      </div>
+      <div class="lab-filter-list" id="labRobotFilters" aria-label="Robot filters">
+        <button type="button" disabled><span>Loading robot packs</span><small>--</small></button>
+      </div>
+      <div class="lab-boundary">
+        <strong>Handling model</strong>
+        <p>Discrete apparatus state and kinematic robot motion. No fluid, torque, or dynamic-balance claim.</p>
+      </div>
+    </section>
+
+    <section class="lab-panel" aria-labelledby="labTaskListTitle">
+      <div class="lab-panel__header">
+        <h2 id="labTaskListTitle">Ordered tasks</h2>
+        <span class="lab-kicker">Simple to complex</span>
+      </div>
+      <div class="lab-search">
+        <label for="labTaskSearch">Search current robot</label>
+        <input id="labTaskSearch" type="search" autocomplete="off" placeholder="Technique, skill, or task title">
+      </div>
+      <div class="lab-inline-error" id="labCatalogError" role="alert" hidden>
+        <strong>Scenario catalog unavailable</strong>
+        <p>Catalog could not be loaded.</p>
+      </div>
+      <div class="lab-task-list" id="labTaskList" role="listbox" aria-label="Robot tasks"></div>
+    </section>
+
+    <aside class="lab-panel lab-detail" id="labTaskDetails" tabindex="-1" aria-label="Selected task details">
+      <div class="lab-empty"><strong>Loading task details</strong><p>The selected mission and simulation boundary will appear here.</p></div>
+    </aside>
+  </main>
+
+  <div class="visually-hidden" id="labCatalogLive" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="lab/js/catalog.js?v=20260812-lab-scenarios-2"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { window.lucide?.createIcons(); });</script>
+</body>
+</html>

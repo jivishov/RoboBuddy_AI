@@ -1,0 +1,653 @@
+{
+  "schema": "robobuddy.lab-scenario.v1",
+  "version": 1,
+  "id": "g1-08-spectro-courier-loop",
+  "robotId": "unitree_g1_29dof",
+  "rank": 8,
+  "assistanceLevel": "Challenge",
+  "title": "Instrument Courier Loop",
+  "brief": "Complete a multi-stop locked-rack route.",
+  "audience": "High-school chemistry and introductory robotics",
+  "estimatedComplexity": "Advanced",
+  "skills": [
+    "multi-stop humanoid route"
+  ],
+  "languages": [
+    "blockly",
+    "python"
+  ],
+  "objectives": [
+    "Program Unitree G1 to complete the observable handling sequence.",
+    "Use checkpoint feedback to recover from invalid proximity, sequence, or compatibility states.",
+    "Distinguish simulated apparatus state from learner-recorded evidence."
+  ],
+  "successCriteria": [
+    "Secure Locked Cuvette Rack with Right Hand",
+    "Release Locked Cuvette Rack at Instrument Zone",
+    "Secure Locked Blank Rack with Left Hand",
+    "Release Locked Blank Rack at Storage Zone",
+    "Return robot home"
+  ],
+  "techniqueRefs": [
+    {
+      "techniqueId": "crystal-violet-spectrophotometer-calibration",
+      "basis": "M",
+      "actionIds": [
+        "cv11-insert-blank",
+        "cv11-zero-spectrophotometer",
+        "cv11-remove-blank",
+        "cv11-read-absorbance-05"
+      ],
+      "scope": "These source actions establish the cited apparatus or station sequence; robot motion, carriers, tolerances, and helper poses are authored configuration."
+    }
+  ],
+  "morphologyBasis": {
+    "basis": "R",
+    "statement": "Source technique actions are assigned to the capabilities of the humanoid lab runner."
+  },
+  "configurationBasis": {
+    "basis": "C",
+    "statement": "Station positions, robot poses, timing, tolerances, secured carriers, and simulated instrument states are authored educational configuration."
+  },
+  "requiredCapabilities": [
+    "fixed_hand_interaction",
+    "home",
+    "secured_carrier_attachment"
+  ],
+  "allowedCommands": [
+    "home",
+    "stop",
+    "wait",
+    "move_joint",
+    "move_joints",
+    "pick_nearest",
+    "release_object",
+    "humanoid_walk",
+    "humanoid_turn",
+    "set_posture"
+  ],
+  "limitations": "Scripted kinematic walking with fixed-hand secured carriers; no dynamic balance or fine glassware manipulation.",
+  "simulationBoundary": "Programming and procedural-technique simulation only. This activity is not authorization or instruction for physical laboratory work.",
+  "safetyBoundary": "No real chemicals or robot hardware are controlled. Authored thermal, contamination, restricted-zone, connection, and sequence gates remain enforceable in simulation.",
+  "camera": {
+    "preset": "authored-task",
+    "positionMm": [
+      1320,
+      910,
+      1510
+    ],
+    "targetMm": [
+      0,
+      660,
+      0
+    ],
+    "movementDefault": true,
+    "zoomDefault": true
+  },
+  "navigationHazards": [],
+  "zones": [
+    {
+      "id": "home",
+      "label": "Home",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "dock",
+      "label": "Dock",
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "safety",
+      "label": "Safety",
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "visualPositionMm": [
+        0,
+        0,
+        260
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "storage_zone",
+      "label": "Storage Zone",
+      "positionMm": [
+        -380,
+        0,
+        -80
+      ],
+      "visualPositionMm": [
+        -380,
+        0,
+        80
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    },
+    {
+      "id": "instrument_zone",
+      "label": "Instrument Zone",
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "visualPositionMm": [
+        360,
+        0,
+        0
+      ],
+      "radiusMm": 70,
+      "hazard": "none"
+    }
+  ],
+  "robotPoses": {
+    "home": {
+      "id": "home",
+      "label": "Home",
+      "helperAvailable": true,
+      "joints": {
+        "left_hip_pitch_joint": 0,
+        "left_hip_roll_joint": 0,
+        "left_hip_yaw_joint": 0,
+        "left_knee_joint": 0,
+        "left_ankle_pitch_joint": 0,
+        "left_ankle_roll_joint": 0,
+        "right_hip_pitch_joint": 0,
+        "right_hip_roll_joint": 0,
+        "right_hip_yaw_joint": 0,
+        "right_knee_joint": 0,
+        "right_ankle_pitch_joint": 0,
+        "right_ankle_roll_joint": 0,
+        "waist_yaw_joint": 0,
+        "waist_roll_joint": 0,
+        "waist_pitch_joint": 0,
+        "left_shoulder_pitch_joint": 0,
+        "left_shoulder_roll_joint": 0,
+        "left_shoulder_yaw_joint": 0,
+        "left_elbow_joint": 0,
+        "left_wrist_roll_joint": 0,
+        "left_wrist_pitch_joint": 0,
+        "left_wrist_yaw_joint": 0,
+        "right_shoulder_pitch_joint": 0,
+        "right_shoulder_roll_joint": 0,
+        "right_shoulder_yaw_joint": 0,
+        "right_elbow_joint": 0,
+        "right_wrist_roll_joint": 0,
+        "right_wrist_pitch_joint": 0,
+        "right_wrist_yaw_joint": 0
+      },
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "dock": {
+      "id": "dock",
+      "label": "Dock",
+      "helperAvailable": true,
+      "joints": {},
+      "positionMm": [
+        0,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "safety": {
+      "id": "safety",
+      "label": "Safety",
+      "helperAvailable": true,
+      "joints": {},
+      "positionMm": [
+        0,
+        0,
+        -260
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "storage_zone": {
+      "id": "storage_zone",
+      "label": "Storage Zone",
+      "helperAvailable": false,
+      "joints": {},
+      "positionMm": [
+        -380,
+        0,
+        -80
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    },
+    "instrument_zone": {
+      "id": "instrument_zone",
+      "label": "Instrument Zone",
+      "helperAvailable": false,
+      "joints": {},
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "tolerance": {
+        "jointDeg": 2.5,
+        "positionMm": 35
+      }
+    }
+  },
+  "apparatus": [
+    {
+      "id": "locked_cuvette_rack",
+      "label": "Locked Cuvette Rack",
+      "accessibleName": "Locked Cuvette Rack",
+      "type": "rack",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "sample-rack.png",
+      "visualVariant": "rack",
+      "initialZone": "storage_zone",
+      "positionMm": [
+        -380,
+        0,
+        -80
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [
+        "instrument_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": true,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left_hand",
+        "right_hand"
+      ]
+    },
+    {
+      "id": "locked_blank_rack",
+      "label": "Locked Blank Rack",
+      "accessibleName": "Locked Blank Rack",
+      "type": "secured_carrier",
+      "sceneOnly": false,
+      "visualParentId": null,
+      "visualReference": "sample-rack.png",
+      "visualVariant": "rack",
+      "initialZone": "instrument_zone",
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "configured blank",
+      "allowedZones": [
+        "storage_zone"
+      ],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": true,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": true,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": [
+        "left_hand",
+        "right_hand"
+      ]
+    },
+    {
+      "id": "spectrophotometer",
+      "label": "Spectrophotometer",
+      "accessibleName": "Spectrophotometer",
+      "type": "instrument",
+      "sceneOnly": true,
+      "visualParentId": null,
+      "visualReference": "spectrophotometer.png",
+      "visualVariant": "default",
+      "initialZone": "instrument_zone",
+      "positionMm": [
+        360,
+        0,
+        0
+      ],
+      "orientation": "upright",
+      "requiredInsertionOrientation": null,
+      "contentsCategory": "none specified",
+      "allowedZones": [],
+      "compatibleTargets": [],
+      "state": {
+        "cleanliness": "configured",
+        "contamination": "none simulated",
+        "temperature": "ambient",
+        "calibration": "not applicable",
+        "connection": "not applicable"
+      },
+      "affordances": {
+        "graspable": false,
+        "insertable": false,
+        "pourable": false,
+        "receivable": false,
+        "operable": false,
+        "readable": false,
+        "securedCarrier": false,
+        "requiresStabilization": false
+      },
+      "compatibleEffectors": []
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-01",
+      "label": "Secure Locked Cuvette Rack with Right Hand",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "pick_nearest",
+        "objectId": "locked_cuvette_rack",
+        "at": "storage_zone",
+        "hand": "right_hand",
+        "requiredPose": "storage_zone"
+      },
+      "prerequisites": [],
+      "evidence": {
+        "category": "completion",
+        "event": "pick_nearest:locked_cuvette_rack"
+      },
+      "invalidFeedback": "Secure Locked Cuvette Rack with Right Hand is unavailable until the robot is at Storage Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Storage Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-02",
+      "label": "Release Locked Cuvette Rack at Instrument Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "release_object",
+        "objectId": "locked_cuvette_rack",
+        "zoneId": "instrument_zone",
+        "hand": "right_hand",
+        "requiredPose": "instrument_zone"
+      },
+      "prerequisites": [
+        "cp-01"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "release_object:locked_cuvette_rack"
+      },
+      "invalidFeedback": "Release Locked Cuvette Rack at Instrument Zone is unavailable until the robot is at Instrument Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Instrument Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-03",
+      "label": "Secure Locked Blank Rack with Left Hand",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "pick_nearest",
+        "objectId": "locked_blank_rack",
+        "at": "instrument_zone",
+        "hand": "left_hand",
+        "requiredPose": "instrument_zone"
+      },
+      "prerequisites": [
+        "cp-02"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "pick_nearest:locked_blank_rack"
+      },
+      "invalidFeedback": "Secure Locked Blank Rack with Left Hand is unavailable until the robot is at Instrument Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Instrument Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-04",
+      "label": "Release Locked Blank Rack at Storage Zone",
+      "sourceBasis": [
+        "R",
+        "C"
+      ],
+      "expected": {
+        "type": "release_object",
+        "objectId": "locked_blank_rack",
+        "zoneId": "storage_zone",
+        "hand": "left_hand",
+        "requiredPose": "storage_zone"
+      },
+      "prerequisites": [
+        "cp-03"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "release_object:locked_blank_rack"
+      },
+      "invalidFeedback": "Release Locked Blank Rack at Storage Zone is unavailable until the robot is at Storage Zone and earlier checkpoints are complete.",
+      "recovery": "Move to Storage Zone, verify effector and object state, then retry this checkpoint."
+    },
+    {
+      "id": "cp-05",
+      "label": "Return robot home",
+      "sourceBasis": [
+        "C"
+      ],
+      "expected": {
+        "type": "home",
+        "requiredPose": "home"
+      },
+      "prerequisites": [
+        "cp-04"
+      ],
+      "evidence": {
+        "category": "completion",
+        "event": "home:robot"
+      },
+      "invalidFeedback": "Return robot home is unavailable until the robot is at Home and earlier checkpoints are complete.",
+      "recovery": "Move to Home, verify effector and object state, then retry this checkpoint."
+    }
+  ],
+  "starters": {
+    "blockly": {
+      "commands": []
+    },
+    "python": {
+      "code": ""
+    }
+  },
+  "traces": {
+    "success": [
+      {
+        "type": "humanoid_turn",
+        "angleDeg": -168.11134196037202,
+        "seconds": 1.2
+      },
+      {
+        "type": "humanoid_walk",
+        "direction": "forward",
+        "steps": 4,
+        "stepLengthM": 0.09708243919473798,
+        "speed": 45,
+        "destinationId": "storage_zone"
+      },
+      {
+        "type": "pick_nearest",
+        "objectId": "locked_cuvette_rack",
+        "at": "storage_zone",
+        "hand": "right_hand"
+      },
+      {
+        "type": "humanoid_turn",
+        "angleDeg": 174.28151705540162,
+        "seconds": 1.2
+      },
+      {
+        "type": "humanoid_walk",
+        "direction": "forward",
+        "steps": 7,
+        "stepLengthM": 0.10633025180530511,
+        "speed": 45,
+        "destinationId": "instrument_zone"
+      },
+      {
+        "type": "release_object",
+        "objectId": "locked_cuvette_rack",
+        "zoneId": "instrument_zone",
+        "hand": "right_hand"
+      },
+      {
+        "type": "pick_nearest",
+        "objectId": "locked_blank_rack",
+        "at": "instrument_zone",
+        "hand": "left_hand"
+      },
+      {
+        "type": "humanoid_turn",
+        "angleDeg": -180,
+        "seconds": 1.2
+      },
+      {
+        "type": "humanoid_walk",
+        "direction": "forward",
+        "steps": 7,
+        "stepLengthM": 0.10633025180530511,
+        "speed": 45,
+        "destinationId": "storage_zone"
+      },
+      {
+        "type": "release_object",
+        "objectId": "locked_blank_rack",
+        "zoneId": "storage_zone",
+        "hand": "left_hand"
+      },
+      {
+        "type": "home"
+      }
+    ],
+    "invalidRecovery": [
+      {
+        "command": {
+          "type": "pick_nearest",
+          "objectId": "locked_cuvette_rack",
+          "at": "storage_zone",
+          "hand": "right_hand"
+        },
+        "expectedError": "NOT_IN_PROXIMITY"
+      },
+      {
+        "command": {
+          "type": "humanoid_turn",
+          "angleDeg": -168.11134196037202,
+          "seconds": 1.2
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "humanoid_walk",
+          "direction": "forward",
+          "steps": 4,
+          "stepLengthM": 0.09708243919473798,
+          "speed": 45,
+          "destinationId": "storage_zone"
+        },
+        "expected": "recovery navigation accepted"
+      },
+      {
+        "command": {
+          "type": "pick_nearest",
+          "objectId": "locked_cuvette_rack",
+          "at": "storage_zone",
+          "hand": "right_hand"
+        },
+        "expected": "first checkpoint completed"
+      }
+    ]
+  },
+  "reset": {
+    "preserve": [
+      "camera movement preference",
+      "camera zoom preference",
+      "Blockly draft",
+      "Python draft"
+    ],
+    "reconstruct": [
+      "robot pose",
+      "apparatus state",
+      "checkpoint progress",
+      "simulated evidence log"
+    ]
+  }
+}
