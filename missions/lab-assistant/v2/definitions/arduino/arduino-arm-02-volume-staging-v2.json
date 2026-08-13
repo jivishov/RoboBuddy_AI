@@ -342,7 +342,8 @@
       "tool"
     ],
     "collisionProxyProvenance": [
-      "C: conservative link envelope around canonical joint pivots"
+      "C: conservative link envelope around canonical joint pivots",
+      "M/C: CAD-derived renderer bounds and configured linkage sweep padding"
     ],
     "supportedFidelity": "CAD-derived kinematic chain with conservative collision envelopes",
     "unsupportedPhysics": [
