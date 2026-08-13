@@ -21,9 +21,9 @@
   "frames": {
     "pickup_approach": {
       "positionMm": [
-        102.358,
-        -160.679,
-        27.427
+        123.89,
+        98.185,
+        -59.675
       ],
       "role": "approach",
       "chainId": "default",
@@ -33,9 +33,9 @@
     },
     "pickup_contact": {
       "positionMm": [
-        20.922,
-        -203.206,
-        3.689
+        116.93,
+        87.125,
+        -48.862
       ],
       "role": "contact",
       "chainId": "default",
@@ -46,9 +46,9 @@
     },
     "pickup_lift": {
       "positionMm": [
-        -77.376,
-        -212.79,
-        -6.77
+        140.488,
+        100.217,
+        -44.049
       ],
       "role": "lift",
       "chainId": "default",
@@ -58,9 +58,9 @@
     },
     "destination": {
       "positionMm": [
-        -0.121,
-        -206.236,
-        0.021
+        134.927,
+        89.463,
+        25.496
       ],
       "role": "destination",
       "chainId": "default",
@@ -70,9 +70,9 @@
     },
     "destination_contact": {
       "positionMm": [
-        72.948,
-        -183.981,
-        -26.551
+        110.008,
+        77.507,
+        25.439
       ],
       "role": "contact",
       "chainId": "default",
@@ -82,9 +82,9 @@
     },
     "retreat": {
       "positionMm": [
-        118.988,
-        -157.716,
-        -55.485
+        160.528,
+        108.363,
+        22.037
       ],
       "role": "retreat",
       "chainId": "default",
@@ -298,15 +298,16 @@
     ],
     "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
     "frames": [
-      "shoulderPan",
-      "shoulderLift",
-      "elbowFlex",
-      "wristFlex",
-      "wristRoll",
-      "gripperRoot"
+      "shoulder_pan",
+      "shoulder_lift",
+      "elbow_flex",
+      "wrist_flex",
+      "wrist_roll",
+      "gripper_jaw"
     ],
     "collisionProxyProvenance": [
-      "C: conservative link envelope around canonical joint pivots"
+      "C: conservative link envelope around canonical joint pivots",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
     ],
     "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
     "unsupportedPhysics": [

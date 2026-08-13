@@ -322,6 +322,13 @@ export class ScenarioV2Engine {
       if (!priorContact) throw new Error(`Process ${entry.processId} cannot commit before contact.`);
       const process = this.state.processes[entry.processId];
       if (!process) throw new Error(`Unknown process ${entry.processId}.`);
+      const definition = this.definition.processModels.find((item) => item.id === entry.processId);
+      const missing = (definition?.prerequisites || []).filter((predicate) => !gradeScenario({
+        goalPredicates: [predicate],
+        prohibitedStates: [],
+        evidenceRequirements: []
+      }, this.state).goals[0].passed);
+      if (missing.length) throw new Error(`Process ${entry.processId} prerequisites are not satisfied.`);
       process.state = entry.value;
       process.commits += 1;
     }
@@ -368,9 +375,14 @@ export class ScenarioV2Engine {
       const placeFrame = args.placeFrame || args.destinationFrame;
       const place = placeFrame === args.destinationFrame ? [cursor] : await segment(placeFrame, 4);
       const retreat = await segment(args.retreatFrame, 5);
-      const placeEvents = [{ type: "PLACE_CONTACT", objectId: args.objectId, frameId: placeFrame }];
-      if (args.processId) placeEvents.push({ type: "PROCESS_CONTACT", processId: args.processId, objectId: args.objectId }, { type: "PROCESS_COMMIT", processId: args.processId, value: args.processValue || "complete" });
-      placeEvents.push({ type: "DETACH_OBJECT", objectId: args.objectId, frameId: args.destinationFrame });
+      const placeEvents = [
+        { type: "PLACE_CONTACT", objectId: args.objectId, frameId: placeFrame },
+        { type: "DETACH_OBJECT", objectId: args.objectId, frameId: args.destinationFrame }
+      ];
+      if (args.processId) placeEvents.push(
+        { type: "PROCESS_CONTACT", processId: args.processId, objectId: args.objectId },
+        { type: "PROCESS_COMMIT", processId: args.processId, value: args.processValue || "complete" }
+      );
       const trajectory = buildContactSequence([
         { phase: "pre_contact", samples: appendEventsToFinal(approach, [], "pre_contact") },
         { phase: "contact", samples: appendEventsToFinal(contact, [{ type: "CONTACT", objectId: args.objectId, frameId: args.contactFrame }, { type: "ATTACH_OBJECT", objectId: args.objectId, effector, attachmentInterface: "gripper" }], "contact") },

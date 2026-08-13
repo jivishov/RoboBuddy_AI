@@ -218,6 +218,34 @@ await check("ScenarioV2 validation, contact-gated outcomes, alternates, perturba
   const partial = await perturbed.executeProgram(definition.validation.referenceExecutions[0].calls.slice(0, 1));
   assert.equal(partial.grade.passed, false);
   assert.equal(partial.grade.evidence[0].passed, false);
+
+  const transportProcess = structuredClone(definition);
+  transportProcess.processModels = [{
+    id: "seat_check",
+    label: "Configured seating check",
+    discrete: true,
+    contactGated: true,
+    initialState: "not_ready",
+    completeState: "complete",
+    prerequisites: [{ op: "object_at", objectId: "sample", frameId: "destination" }]
+  }];
+  transportProcess.goalPredicates.push({ id: "seat_complete", op: "process_state", processId: "seat_check", value: "complete" });
+  const processEngine = await ScenarioV2Engine.create(transportProcess);
+  const processCalls = structuredClone(definition.validation.referenceExecutions[0].calls);
+  processCalls[0].args.processId = "seat_check";
+  const processed = await processEngine.executeProgram(processCalls);
+  assert.equal(processed.ok, true, "transport process should commit after placement satisfies its prerequisite");
+  assert.equal(processed.state.processes.seat_check.state, "complete");
+  const detachIndex = processed.state.eventLog.findIndex((event) => event.type === "DETACH_OBJECT");
+  const processCommitIndex = processed.state.eventLog.findIndex((event) => event.type === "PROCESS_COMMIT");
+  assert.ok(detachIndex >= 0 && processCommitIndex > detachIndex, "placement must be committed before its dependent process");
+
+  const blockedProcess = structuredClone(transportProcess);
+  blockedProcess.processModels[0].prerequisites = [{ op: "object_at", objectId: "sample", frameId: "pickup_contact" }];
+  const blockedEngine = await ScenarioV2Engine.create(blockedProcess);
+  const blocked = await blockedEngine.executeProgram(processCalls.slice(0, 1));
+  assert.equal(blocked.ok, false, "transport process must reject an unsatisfied commit-time prerequisite");
+  assert.equal(blocked.state.processes.seat_check.state, "not_ready");
 });
 
 class FakeStorage {
