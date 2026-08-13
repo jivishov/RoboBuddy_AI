@@ -542,7 +542,6 @@
     "frames": [
       "base_yaw",
       "left_mount",
-      "left_mount",
       "left_j1",
       "left_j2",
       "left_j3",
@@ -551,7 +550,6 @@
       "left_j6",
       "left_j7",
       "base_yaw",
-      "right_mount",
       "right_mount",
       "right_j1",
       "right_j2",
@@ -563,7 +561,8 @@
     ],
     "collisionProxyProvenance": [
       "C: conservative link envelope around canonical joint pivots",
-      "C: conservative configured stand envelope"
+      "C: conservative configured stand envelope",
+      "M/C: baked renderer mesh bounds with configured conservative padding"
     ],
     "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
     "unsupportedPhysics": [
