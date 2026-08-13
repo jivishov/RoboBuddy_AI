@@ -182,7 +182,10 @@ for (const definition of definitions) {
       const lastFailure = run.results.find((item) => !item.ok);
       assert.ok(lastFailure, `${definition.id}/${execution.id} must be rejected by the API`);
       if (execution.id === "approach-frame-is-not-contact") assert.equal(lastFailure.code, "CONTACT_REQUIRED");
-      if (execution.id === "arm-transport-before-base-route") assert.equal(lastFailure.code, "TRANSPORT_PLAN_FAILED");
+      if (execution.id === "arm-transport-before-base-route") {
+        assert.equal(lastFailure.code, "PROCESS_PREREQUISITE");
+        assert.equal(run.state.eventLog.length, 0, "missing base prerequisite must reject transport before contact or mutation");
+      }
     }
     negatives += 1;
   }

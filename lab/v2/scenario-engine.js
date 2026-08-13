@@ -1,5 +1,5 @@
 import { assertApiMethod } from "./api-contract.js";
-import { evaluateEvidenceRequirement, gradeScenario } from "./grading.js";
+import { evaluateEvidenceRequirement, evaluatePredicate, gradeScenario } from "./grading.js";
 import { inverseKinematics } from "./kinematics.js";
 import { deepClone, distance3 } from "./math.js";
 import { planJointPath, planOccupancyGridAStar, requireStowedForDrive } from "./planner.js";
@@ -369,6 +369,31 @@ export class ScenarioV2Engine {
       liftFrame: args.liftFrame
     });
     if (!graspCheck.ok) return graspCheck;
+    if (args.processId) {
+      const process = this.definition.processModels.find((item) => item.id === args.processId);
+      if (!process) return failure("UNKNOWN_PROCESS", `Unknown process ${args.processId}.`);
+      const placeFrame = args.placeFrame || args.destinationFrame;
+      const projected = deepClone(this.state);
+      projected.objects[args.objectId].attachedTo = "";
+      projected.objects[args.objectId].attachmentInterface = "";
+      projected.objects[args.objectId].currentFrame = args.destinationFrame;
+      projected.visitedFrames = [...new Set([
+        ...(projected.visitedFrames || []),
+        args.approachFrame,
+        args.contactFrame,
+        args.liftFrame,
+        args.destinationFrame,
+        args.retreatFrame
+      ])];
+      projected.eventLog.push(
+        { type: "PLACE_CONTACT", objectId: args.objectId, frameId: placeFrame },
+        { type: "DETACH_OBJECT", objectId: args.objectId, frameId: args.destinationFrame }
+      );
+      const missing = process.prerequisites.filter((predicate) => !evaluatePredicate(projected, predicate));
+      if (missing.length) {
+        return failure("PROCESS_PREREQUISITE", `${args.processId} prerequisites would not be satisfied at placement.`, { missing });
+      }
+    }
     let cursor = { ...this.state.jointState };
     const segment = async (frameId, seedOffset) => {
       const path = await this.planSegment(frameId, cursor, { ...args, seed: Number(args.seed || 101) + seedOffset });
@@ -528,6 +553,14 @@ export class ScenarioV2Engine {
   async fixtureOperation(args) {
     const process = this.definition.processModels.find((item) => item.id === args.processId);
     if (!process) return failure("UNKNOWN_PROCESS", `Unknown process ${args.processId}.`);
+    const object = args.objectId ? this.state.objects[args.objectId] : null;
+    if (args.objectId && !object) return failure("UNKNOWN_OBJECT", `Unknown object ${args.objectId}.`);
+    const fixture = args.fixtureId ? this.definition.fixtures.find((item) => item.id === args.fixtureId) : null;
+    if (args.fixtureId && !fixture) return failure("UNKNOWN_FIXTURE", `Unknown fixture ${args.fixtureId}.`);
+    if (process.fixtureId && process.fixtureId !== args.fixtureId) {
+      return failure("PROCESS_FIXTURE_MISMATCH", `${args.processId} is configured for ${process.fixtureId}, not ${args.fixtureId || "an unspecified fixture"}.`);
+    }
+    if (fixture && fixture.visible !== true) return failure("FIXTURE_NOT_VISIBLE", `${args.fixtureId} is not a visible process fixture.`);
     const missing = process.prerequisites.filter((predicate) => !gradeScenario({ goalPredicates: [predicate], prohibitedStates: [], evidenceRequirements: [] }, this.state).goals[0].passed);
     if (missing.length) return failure("PROCESS_PREREQUISITE", `${args.processId} prerequisites are not satisfied.`, { missing });
     this.applyEvent({ type: "PROCESS_CONTACT", processId: args.processId, objectId: args.objectId, fixtureId: args.fixtureId });

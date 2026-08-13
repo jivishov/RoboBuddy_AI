@@ -241,6 +241,7 @@ await check("ScenarioV2 validation, contact-gated outcomes, alternates, perturba
     contactGated: true,
     initialState: "not_ready",
     completeState: "complete",
+    fixtureId: "pickup_fixture",
     prerequisites: [{ op: "object_at", objectId: "sample", frameId: "destination" }]
   }];
   transportProcess.goalPredicates.push({ id: "seat_complete", op: "process_state", processId: "seat_check", value: "complete" });
@@ -260,6 +261,14 @@ await check("ScenarioV2 validation, contact-gated outcomes, alternates, perturba
   const blocked = await blockedEngine.executeProgram(processCalls.slice(0, 1));
   assert.equal(blocked.ok, false, "transport process must reject an unsatisfied commit-time prerequisite");
   assert.equal(blocked.state.processes.seat_check.state, "not_ready");
+  assert.equal(blocked.state.eventLog.length, 0, "failed process preflight cannot move or mutate the object");
+  assert.equal(blocked.state.objects.sample.currentFrame, "pickup_contact");
+
+  const fixtureEngine = await ScenarioV2Engine.create(transportProcess);
+  const unknownObject = await fixtureEngine.call("skills.fixture_operation", { processId: "seat_check", objectId: "missing", fixtureId: "pickup_fixture", value: "complete" });
+  assert.equal(unknownObject.code, "UNKNOWN_OBJECT");
+  const unknownFixture = await fixtureEngine.call("skills.fixture_operation", { processId: "seat_check", objectId: "sample", fixtureId: "missing", value: "complete" });
+  assert.equal(unknownFixture.code, "UNKNOWN_FIXTURE");
 });
 
 class FakeStorage {
