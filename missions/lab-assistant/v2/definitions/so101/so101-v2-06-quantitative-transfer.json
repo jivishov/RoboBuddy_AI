@@ -1,0 +1,535 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "so101-v2-06-quantitative-transfer",
+  "title": "Transfer and Rinse Station Readiness",
+  "brief": "Stage a sealed aliquot carrier and capped rinse bottle in a visible transfer-station adapter; no liquid behavior is simulated.",
+  "robotId": "so101_follower",
+  "rank": 6,
+  "supersedes": "so101-06-quantitative-transfer",
+  "assistanceLevel": "Builder",
+  "legacyClassification": "C",
+  "migration": {
+    "class": "C",
+    "legacyLearningObjective": "Program the configured aliquot-transfer and rinse preparation sequence while distinguishing robot staging from unsupported liquid behavior.",
+    "redesignRationale": "The v1 liquid transfer and rinse actions exceed the kinematic, no-fluid fidelity boundary. The robot role is redesigned as sealed-tool staging while the transfer objective remains a visible procedural-readiness sequence."
+  },
+  "canonicalModel": {
+    "id": "so101_follower",
+    "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
+  },
+  "frames": {
+    "pickup_approach": {
+      "positionMm": [
+        102.358,
+        -160.679,
+        27.427
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "pickup_contact": {
+      "positionMm": [
+        20.922,
+        -203.206,
+        3.689
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "transfer_station_adapter"
+    },
+    "pickup_lift": {
+      "positionMm": [
+        -77.376,
+        -212.79,
+        -6.77
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "destination": {
+      "positionMm": [
+        -0.121,
+        -206.236,
+        0.021
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "destination_contact": {
+      "positionMm": [
+        72.948,
+        -183.981,
+        -26.551
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "retreat": {
+      "positionMm": [
+        118.988,
+        -157.716,
+        -55.485
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "transfer_station_adapter",
+      "label": "Visible sealed-carrier transfer adapter",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+    }
+  ],
+  "objects": [
+    {
+      "id": "sealed_aliquot_carrier",
+      "label": "Sealed aliquot carrier",
+      "initialFrame": "pickup_contact",
+      "transportable": true,
+      "visible": true,
+      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "compatibleEffectors": [
+        "default"
+      ]
+    },
+    {
+      "id": "capped_rinse_bottle",
+      "label": "Capped rinse bottle",
+      "initialFrame": "pickup_contact",
+      "transportable": true,
+      "visible": true,
+      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "grasps": [
+    {
+      "id": "sealed_aliquot_carrier_fixture_grasp",
+      "objectId": "sealed_aliquot_carrier",
+      "effector": "default",
+      "mode": "fixture-assisted",
+      "contactFrame": "pickup_contact",
+      "fixtureId": "transfer_station_adapter"
+    },
+    {
+      "id": "capped_rinse_bottle_fixture_grasp",
+      "objectId": "capped_rinse_bottle",
+      "effector": "default",
+      "mode": "fixture-assisted",
+      "contactFrame": "pickup_contact",
+      "fixtureId": "transfer_station_adapter"
+    }
+  ],
+  "processModels": [
+    {
+      "id": "transfer_station_ready",
+      "label": "Configured discrete station state",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "not_ready",
+      "completeState": "ready",
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "sealed_aliquot_carrier",
+          "frameId": "destination"
+        },
+        {
+          "op": "object_at",
+          "objectId": "capped_rinse_bottle",
+          "frameId": "destination"
+        }
+      ]
+    }
+  ],
+  "goalPredicates": [
+    {
+      "id": "sealed_aliquot_carrier_placed",
+      "op": "object_at",
+      "objectId": "sealed_aliquot_carrier",
+      "frameId": "destination"
+    },
+    {
+      "id": "capped_rinse_bottle_placed",
+      "op": "object_at",
+      "objectId": "capped_rinse_bottle",
+      "frameId": "destination"
+    },
+    {
+      "id": "safe_retreat",
+      "op": "frame_visited",
+      "frameId": "retreat"
+    },
+    {
+      "id": "station_state",
+      "op": "process_state",
+      "processId": "transfer_station_ready",
+      "value": "ready"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "object_left_attached",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "attached_to",
+          "objectId": "sealed_aliquot_carrier",
+          "effector": "default"
+        },
+        {
+          "op": "attached_to",
+          "objectId": "capped_rinse_bottle",
+          "effector": "default"
+        }
+      ]
+    },
+    {
+      "id": "fixed_base_moved",
+      "op": "truthy",
+      "path": "fixedRootViolation"
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "completion_observation",
+      "label": "Record the visible configured station-ready state.",
+      "kind": "learner-recorded",
+      "minLength": 20,
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "object_at",
+            "objectId": "sealed_aliquot_carrier",
+            "frameId": "destination"
+          },
+          {
+            "op": "object_at",
+            "objectId": "capped_rinse_bottle",
+            "frameId": "destination"
+          },
+          {
+            "op": "process_state",
+            "processId": "transfer_station_ready",
+            "value": "ready"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "retreat"
+          }
+        ]
+      },
+      "requiresEvent": {
+        "type": "PROCESS_COMMIT",
+        "processId": "transfer_station_ready"
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The kinematic chain follows the baked official SO-101 model revision.",
+      "sourceRef": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf"
+    },
+    {
+      "label": "F",
+      "claim": "The successor preserves the bounded procedural objective from so101-06-quantitative-transfer (dilution/transfer-aliquot-and-dilute-to-mark).",
+      "sourceRef": "missions/lab-assistant/v1/so101-06-quantitative-transfer.json"
+    },
+    {
+      "label": "R",
+      "claim": "The robot role is limited to sealed or dry-practice staging because the legacy material action exceeds the model boundary."
+    },
+    {
+      "label": "C",
+      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "so101_follower",
+    "source": {
+      "kind": "official URDF baked model",
+      "revision": "SO101 official main snapshot baked 2026-07-02",
+      "url": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf",
+      "provenance": "M",
+      "notes": "Official joint chain; configured educational limits are explicitly separate from calibrated hardware limits."
+    },
+    "joints": [
+      {
+        "id": "shoulder_pan",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "shoulder_lift",
+        "min": -90,
+        "max": 90,
+        "home": -90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "elbow_flex",
+        "min": -120,
+        "max": 120,
+        "home": 85,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "wrist_flex",
+        "min": -90,
+        "max": 90,
+        "home": 72,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "wrist_roll",
+        "min": -180,
+        "max": 180,
+        "home": 88,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "gripper",
+        "min": 0,
+        "max": 100,
+        "home": 85,
+        "unit": "percent",
+        "type": "gripper",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      }
+    ],
+    "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
+    "frames": [
+      "shoulderPan",
+      "shoulderLift",
+      "elbowFlex",
+      "wristFlex",
+      "wristRoll",
+      "gripperRoot"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots"
+    ],
+    "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+    "unsupportedPhysics": [
+      "force sensing",
+      "payload claim",
+      "servo dynamics",
+      "certified calibrated limits"
+    ]
+  },
+  "api": {
+    "level": "builder",
+    "namedFramesDiscoverable": true
+  },
+  "navigation": {
+    "fixedBase": true
+  },
+  "validation": {
+    "referenceExecutions": [
+      {
+        "id": "reference-contact-route",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sealed_aliquot_carrier",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_rinse_bottle",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 34
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "transfer_station_ready",
+              "fixtureId": "transfer_station_adapter",
+              "objectId": "capped_rinse_bottle",
+              "value": "ready"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Configured station-ready state visibly confirmed."
+            }
+          }
+        ]
+      }
+    ],
+    "acceptedAlternates": [
+      {
+        "id": "alternate-safe-order-and-seeds",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_rinse_bottle",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 991
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sealed_aliquot_carrier",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 1008
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "transfer_station_ready",
+              "fixtureId": "transfer_station_adapter",
+              "objectId": "sealed_aliquot_carrier",
+              "value": "ready"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Configured station-ready state visibly confirmed."
+            }
+          }
+        ]
+      }
+    ],
+    "negativeCases": [
+      {
+        "id": "no-actions",
+        "expectedFailureKind": "goal",
+        "calls": []
+      },
+      {
+        "id": "outcome-without-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sealed_aliquot_carrier",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "capped_rinse_bottle",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 34
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "transfer_station_ready",
+              "fixtureId": "transfer_station_adapter",
+              "objectId": "capped_rinse_bottle",
+              "value": "ready"
+            }
+          }
+        ]
+      },
+      {
+        "id": "process-before-placement",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "transfer_station_ready",
+              "fixtureId": "transfer_station_adapter",
+              "objectId": "sealed_aliquot_carrier",
+              "value": "ready"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

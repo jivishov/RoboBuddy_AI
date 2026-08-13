@@ -1,0 +1,452 @@
+{
+  "schema": "robobuddy.lab-scenario.v2",
+  "schemaVersion": 2,
+  "id": "so101-v2-03-cuvette-orientation",
+  "title": "Precision Cuvette Load",
+  "brief": "Move a capped practice cuvette into a keyed orientation cassette and expose a configured instrument-ready state.",
+  "robotId": "so101_follower",
+  "rank": 3,
+  "supersedes": "so101-03-cuvette-orientation",
+  "assistanceLevel": "Guided",
+  "legacyClassification": "B",
+  "migration": {
+    "class": "B",
+    "legacyLearningObjective": "Program an oriented cuvette handling sequence and distinguish the configured instrument-ready state from learner-recorded evidence."
+  },
+  "canonicalModel": {
+    "id": "so101_follower",
+    "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
+  },
+  "frames": {
+    "pickup_approach": {
+      "positionMm": [
+        102.358,
+        -160.679,
+        27.427
+      ],
+      "role": "approach",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "pickup_contact": {
+      "positionMm": [
+        20.922,
+        -203.206,
+        3.689
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "keyed_cuvette_cassette"
+    },
+    "pickup_lift": {
+      "positionMm": [
+        -77.376,
+        -212.79,
+        -6.77
+      ],
+      "role": "lift",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "destination": {
+      "positionMm": [
+        -0.121,
+        -206.236,
+        0.021
+      ],
+      "role": "destination",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "destination_contact": {
+      "positionMm": [
+        72.948,
+        -183.981,
+        -26.551
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    },
+    "retreat": {
+      "positionMm": [
+        118.988,
+        -157.716,
+        -55.485
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "id": "keyed_cuvette_cassette",
+      "label": "Visible keyed cuvette cassette",
+      "visible": true,
+      "type": "morphology_adapter",
+      "configured": true,
+      "description": "A visible educational jig sized for the simulated SO-101 fixture-assisted grasp route; dimensions are configured, not measured hardware claims."
+    }
+  ],
+  "objects": [
+    {
+      "id": "sample_cuvette",
+      "label": "Capped practice cuvette",
+      "initialFrame": "pickup_contact",
+      "transportable": true,
+      "visible": true,
+      "contents": "dry or sealed practice item; no material dynamics simulated",
+      "compatibleEffectors": [
+        "default"
+      ]
+    }
+  ],
+  "grasps": [
+    {
+      "id": "sample_cuvette_fixture_grasp",
+      "objectId": "sample_cuvette",
+      "effector": "default",
+      "mode": "fixture-assisted",
+      "contactFrame": "pickup_contact",
+      "fixtureId": "keyed_cuvette_cassette"
+    }
+  ],
+  "processModels": [
+    {
+      "id": "instrument_ready",
+      "label": "Configured discrete station state",
+      "discrete": true,
+      "contactGated": true,
+      "initialState": "not_ready",
+      "completeState": "configured_read_ready",
+      "prerequisites": [
+        {
+          "op": "object_at",
+          "objectId": "sample_cuvette",
+          "frameId": "destination"
+        }
+      ]
+    }
+  ],
+  "goalPredicates": [
+    {
+      "id": "sample_cuvette_placed",
+      "op": "object_at",
+      "objectId": "sample_cuvette",
+      "frameId": "destination"
+    },
+    {
+      "id": "safe_retreat",
+      "op": "frame_visited",
+      "frameId": "retreat"
+    },
+    {
+      "id": "station_state",
+      "op": "process_state",
+      "processId": "instrument_ready",
+      "value": "configured_read_ready"
+    }
+  ],
+  "prohibitedStates": [
+    {
+      "id": "object_left_attached",
+      "op": "any",
+      "predicates": [
+        {
+          "op": "attached_to",
+          "objectId": "sample_cuvette",
+          "effector": "default"
+        }
+      ]
+    },
+    {
+      "id": "fixed_base_moved",
+      "op": "truthy",
+      "path": "fixedRootViolation"
+    }
+  ],
+  "evidenceRequirements": [
+    {
+      "id": "completion_observation",
+      "label": "Record the visible configured station-ready state.",
+      "kind": "learner-recorded",
+      "minLength": 20,
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "object_at",
+            "objectId": "sample_cuvette",
+            "frameId": "destination"
+          },
+          {
+            "op": "process_state",
+            "processId": "instrument_ready",
+            "value": "configured_read_ready"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "retreat"
+          }
+        ]
+      },
+      "requiresEvent": {
+        "type": "PROCESS_COMMIT",
+        "processId": "instrument_ready"
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "label": "M",
+      "claim": "The kinematic chain follows the baked official SO-101 model revision.",
+      "sourceRef": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf"
+    },
+    {
+      "label": "F",
+      "claim": "The successor preserves the bounded procedural objective from so101-03-cuvette-orientation (blue1-percent-transmittance/cuvette-sequence).",
+      "sourceRef": "missions/lab-assistant/v1/so101-03-cuvette-orientation.json"
+    },
+    {
+      "label": "R",
+      "claim": "Fixture-assisted manipulation matches the fixed-base SO-101 morphology and available kinematic contact sequence."
+    },
+    {
+      "label": "C",
+      "claim": "Frames, tolerances, fixture geometry, readiness states, and any teacher-facing cue are visibly configured educational values."
+    }
+  ],
+  "modelClaim": {
+    "modelId": "so101_follower",
+    "source": {
+      "kind": "official URDF baked model",
+      "revision": "SO101 official main snapshot baked 2026-07-02",
+      "url": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf",
+      "provenance": "M",
+      "notes": "Official joint chain; configured educational limits are explicitly separate from calibrated hardware limits."
+    },
+    "joints": [
+      {
+        "id": "shoulder_pan",
+        "min": -90,
+        "max": 90,
+        "home": 0,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "shoulder_lift",
+        "min": -90,
+        "max": 90,
+        "home": -90,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "elbow_flex",
+        "min": -120,
+        "max": 120,
+        "home": 85,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "wrist_flex",
+        "min": -90,
+        "max": 90,
+        "home": 72,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "wrist_roll",
+        "min": -180,
+        "max": 180,
+        "home": 88,
+        "unit": "deg",
+        "type": "revolute",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      },
+      {
+        "id": "gripper",
+        "min": 0,
+        "max": 100,
+        "home": 85,
+        "unit": "percent",
+        "type": "gripper",
+        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+      }
+    ],
+    "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
+    "frames": [
+      "shoulderPan",
+      "shoulderLift",
+      "elbowFlex",
+      "wristFlex",
+      "wristRoll",
+      "gripperRoot"
+    ],
+    "collisionProxyProvenance": [
+      "C: conservative link envelope around canonical joint pivots"
+    ],
+    "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+    "unsupportedPhysics": [
+      "force sensing",
+      "payload claim",
+      "servo dynamics",
+      "certified calibrated limits"
+    ]
+  },
+  "api": {
+    "level": "guided",
+    "namedFramesDiscoverable": true
+  },
+  "navigation": {
+    "fixedBase": true
+  },
+  "validation": {
+    "referenceExecutions": [
+      {
+        "id": "reference-contact-route",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sample_cuvette",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "instrument_ready",
+              "fixtureId": "keyed_cuvette_cassette",
+              "objectId": "sample_cuvette",
+              "value": "configured_read_ready"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Configured station-ready state visibly confirmed."
+            }
+          }
+        ]
+      }
+    ],
+    "acceptedAlternates": [
+      {
+        "id": "alternate-ik-seed",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sample_cuvette",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 991
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "instrument_ready",
+              "fixtureId": "keyed_cuvette_cassette",
+              "objectId": "sample_cuvette",
+              "value": "configured_read_ready"
+            }
+          },
+          {
+            "method": "lab.record_evidence",
+            "args": {
+              "requirementId": "completion_observation",
+              "value": "Configured station-ready state visibly confirmed."
+            }
+          }
+        ]
+      }
+    ],
+    "negativeCases": [
+      {
+        "id": "no-actions",
+        "expectedFailureKind": "goal",
+        "calls": []
+      },
+      {
+        "id": "outcome-without-evidence",
+        "expectedFailureKind": "evidence",
+        "calls": [
+          {
+            "method": "skills.transport",
+            "args": {
+              "objectId": "sample_cuvette",
+              "approachFrame": "pickup_approach",
+              "contactFrame": "pickup_contact",
+              "liftFrame": "pickup_lift",
+              "destinationFrame": "destination",
+              "placeFrame": "destination_contact",
+              "retreatFrame": "retreat",
+              "effector": "default",
+              "seed": 17
+            }
+          },
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "instrument_ready",
+              "fixtureId": "keyed_cuvette_cassette",
+              "objectId": "sample_cuvette",
+              "value": "configured_read_ready"
+            }
+          }
+        ]
+      },
+      {
+        "id": "process-before-placement",
+        "expectedFailureKind": "causal",
+        "calls": [
+          {
+            "method": "skills.fixture_operation",
+            "args": {
+              "processId": "instrument_ready",
+              "fixtureId": "keyed_cuvette_cassette",
+              "objectId": "sample_cuvette",
+              "value": "configured_read_ready"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
