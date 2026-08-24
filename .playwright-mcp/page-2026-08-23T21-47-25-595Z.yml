@@ -1,0 +1,30 @@
+- generic [active] [ref=e1]:
+  - link "Skip to lab programming workbench" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - complementary "RoboBuddy primary navigation" [ref=e3]:
+    - link "RoboBuddy Main" [ref=e4] [cursor=pointer]:
+      - /url: index.html
+    - navigation "Primary" [ref=e5]:
+      - link "Main" [ref=e6] [cursor=pointer]:
+        - /url: index.html
+      - link "Python" [ref=e11] [cursor=pointer]:
+        - /url: python.html
+      - link "Gemini" [ref=e17] [cursor=pointer]:
+        - /url: gemini.html
+      - link "Lab Tasks" [ref=e21] [cursor=pointer]:
+        - /url: lab-scenarios.html
+      - link "Docs" [ref=e25] [cursor=pointer]:
+        - /url: python-docs.html
+  - banner [ref=e30]:
+    - generic [ref=e31]:
+      - heading "Lab Workbench" [level=1] [ref=e32]
+      - paragraph [ref=e33]: Loading the selected simulation task.
+    - generic [ref=e34]:
+      - link "Back to Tasks" [ref=e35] [cursor=pointer]:
+        - /url: lab-scenarios.html
+      - generic [ref=e38]: Change lab task
+      - combobox "Change lab task" [ref=e39]:
+        - option "Loading tasks" [selected]
+      - generic [ref=e40]: Simulation only
+      - button "STOP simulation" [ref=e44] [cursor=pointer]
+  - generic "Loading lab workbench" [ref=e47]

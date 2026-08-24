@@ -1,0 +1,10 @@
+LeKiwi geometry is rebaked from SIGRobotics-UIUC/LeKiwi at immutable commit
+efa608d7ee5a495a4803b1d28cd0c955b4f1e033. The reviewed source URDF is
+URDF/LeKiwi.urdf with SHA-256
+47887649403f212ee2853850a01affe1e36aff454aa1998d5265ac4ac2d5a49d.
+
+The source repository is licensed under Apache-2.0. The retained license text
+is LICENSES/openarm-description-apache-2.0.txt (the standard Apache License 2.0
+text). The browser output records the immutable source revision, URDF hash,
+reviewed generator hash, and reproduction wrapper. RoboBuddy does not relabel
+an older baked mesh as this revision.

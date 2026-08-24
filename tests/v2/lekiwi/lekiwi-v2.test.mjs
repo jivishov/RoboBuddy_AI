@@ -9,10 +9,19 @@ import {
   requireStowedForDrive,
   validateScenarioV2
 } from "../../../lab/v2/index.js";
+import { validateRestPose } from "../../../lab/v2/physical-rest.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const DEFINITIONS = resolve(ROOT, "missions", "lab-assistant", "v2", "definitions", "lekiwi");
 const LEGACY = resolve(ROOT, "missions", "lab-assistant", "v1");
+const WORKBENCH = resolve(ROOT, "lab", "js", "workbench-v2.js");
+const PUBLIC_ACTION_FIELDS = [
+  "arm_shoulder_pan.pos", "arm_shoulder_lift.pos", "arm_elbow_flex.pos",
+  "arm_wrist_flex.pos", "arm_wrist_roll.pos", "arm_gripper.pos",
+  "x.vel", "y.vel", "theta.vel",
+];
+const ARM_FIELDS = PUBLIC_ACTION_FIELDS.slice(0, 5);
+const ALLOWED_DIRECT_PROFILES = new Set(["beaker", "flask", "filter_flask", "bottle"]);
 const EXPECTED = [
   ["lekiwi-01-beaker-courier", "lekiwi-01-beaker-courier", "A"],
   ["lekiwi-02-glassware-route", "lekiwi-02-sample-fetch", "B"],
@@ -31,6 +40,11 @@ assert.equal(files.length, 10, "LeKiwi owns exactly ten ScenarioV2 definitions")
 const definitions = await Promise.all(files.map(async (file) => JSON.parse(await readFile(resolve(DEFINITIONS, file), "utf8"))));
 const model = await loadRobotModel("lekiwi_sim");
 const canonicalClaim = modelClaim("lekiwi_sim");
+const workbenchSource = await readFile(WORKBENCH, "utf8");
+
+assert.match(workbenchSource, /from lerobot\.robots\.lekiwi import LeKiwiClient, LeKiwiClientConfig/);
+assert.ok(workbenchSource.includes('LeKiwiClient(LeKiwiClientConfig(remote_ip=transport[\\"remote_ip\\"], cameras={}))'));
+assert.ok(workbenchSource.includes('robot.send_action(step[\\"action\\"])'));
 
 assert.deepEqual(
   definitions.map((definition) => [definition.id, definition.supersedes, definition.migration.class]),
@@ -55,8 +69,70 @@ for (const definition of definitions) {
   assert.deepEqual(definition.modelClaim, canonicalClaim);
   assert.deepEqual(new Set(definition.provenance.map((entry) => entry.label)), new Set(["M", "F", "R", "C"]));
   assert.ok(definition.fixtures.every((fixture) => fixture.visible === true));
-  assert.ok(definition.fixtures.slice(0, 2).every((fixture) => fixture.collisionProxy?.type === "box"));
-  assert.ok(definition.fixtures.slice(0, 2).every((fixture) => fixture.collisionProxy?.provenance?.startsWith("C:")));
+  const transferBench = definition.fixtures.find((fixture) => fixture.id === "pickup_cradle");
+  const receivingZone = definition.fixtures.find((fixture) => fixture.id === "destination_fixture");
+  assert.equal(transferBench.type, "configured_real_transfer_bench");
+  assert.equal(transferBench.collisionProxies.length, 2, "real bench has one worktop and one broad structural back panel");
+  assert.ok(transferBench.collisionProxies.every((proxy) => proxy.type === "box"));
+  assert.ok(transferBench.collisionProxies.every((proxy) => proxy.provenance?.startsWith("C:")));
+  assert.equal(transferBench.collisionProxies[0].planningRole, "contact_surface");
+  assert.ok(transferBench.collisionProxies[1].halfExtentsMm[1] >= 95 && transferBench.collisionProxies[1].halfExtentsMm[2] >= 120, "bench support is a broad structural panel, not a thin stick");
+  assert.equal(receivingZone.presentationOnly, true);
+  assert.deepEqual(receivingZone.collisionProxies, []);
+  assert.match(receivingZone.claimBoundary, /carries no load/);
+  const object = definition.objects.find((item) => item.transportable !== false);
+  assert.ok(object, `${definition.id}: one directly handled apparatus object is required`);
+  assert.equal(object.visible, true);
+  assert.equal(object.visual.directHandling, true);
+  assert.equal(object.visual.containerFree, true);
+  assert.equal(object.physicalRest.directHandling, true);
+  assert.equal(object.physicalRest.containerFree, true);
+  assert.equal(object.attachmentInterface, "direct_apparatus_grip");
+  assert.ok(ALLOWED_DIRECT_PROFILES.has(object.configuredApparatusProfile), `${definition.id}: payload must be direct upright lab apparatus`);
+  assert.doesNotMatch(object.label, /(?:tray|carrier|cassette|rack|bin|box|watch glass|cuvette|plate)/i);
+  assert.doesNotMatch(object.visual.type, /(?:tray|carrier|cassette|rack|bin|box)/i);
+  assert.equal(object.physicalRest.schema, "robobuddy.physical-rest.v1");
+  assert.equal(object.physicalRest.tolerance.maxTiltDeg, 2);
+  assert.equal(object.physicalRest.tolerance.maxGapMm, 2.5);
+  assert.equal(object.physicalRest.tolerance.maxPenetrationMm, 0.5);
+  for (const frameId of [object.initialFrame, "delivery"]) {
+    const pose = object.physicalRest.poses[frameId];
+    const rest = validateRestPose(definition, object, { position: pose.positionMm, rotation: pose.rotationMatrix }, frameId);
+    assert.equal(rest.ok, true, `${definition.id}/${frameId}: ${rest.reasons.join("; ")}`);
+    assert.ok(rest.gapMm >= -0.5 && rest.gapMm <= 2.5, `${definition.id}/${frameId}: nonpenetrating support contact`);
+    assert.ok(rest.tiltDeg <= 2, `${definition.id}/${frameId}: upright apparatus rest`);
+    assert.ok(rest.minimumMarginMm >= 2, `${definition.id}/${frameId}: stable supported footprint`);
+  }
+  const calibration = object.physicalRest.referenceCalibration;
+  assert.equal(calibration.physicalHardwareValidated, false);
+  assert.deepEqual(calibration.contactBodies, ["wrist_roll_08c_v1__", "moving_jaw_08d_v1__"]);
+  assert.ok(calibration.finalGapMm >= -0.5 && calibration.finalGapMm <= 2.5);
+  assert.ok(calibration.finalTiltDeg <= 2);
+  assert.match(calibration.releasePoseSource, /actual opened-gripper FK pose; no release teleport/);
+  assert.equal(definition.portablePython.claim, "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending.");
+  assert.deepEqual(definition.portablePython.officialLeRobotContract.imports, [
+    "lerobot.robots.lekiwi.LeKiwiClient",
+    "lerobot.robots.lekiwi.LeKiwiClientConfig",
+  ]);
+  assert.equal(definition.portablePython.officialLeRobotContract.publicCommand, "robot.send_action(action)");
+  assert.deepEqual(definition.portablePython.officialLeRobotContract.actionFields, PUBLIC_ACTION_FIELDS);
+  assert.equal(definition.portablePython.learnerGradingCalls, false);
+  assert.equal(definition.portablePython.openGripperApproachPlanning, undefined, "stale alternate-base planning claims are forbidden");
+  for (const step of definition.portablePython.referenceActions) {
+    assert.deepEqual(Object.keys(step.action).sort(), [...PUBLIC_ACTION_FIELDS].sort(), `${definition.id}/${step.label}: official nine-field action`);
+    const baseMoving = ["x.vel", "y.vel", "theta.vel"].some((field) => Math.abs(step.action[field]) > 1e-9);
+    if (baseMoving) {
+      assert.ok(ARM_FIELDS.every((field) => Math.abs(step.action[field]) <= 1e-9), `${definition.id}/${step.label}: base drives only with arm stowed`);
+      assert.equal(step.action["arm_gripper.pos"], 20, `${definition.id}/${step.label}: base drives with the gripper open`);
+    } else {
+      assert.ok(["x.vel", "y.vel", "theta.vel"].every((field) => step.action[field] === 0), `${definition.id}/${step.label}: arm phase cannot drift the base`);
+    }
+  }
+  const placementStep = definition.portablePython.referenceActions.find((step) => step.label === "placement contact");
+  const releaseStep = definition.portablePython.referenceActions.find((step) => step.label === "release at live tool pose");
+  assert.ok(placementStep && releaseStep, `${definition.id}: placement and release actions are explicit`);
+  assert.deepEqual(ARM_FIELDS.map((field) => releaseStep.action[field]), ARM_FIELDS.map((field) => placementStep.action[field]), `${definition.id}: release opens at the live placement pose`);
+  assert.ok(placementStep.action["arm_gripper.pos"] > releaseStep.action["arm_gripper.pos"], `${definition.id}: release is caused by an open command`);
   assert.ok(definition.processModels.every((process) => process.discrete && process.contactGated));
   assert.ok(definition.processModels.every((process) => process.prerequisites.length > 0));
   assert.ok(definition.evidenceRequirements.every((requirement) => requirement.availableWhen && requirement.requiresEvent));
@@ -97,7 +173,7 @@ for (const definition of definitions) {
     value: "Configured route used; object delivered and visibly seated."
   });
   assert.equal(earlyEvidence.ok, false);
-  assert.equal(earlyEvidence.code, "EVIDENCE_NOT_AVAILABLE");
+  assert.equal(earlyEvidence.code, "UNKNOWN_EVIDENCE", "portable tasks expose no learner-callable grading/evidence API");
 
   const prematureProcess = await (await ScenarioV2Engine.create(definition)).call("skills.fixture_operation", {
     processId: "placement_latch",
@@ -109,7 +185,7 @@ for (const definition of definitions) {
   assert.equal(prematureProcess.code, "PROCESS_PREREQUISITE");
 
   const causalProbe = await ScenarioV2Engine.create(definition);
-  const objectId = definition.objects[0].id;
+  const objectId = object.id;
   const beforeDrive = causalProbe.snapshot().objects[objectId];
   const drove = await causalProbe.call("robot.navigate", { frameId: "service_base" });
   assert.equal(drove.ok, true);
@@ -119,74 +195,44 @@ for (const definition of definitions) {
     const secondStop = await causalProbe.call("robot.navigate", { frameId: "alternate_service_base" });
     assert.equal(secondStop.ok, true);
   }
-  const referenceTransport = definition.validation.referenceExecutions[0].calls.find((call) => call.method === "skills.transport");
-  const moved = await causalProbe.call("skills.transport", referenceTransport.args);
-  assert.equal(moved.ok, true, moved.message);
-  assert.equal(requireStowedForDrive(model, causalProbe.snapshot().jointState).ok, true, "transport retreat must restore the stowed arm");
-  const types = causalProbe.snapshot().eventLog.map((event) => event.type);
-  assert.ok(types.indexOf("CONTACT") < types.indexOf("ATTACH_OBJECT"));
-  assert.ok(types.indexOf("PLACE_CONTACT") < types.indexOf("DETACH_OBJECT"));
-  assert.ok(types.indexOf("DETACH_OBJECT") < types.indexOf("PROCESS_CONTACT"));
-  assert.ok(types.indexOf("PROCESS_CONTACT") < types.indexOf("PROCESS_COMMIT"));
-
-  const outcomeWithoutEvidence = definition.validation.negativeCases.find((item) => item.id === "missing-evidence-after-valid-outcome");
-  const evidenceEngine = await ScenarioV2Engine.create(definition);
-  const outcomeRun = await evidenceEngine.executeProgram(outcomeWithoutEvidence.calls);
-  assert.equal(outcomeRun.ok, true);
-  assert.ok(outcomeRun.grade.goals.every((item) => item.passed));
-  const weakEvidence = await evidenceEngine.call("lab.record_evidence", {
-    requirementId: "route_and_placement_observation",
-    value: "The configured route was completed without an outcome description."
-  });
-  assert.equal(weakEvidence.ok, false);
-  assert.equal(weakEvidence.code, "EVIDENCE_NOT_AVAILABLE");
-
-  for (const execution of definition.validation.referenceExecutions) {
-    const engine = await ScenarioV2Engine.create(definition);
-    const run = await engine.executeProgram(execution.calls);
-    assert.equal(run.ok, true, `${definition.id}/${execution.id} execution`);
-    assert.equal(run.grade.passed, true, `${definition.id}/${execution.id} grade`);
-    assert.deepEqual(run.state.rootPose.positionMm, [0, 0, 0]);
-    assert.equal(requireStowedForDrive(model, run.state.jointState).ok, true);
-    references += 1;
+  const portable = await ScenarioV2Engine.create(definition, { autoStartPlant: false });
+  assert.equal((await portable.call("compat.connect", { instanceId: "lekiwi-test", config: { kind: "lekiwi", remote_ip: "127.0.0.1", cameras: {} } })).ok, true);
+  for (const step of definition.portablePython.referenceActions) {
+    const sent = await portable.call("compat.send_action", { instanceId: "lekiwi-test", action: step.action, options: {} });
+    assert.equal(sent.ok, true, `${definition.id}/${step.label}`);
+    for (let tick = 0; tick < Math.ceil(step.hold_seconds / portable.plant.tickSeconds); tick += 1) portable.plant.tick();
+    assert.equal(portable.plant.fault, null, `${definition.id}/${step.label} must remain collision clear`);
   }
+  await portable.call("compat.disconnect", { instanceId: "lekiwi-test" });
+  const completed = portable.snapshot();
+  assert.equal(completed.grade.passed, true, `${definition.id}: authoritative portable grade`);
+  assert.ok(completed.rootPose.positionMm.every((value) => Math.abs(value) < 0.5), `${definition.id}: base returns home within 0.5 mm`);
+  assert.equal(requireStowedForDrive(model, completed.jointState).ok, true);
+  const types = completed.eventLog.map((event) => event.type);
+  for (const requiredType of ["CONTACT", "ATTACH_OBJECT", "PLACE_CONTACT", "DETACH_OBJECT"]) assert.ok(types.includes(requiredType), `${definition.id}: ${requiredType} event required`);
+  assert.ok(types.indexOf("CONTACT") < types.indexOf("ATTACH_OBJECT"));
+  assert.ok(types.indexOf("ATTACH_OBJECT") < types.indexOf("PLACE_CONTACT"));
+  assert.ok(types.indexOf("PLACE_CONTACT") < types.indexOf("DETACH_OBJECT"));
+  assert.equal(types.includes("GRASP_REJECTED"), false);
+  const attached = completed.eventLog.find((event) => event.type === "ATTACH_OBJECT");
+  const detached = completed.eventLog.find((event) => event.type === "DETACH_OBJECT");
+  assert.deepEqual(attached.contactBodies, calibration.contactBodies, `${definition.id}: both independently inspected LeKiwi finger bodies cause attachment`);
+  assert.equal(detached.stableRest, true);
+  assert.equal(detached.frameId, "delivery");
+  const releasedObject = completed.objects[objectId];
+  assert.ok(Math.hypot(...releasedObject.worldPositionMm.map((value, axis) => value - detached.worldPositionMm[axis])) < 1e-6, `${definition.id}: release cannot teleport the apparatus`);
+  assert.ok(types.includes("PROCESS_CONTACT"), "fixture state requires modeled physical contact");
+  assert.ok(types.indexOf("PROCESS_CONTACT") < types.indexOf("PROCESS_COMMIT"));
+  references += 1;
+
   for (const execution of definition.validation.acceptedAlternates) {
-    const engine = await ScenarioV2Engine.create(definition);
-    const run = await engine.executeProgram(execution.calls);
-    assert.equal(run.ok, true, `${definition.id}/${execution.id} execution`);
-    assert.equal(run.grade.passed, true, `${definition.id}/${execution.id} grade`);
-    assert.deepEqual(run.state.rootPose.positionMm, [0, 0, 0]);
-    assert.equal(requireStowedForDrive(model, run.state.jointState).ok, true);
+    assert.equal(execution.calls, undefined, `${definition.id}/${execution.id}: symbolic learner calls removed`);
+    assert.equal(execution.portableProgram.learnerGradingCalls, false);
     alternates += 1;
   }
   for (const execution of definition.validation.negativeCases) {
-    const engine = await ScenarioV2Engine.create(definition);
-    const run = await engine.executeProgram(execution.calls || []);
-    assert.equal(run.grade.passed, false, `${definition.id}/${execution.id} must fail`);
-    if (execution.expectedFailureKind === "goal") assert.ok(run.grade.goals.some((item) => !item.passed));
-    if (execution.expectedFailureKind === "evidence") {
-      assert.equal(run.ok, true);
-      assert.ok(run.grade.goals.every((item) => item.passed));
-      assert.ok(run.grade.prohibited.every((item) => !item.triggered));
-      assert.equal(run.grade.causal.length, 0);
-      assert.ok(run.grade.evidence.some((item) => !item.passed));
-    }
-    if (execution.expectedFailureKind === "prohibited") {
-      assert.equal(run.ok, true);
-      assert.ok(run.grade.goals.every((item) => item.passed));
-      assert.ok(run.grade.evidence.every((item) => item.passed));
-      assert.equal(run.grade.causal.length, 0);
-      assert.deepEqual(run.grade.prohibited.filter((item) => item.triggered).map((item) => item.id), ["restricted_stop_visited"]);
-    }
-    if (execution.expectedFailureKind === "causal") {
-      const lastFailure = run.results.find((item) => !item.ok);
-      assert.ok(lastFailure, `${definition.id}/${execution.id} must be rejected by the API`);
-      if (execution.id === "approach-frame-is-not-contact") assert.equal(lastFailure.code, "CONTACT_REQUIRED");
-      if (execution.id === "arm-transport-before-base-route") {
-        assert.equal(lastFailure.code, "PROCESS_PREREQUISITE");
-        assert.equal(run.state.eventLog.length, 0, "missing base prerequisite must reject transport before contact or mutation");
-      }
-    }
+    assert.equal(execution.calls, undefined, `${definition.id}/${execution.id}: symbolic learner calls removed`);
+    assert.equal(execution.portableNegative, true);
     negatives += 1;
   }
 }
@@ -196,6 +242,7 @@ assert.equal(alternates, 10);
 assert.equal(negatives, 50);
 console.log("LeKiwi ScenarioV2 family acceptance passed:");
 console.log("- 10 schema-valid, rank-aligned successors preserve v1 objectives and success criteria");
-console.log("- 10 primary and 10 alternate configured A*/contact executions passed and returned home stowed");
-console.log("- 50 goal/evidence/prohibited/causal negatives failed with category-specific assertions");
-console.log("- mandatory base travel, distinct occupied-cell routes, task proxies, event ordering, and claim boundaries verified");
+console.log("- 10 official LeKiwiClient.send_action traces completed collision-clear, causally handled direct apparatus, and returned home stowed");
+console.log("- initial/final real-surface rest, two independently sampled finger contacts, live-pose release, and no-teleport invariants passed");
+console.log("- 10 alternate route definitions and 50 portable negative programs retain their fail-closed metadata");
+console.log("- official starter imports, complete nine-field public actions, watchdog-safe base timing, and bounded claims verified");

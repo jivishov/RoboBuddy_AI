@@ -4,7 +4,18 @@
   "type": "module",
   "scripts": {
     "test:v2:foundation": "node scripts/test-lab-v2-foundation.mjs",
+    "test:v2:so101": "node tests/v2/so101/so101-programmability.test.mjs && node tests/v2/so101/so101-family.test.mjs",
+    "test:v2:python-compat": "node tests/v2/python-compatibility.test.mjs",
+    "test:v2:portable-references": "node tests/v2/portable-reference-scenarios.test.mjs",
+    "test:v2:portable-workbench-ux": "node tests/v2/portable-workbench-ux.test.mjs",
+    "test:v2:physical-rest": "node tests/v2/portable-physical-rest.test.mjs",
+    "test:v2:apparatus-visuals": "node tests/v2/portable-apparatus-visuals.test.mjs",
+    "test:v2:openarm-workbench-regression": "node tests/v2/openarm/openarm-portable-workbench-regression.test.mjs",
+    "test:v2:openarm-surface-pinch": "node tests/v2/openarm/openarm-surface-pinch-regression.test.mjs",
     "validate:v2": "node scripts/validate-lab-v2.mjs",
-    "test:v2:all": "node scripts/test-lab-v2-all.mjs"
+    "test:v2:all": "node scripts/test-lab-v2-all.mjs",
+    "refresh:v2:openarm-client": "node scripts/refresh-openarm-v2-client.mjs",
+    "refresh:v2:so101-client": "node scripts/refresh-so101-v2-client.mjs",
+    "refresh:v2:lekiwi-client": "node scripts/refine-lekiwi-physical-rest.mjs"
   }
 }

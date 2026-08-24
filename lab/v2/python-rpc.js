@@ -8,7 +8,7 @@ function rpcError(code, message) {
 
 export class PythonRpcClient {
   constructor(options = {}) {
-    this.workerUrl = options.workerUrl || "js/python-worker.js?v=20260812-robobuddy-v2";
+    this.workerUrl = options.workerUrl || "js/python-worker.js?v=20260823-portable-python-v1";
     this.workerFactory = options.workerFactory || ((url) => new Worker(url));
     this.apiHandler = options.apiHandler || (async () => { throw rpcError("API_HANDLER_MISSING", "No v2 API handler is configured."); });
     this.defaultTimeoutMs = Number(options.timeoutMs || 15000);
@@ -68,37 +68,58 @@ export class PythonRpcClient {
     const runId = `run-${Date.now()}-${++this.runCounter}`;
     const timeoutMs = Math.max(100, Number(options.timeoutMs || this.defaultTimeoutMs));
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        if (!this.active || this.active.runId !== runId) return;
-        this.worker.postMessage({ protocol: PYTHON_RPC_PROTOCOL, type: "CANCEL", runId, reason: "timeout" });
-        const active = this.active;
-        this.clearActive();
-        this.worker.terminate();
-        this.ready = false;
-        this.createWorker();
-        active.reject(rpcError("PYTHON_TIMEOUT", `Python timed out after ${timeoutMs} ms.`));
-      }, timeoutMs);
-      this.active = { runId, resolve, reject, timer, callIds: new Set(), closed: false };
+      this.active = { runId, resolve, reject, timer: null, timeoutMs, remainingMs: timeoutMs, deadlineMs: 0, paused: false, callIds: new Set(), closed: false };
+      this.scheduleActiveTimeout(timeoutMs);
       this.worker.postMessage({
         protocol: PYTHON_RPC_PROTOCOL,
         type: "RUN",
         runId,
         python: String(python || ""),
-        apiLevel: options.apiLevel || "guided"
+        apiLevel: options.apiLevel || "guided",
+        robotId: String(options.robotId || ""),
+        profileFiles: options.profileFiles && typeof options.profileFiles === "object" ? options.profileFiles : {}
       });
     });
   }
 
   pause() {
     if (!this.active) return false;
+    if (!this.active.paused) {
+      this.active.remainingMs = Math.max(100, this.active.deadlineMs - Date.now());
+      clearTimeout(this.active.timer);
+      this.active.timer = null;
+      this.active.paused = true;
+    }
     this.worker.postMessage({ protocol: PYTHON_RPC_PROTOCOL, type: "PAUSE", runId: this.active.runId });
     return true;
   }
 
   resume() {
     if (!this.active) return false;
+    if (this.active.paused) {
+      this.active.paused = false;
+      this.scheduleActiveTimeout(this.active.remainingMs);
+    }
     this.worker.postMessage({ protocol: PYTHON_RPC_PROTOCOL, type: "RESUME", runId: this.active.runId });
     return true;
+  }
+
+  scheduleActiveTimeout(durationMs) {
+    const active = this.active;
+    if (!active) return;
+    const duration = Math.max(100, Number(durationMs) || active.timeoutMs);
+    active.remainingMs = duration;
+    active.deadlineMs = Date.now() + duration;
+    clearTimeout(active.timer);
+    active.timer = setTimeout(() => {
+      if (!this.active || this.active.runId !== active.runId || this.active.paused) return;
+      this.worker.postMessage({ protocol: PYTHON_RPC_PROTOCOL, type: "CANCEL", runId: active.runId, reason: "timeout" });
+      this.clearActive();
+      this.worker.terminate();
+      this.ready = false;
+      this.createWorker();
+      active.reject(rpcError("PYTHON_TIMEOUT", `Python timed out after ${active.timeoutMs} ms.`));
+    }, duration);
   }
 
   cancel(reason = "user") {

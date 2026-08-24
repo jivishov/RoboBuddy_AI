@@ -10,6 +10,10 @@ function interpolateState(a, b, ids, t) {
   return Object.fromEntries(ids.map((id) => [id, Number(a[id]) + (Number(b[id]) - Number(a[id])) * t]));
 }
 
+function withFixedState(state, options = {}) {
+  return { ...(options.fixedJointState || {}), ...state };
+}
+
 export function interpolateJointPath(model, start, goal, options = {}) {
   const chainId = options.chainId || "default";
   const limits = jointLimits(model, chainId);
@@ -17,12 +21,21 @@ export function interpolateJointPath(model, start, goal, options = {}) {
   const from = clampJointState(model, start, chainId);
   const to = clampJointState(model, goal, chainId);
   const maxDelta = Math.max(0, ...ids.map((id) => Math.abs(Number(to[id]) - Number(from[id]))));
-  const steps = Math.max(1, Math.ceil(maxDelta / Math.max(0.5, Number(options.maxStepDeg || 4))));
-  return Array.from({ length: steps + 1 }, (_, index) => interpolateState(from, to, ids, index / steps));
+  const steps = Math.max(1, Math.ceil(maxDelta / Math.max(0.1, Number(options.maxStepDeg || 4))));
+  return Array.from({ length: steps + 1 }, (_, index) => withFixedState(interpolateState(from, to, ids, index / steps), options));
 }
 
 export function validateJointPath(model, path, obstacles = [], options = {}) {
-  const reports = path.map((state, index) => ({ index, ...stateCollisionReport(model, state, obstacles, options) }));
+  const reports = path.map((state, index) => {
+    const collision = stateCollisionReport(model, state, obstacles, options);
+    const stateConstraintOk = typeof options.acceptState !== "function" || options.acceptState(state);
+    return {
+      index,
+      ...collision,
+      ok: collision.ok && stateConstraintOk,
+      ...(!stateConstraintOk ? { constraintFailure: options.constraintFailureCode || "STATE_CONSTRAINT" } : {}),
+    };
+  });
   const failure = reports.find((item) => !item.ok);
   return { ok: !failure, failure: failure || null, reports };
 }
@@ -63,7 +76,7 @@ export function rrtConnect(model, start, goal, obstacles = [], options = {}) {
   const chainId = options.chainId || "default";
   const limits = jointLimits(model, chainId);
   const ids = limits.map((item) => item.id);
-  const random = seededRandom(Number(options.seed || 31));
+  const random = seededRandom(Number(options.seed ?? 31));
   const sample = () => Object.fromEntries(limits.map((item) => [item.id, item.min + random() * (item.max - item.min)]));
   const stepDeg = Math.max(2, Number(options.rrtStepDeg || 14));
   const maxIterations = Math.max(1, Number(options.maxIterations || 1600));
@@ -92,18 +105,25 @@ export function rrtConnect(model, start, goal, obstacles = [], options = {}) {
       const b = pathToRoot(second, connectIndex).reverse();
       const nodes = swapped ? [...b.reverse(), ...a.reverse().slice(1)] : [...a, ...b.slice(1)];
       const dense = nodes.flatMap((state, index) => index === nodes.length - 1 ? [state] : interpolateJointPath(model, state, nodes[index + 1], { chainId, maxStepDeg: options.maxStepDeg || 4 }).slice(0, -1));
-      return { ok: true, code: "RRT_CONNECT", path: dense, iterations: iteration + 1, seed: Number(options.seed || 31) };
+      return { ok: true, code: "RRT_CONNECT", path: dense, iterations: iteration + 1, seed: Number(options.seed ?? 31) };
     }
     [first, second] = [second, first];
     swapped = !swapped;
   }
-  return { ok: false, code: "NO_COLLISION_FREE_PATH", path: [], iterations: maxIterations, seed: Number(options.seed || 31) };
+  return { ok: false, code: "NO_COLLISION_FREE_PATH", path: [], iterations: maxIterations, seed: Number(options.seed ?? 31) };
 }
 
 export function planJointPath(model, start, goal, obstacles = [], options = {}) {
   const direct = interpolateJointPath(model, start, goal, options);
-  const validation = validateJointPath(model, direct, obstacles, options);
+  // Collision checking may need a finer temporal resolution than the returned
+  // command path. This catches narrow payload/object intersections without
+  // bloating the public reference action sequence.
+  const validationPath = Number(options.collisionStepDeg) > 0 && Number(options.collisionStepDeg) < Number(options.maxStepDeg || 4)
+    ? interpolateJointPath(model, start, goal, { ...options, maxStepDeg: options.collisionStepDeg })
+    : direct;
+  const validation = validateJointPath(model, validationPath, obstacles, options);
   if (validation.ok) return { ok: true, code: "BOUNDED_INTERPOLATION", path: direct, direct: true };
+  if (options.allowRrt === false) return { ok: false, code: "DIRECT_PATH_BLOCKED", path: [], direct: false, directFailure: validation.failure };
   return { ...rrtConnect(model, start, goal, obstacles, options), direct: false, directFailure: validation.failure };
 }
 

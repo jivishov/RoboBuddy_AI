@@ -23,6 +23,62 @@ function segmentAabbDistance(start, end, center, halfExtents) {
   return best;
 }
 
+function boxAxes(box) {
+  return Array.isArray(box.axes) && box.axes.length === 3
+    ? box.axes
+    : [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+}
+
+function pointInBoxCoordinates(point, box) {
+  const offset = sub3(point, box.centerMm);
+  return boxAxes(box).map((axis) => dot3(offset, axis));
+}
+
+function capsuleBoxCollision(capsule, box) {
+  const localStart = pointInBoxCoordinates(capsule.startMm, box);
+  const localEnd = pointInBoxCoordinates(capsule.endMm, box);
+  return segmentAabbDistance(localStart, localEnd, [0, 0, 0], box.halfExtentsMm) <= capsule.radiusMm;
+}
+
+// Full 15-axis separating-axis test for two oriented boxes. Robot mesh-bound
+// boxes retain their FK rotation; authored fixture boxes use identity axes.
+// This avoids both the empty swept volume of a rotated world AABB and the
+// missed face/edge contacts of a sparse vertex-only test.
+function boxesCollide(a, b) {
+  const axesA = boxAxes(a);
+  const axesB = boxAxes(b);
+  const rotation = axesA.map((axisA) => axesB.map((axisB) => dot3(axisA, axisB)));
+  const absolute = rotation.map((row) => row.map((value) => Math.abs(value) + 1e-8));
+  const centerDelta = sub3(b.centerMm, a.centerMm);
+  const translation = axesA.map((axis) => dot3(centerDelta, axis));
+
+  for (let axis = 0; axis < 3; axis += 1) {
+    const radiusA = a.halfExtentsMm[axis];
+    const radiusB = b.halfExtentsMm.reduce((sum, extent, index) => sum + extent * absolute[axis][index], 0);
+    if (Math.abs(translation[axis]) > radiusA + radiusB) return false;
+  }
+  for (let axis = 0; axis < 3; axis += 1) {
+    const radiusA = a.halfExtentsMm.reduce((sum, extent, index) => sum + extent * absolute[index][axis], 0);
+    const radiusB = b.halfExtentsMm[axis];
+    const projected = Math.abs(translation.reduce((sum, value, index) => sum + value * rotation[index][axis], 0));
+    if (projected > radiusA + radiusB) return false;
+  }
+  for (let axisA = 0; axisA < 3; axisA += 1) {
+    for (let axisB = 0; axisB < 3; axisB += 1) {
+      const radiusA = a.halfExtentsMm[(axisA + 1) % 3] * absolute[(axisA + 2) % 3][axisB]
+        + a.halfExtentsMm[(axisA + 2) % 3] * absolute[(axisA + 1) % 3][axisB];
+      const radiusB = b.halfExtentsMm[(axisB + 1) % 3] * absolute[axisA][(axisB + 2) % 3]
+        + b.halfExtentsMm[(axisB + 2) % 3] * absolute[axisA][(axisB + 1) % 3];
+      const projected = Math.abs(
+        translation[(axisA + 2) % 3] * rotation[(axisA + 1) % 3][axisB]
+        - translation[(axisA + 1) % 3] * rotation[(axisA + 2) % 3][axisB]
+      );
+      if (projected > radiusA + radiusB) return false;
+    }
+  }
+  return true;
+}
+
 function segmentSegmentDistance(p1, q1, p2, q2) {
   const d1 = sub3(q1, p1);
   const d2 = sub3(q2, p2);
@@ -63,17 +119,15 @@ function worldProxy(proxy, fk) {
   if (proxy.type === "box") {
     const frame = fk.frames[proxy.frameId || "root"];
     if (!frame) return null;
-    const corners = [-1, 1].flatMap((x) => [-1, 1].flatMap((y) => [-1, 1].map((z) => transformPoint(frame, [
-      proxy.centerMm[0] + x * proxy.halfExtentsMm[0],
-      proxy.centerMm[1] + y * proxy.halfExtentsMm[1],
-      proxy.centerMm[2] + z * proxy.halfExtentsMm[2]
-    ]))));
-    const minimum = [0, 1, 2].map((axis) => Math.min(...corners.map((point) => point[axis])));
-    const maximum = [0, 1, 2].map((axis) => Math.max(...corners.map((point) => point[axis])));
     return {
       ...proxy,
-      centerMm: minimum.map((value, axis) => (value + maximum[axis]) / 2),
-      halfExtentsMm: minimum.map((value, axis) => (maximum[axis] - value) / 2)
+      centerMm: transformPoint(frame, proxy.centerMm),
+      halfExtentsMm: [...proxy.halfExtentsMm],
+      axes: [
+        [frame.rotation[0], frame.rotation[3], frame.rotation[6]],
+        [frame.rotation[1], frame.rotation[4], frame.rotation[7]],
+        [frame.rotation[2], frame.rotation[5], frame.rotation[8]]
+      ]
     };
   }
   return null;
@@ -81,17 +135,29 @@ function worldProxy(proxy, fk) {
 
 function rendererForwardKinematics(model, jointState, options = {}) {
   if (!model.rendererChain?.length) return null;
+  const gripper = model.configured?.commandInterface?.gripper;
+  const rendererJointState = { ...jointState };
+  const rendererChain = model.id === "so101_follower" && gripper
+    ? model.rendererChain.map((joint) => {
+      if (joint.id !== gripper.rendererNode && joint.id !== "gripper_jaw") return joint;
+      const value = Number(jointState[gripper.jointId] ?? gripper.openValue);
+      const denominator = Math.max(1, Math.abs(gripper.graspValue - gripper.openValue));
+      const openRatio = clamp((gripper.graspValue - value) / denominator, 0, 1);
+      rendererJointState.__so101_gripper_visual = gripper.rendererClosedDeg + (gripper.rendererOpenDeg - gripper.rendererClosedDeg) * openRatio;
+      return { ...joint, jointId: "__so101_gripper_visual", sign: 1, zeroDeg: 0, offsetDeg: 0 };
+    })
+    : model.rendererChain;
   const rendererModel = {
     ...model,
     chains: {
       renderer: {
         id: "renderer",
-        joints: model.rendererChain,
-        endFrame: model.rendererChain.at(-1).id
+        joints: rendererChain,
+        endFrame: rendererChain.at(-1).id
       }
     }
   };
-  return forwardKinematics(rendererModel, jointState, { chainId: "renderer", basePose: options.basePose });
+  return forwardKinematics(rendererModel, rendererJointState, { chainId: "renderer", basePose: options.basePose });
 }
 
 export function collisionGeometry(model, jointState, options = {}) {
@@ -125,18 +191,21 @@ export function collisionGeometry(model, jointState, options = {}) {
 }
 
 export function proxiesCollide(a, b) {
-  if (a.type === "capsule" && b.type === "box") return segmentAabbDistance(a.startMm, a.endMm, b.centerMm, b.halfExtentsMm) <= a.radiusMm;
+  if (a.type === "capsule" && b.type === "box") return capsuleBoxCollision(a, b);
   if (a.type === "box" && b.type === "capsule") return proxiesCollide(b, a);
   if (a.type === "capsule" && b.type === "capsule") return segmentSegmentDistance(a.startMm, a.endMm, b.startMm, b.endMm) <= a.radiusMm + b.radiusMm;
-  if (a.type === "box" && b.type === "box") return [0, 1, 2].every((index) => Math.abs(a.centerMm[index] - b.centerMm[index]) <= a.halfExtentsMm[index] + b.halfExtentsMm[index]);
+  if (a.type === "box" && b.type === "box") return boxesCollide(a, b);
   return false;
 }
 
 export function stateCollisionReport(model, jointState, obstacles = [], options = {}) {
   const robot = collisionGeometry(model, jointState, options);
   const collisions = [];
+  const contactSurfaceClearanceMm = Math.max(0, Number(options.contactSurfaceClearanceMm ?? 1));
+  const contactSurfaces = obstacles.filter((obstacle) => obstacle.type === "box" && ["contact_surface", "contact_support"].includes(obstacle.planningRole));
+  const structuralObstacles = obstacles.filter((obstacle) => !["contact_surface", "contact_support"].includes(obstacle.planningRole));
   robot.forEach((proxy) => {
-    obstacles.forEach((obstacle) => {
+    structuralObstacles.forEach((obstacle) => {
       const normalized = obstacle.type === "box"
         ? obstacle
         : obstacle.type === "capsule"
@@ -145,18 +214,49 @@ export function stateCollisionReport(model, jointState, obstacles = [], options 
       if (normalized && proxiesCollide(proxy, normalized)) collisions.push({ robotProxyId: proxy.id, obstacleId: obstacle.id || "obstacle" });
     });
   });
+  if (contactSurfaces.length) {
+    // Mesh-frame OBBs are deliberately conservative and can fill the empty
+    // concavity between curved OpenArm fingers. Near authored contact supports
+    // use bounded baked-mesh surface samples instead; the plant still checks
+    // them at every 20 ms state and browser acceptance inspects the visible
+    // meshes independently. Worktops/supports themselves are never excluded.
+    const samples = sampleRenderedGeometry(model, jointState, options);
+    for (const sample of samples) {
+      for (const surface of contactSurfaces) {
+        const inside = sample.pointMm.every((value, axis) => (
+          value >= Number(surface.centerMm[axis]) - Number(surface.halfExtentsMm[axis]) - contactSurfaceClearanceMm
+          && value <= Number(surface.centerMm[axis]) + Number(surface.halfExtentsMm[axis]) + contactSurfaceClearanceMm
+        ));
+        if (inside) collisions.push({ robotProxyId: sample.proxyId || sample.id, obstacleId: surface.id || "contact-surface", geometry: "baked-renderer-sample", pointMm: [...sample.pointMm] });
+      }
+    }
+  }
   return { ok: collisions.length === 0, collisions, proxies: robot };
 }
 
-export function sampleRenderedGeometry(model, jointState = {}, options = {}) {
-  if (model.renderGeometrySamples?.length) {
+function sampleGeometryInWorld(model, configuredSamples, jointState = {}, options = {}) {
+  if (configuredSamples?.length) {
     const rendererFk = rendererForwardKinematics(model, jointState, options);
     const chainFks = Object.keys(model.chains || {}).map((chainId) => forwardKinematics(model, jointState, { chainId, basePose: options.basePose }));
-    return model.renderGeometrySamples.flatMap((sample) => {
+    return configuredSamples.flatMap((sample) => {
       const frame = rendererFk?.frames[sample.frameId]
         || chainFks.find((fk) => fk.frames[sample.frameId])?.frames[sample.frameId];
       return frame ? [{ ...sample, pointMm: transformPoint(frame, sample.localPointMm) }] : [];
     });
+  }
+  return [];
+}
+
+export function sampleContactGeometry(model, jointState = {}, options = {}) {
+  const configured = options.bodyIds?.length
+    ? model.contactGeometrySamples?.filter((sample) => options.bodyIds.some((bodyId) => String(sample.id).includes(bodyId)))
+    : model.contactGeometrySamples;
+  return sampleGeometryInWorld(model, configured, jointState, options);
+}
+
+export function sampleRenderedGeometry(model, jointState = {}, options = {}) {
+  if (model.renderGeometrySamples?.length) {
+    return sampleGeometryInWorld(model, model.renderGeometrySamples, jointState, options);
   }
   const proxies = collisionGeometry(model, jointState, options);
   return proxies.flatMap((proxy) => {
@@ -176,6 +276,25 @@ export function sampleRenderedGeometry(model, jointState = {}, options = {}) {
   });
 }
 
+export function gripperContactWitnesses(model, jointState = {}, options = {}) {
+  const geometry = model.configured?.commandInterface?.gripper?.contactGeometry;
+  const rendererFk = geometry ? rendererForwardKinematics(model, jointState, options) : null;
+  if (!geometry || !rendererFk) return null;
+  const makeWitness = (configured) => {
+    const frame = rendererFk.frames[configured.frameId];
+    return frame ? {
+      role: configured.role,
+      bodyId: configured.bodyId,
+      frameId: configured.frameId,
+      localPointMm: [...configured.localPointMm],
+      pointMm: transformPoint(frame, configured.localPointMm),
+    } : null;
+  };
+  const fixed = makeWitness(geometry.fixedWitness);
+  const moving = makeWitness(geometry.movingWitness);
+  return fixed && moving ? { schema: geometry.schema, fixed, moving } : null;
+}
+
 export function validateProxyEnclosure(model, jointState = {}, options = {}) {
   const proxies = collisionGeometry(model, jointState, options);
   const samples = options.samples || sampleRenderedGeometry(model, jointState, options);
@@ -184,7 +303,7 @@ export function validateProxyEnclosure(model, jointState = {}, options = {}) {
       proxyId: proxy.id,
       marginMm: proxy.type === "capsule"
         ? proxy.radiusMm - pointSegmentDistance(sample.pointMm, proxy.startMm, proxy.endMm)
-        : Math.min(...sample.pointMm.map((value, index) => proxy.halfExtentsMm[index] - Math.abs(value - proxy.centerMm[index])))
+        : Math.min(...pointInBoxCoordinates(sample.pointMm, proxy).map((value, index) => proxy.halfExtentsMm[index] - Math.abs(value)))
     })).sort((a, b) => b.marginMm - a.marginMm);
     const best = margins[0];
     return best && best.marginMm >= -1e-6

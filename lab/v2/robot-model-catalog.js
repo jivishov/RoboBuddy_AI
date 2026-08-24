@@ -4,7 +4,8 @@ import { ROBOT_RIG_PREVIEW_CONFIGS } from "../../simulator/js/robot-rig-configs.
 import { ROBOT_RIG_MESH_DATA as SO101_MESH_DATA } from "../../simulator/js/robot-mesh-data-so101.js";
 import { ROBOT_RIG_MESH_DATA as LEKIWI_MESH_DATA } from "../../simulator/js/robot-mesh-data-lekiwi.js";
 import { deepClone, deepFreeze } from "./math.js";
-import { geometryProbesFromArduinoRig, geometryProbesFromOfficialMesh } from "./render-geometry-probes.js";
+import { geometryProbesFromArduinoRig, geometryProbesFromOfficialMesh } from "./render-geometry-probes.js?v=20260823-physical-fidelity-5";
+import { SO101_COMMAND_MODEL } from "./so101-command-model.js?v=20260816-so101-partial-actions-1";
 
 const joint = (id, min, max, home, extra = {}) => ({ id, min, max, home, unit: "deg", ...extra });
 
@@ -58,25 +59,34 @@ const ARM_JOINTS_RAW = {
     joint("base", 20, 130, 90), joint("shoulder", 15, 165, 90), joint("elbow", 0, 180, 90),
     joint("wrist_rot", 0, 180, 90), joint("wrist_tilt", 0, 180, 90), joint("gripper", 25, 130, 90, { type: "gripper", open: 50, close: 120 })
   ],
-  so101_follower: [
-    joint("shoulder_pan", -90, 90, 0), joint("shoulder_lift", -90, 90, -90), joint("elbow_flex", -120, 120, 85),
-    joint("wrist_flex", -90, 90, 72), joint("wrist_roll", -180, 180, 88), joint("gripper", 0, 100, 85, { type: "gripper", open: 20, close: 85, unit: "percent" })
-  ],
+  so101_follower: SO101_COMMAND_MODEL.fields.map((field) => joint(
+    field.jointId,
+    field.min,
+    field.max,
+    field.simulationRest,
+    field.jointId === "gripper"
+      ? { type: "gripper", open: SO101_COMMAND_MODEL.gripper.openValue, close: SO101_COMMAND_MODEL.gripper.graspValue, unit: field.unit }
+      : { unit: field.unit }
+  )),
   lekiwi_sim: [
     joint("shoulder_pan", -90, 90, 0), joint("shoulder_lift", -90, 90, 0), joint("elbow_flex", -120, 120, 0),
     joint("wrist_flex", -90, 90, 0), joint("wrist_roll", -90, 90, 0), joint("gripper", 0, 100, 50, { type: "gripper", open: 20, close: 85, unit: "percent" })
   ],
   openarm_v2_bimanual: [
     joint("base_yaw", -180, 180, 0),
-    joint("left_j1", -200, 80, -25), joint("left_j2", -190, 10, -35), joint("left_j3", -90, 90, 0), joint("left_j4", 0, 140, 75), joint("left_j5", -90, 90, 0), joint("left_j6", -45, 45, -5), joint("left_j7", -90, 90, 0), joint("left_gripper", 0, 45, 12, { type: "gripper", side: "left", open: 45, close: 0 }),
-    joint("right_j1", -80, 200, 25), joint("right_j2", -10, 190, 35), joint("right_j3", -90, 90, 0), joint("right_j4", 0, 140, 75), joint("right_j5", -90, 90, 0), joint("right_j6", -45, 45, 5), joint("right_j7", -90, 90, 0), joint("right_gripper", 0, 45, 12, { type: "gripper", side: "right", open: 45, close: 0 })
+    // Configured task-ready stow. Both open grippers remain above and inboard
+    // of the fixed worktops (tool centres ~= [341, 548, +/-180] mm), clear of
+    // every authored initial apparatus envelope. J5/J7 and base yaw remain at
+    // zero; the elbows provide the compact fold rather than wrist contortion.
+    joint("left_j1", -200, 80, -5), joint("left_j2", -190, 10, -40), joint("left_j3", -90, 90, 0), joint("left_j4", 0, 140, 120), joint("left_j5", -90, 90, 0), joint("left_j6", -45, 45, -5), joint("left_j7", -90, 90, 0), joint("left_gripper", 0, 45, 45, { type: "gripper", side: "left", open: 45, close: 0 }),
+    joint("right_j1", -80, 200, 5), joint("right_j2", -10, 190, 40), joint("right_j3", -90, 90, 0), joint("right_j4", 0, 140, 120), joint("right_j5", -90, 90, 0), joint("right_j6", -45, 45, 5), joint("right_j7", -90, 90, 0), joint("right_gripper", 0, 45, 45, { type: "gripper", side: "right", open: 45, close: 0 })
   ],
   unitree_g1_29dof: []
 };
 
 const LIMIT_PROVENANCE = Object.freeze({
   arduino_arm: "M: firmware limits in ARM_RIG_CONFIG 2026-06-11; configured chain is not certified calibration.",
-  so101_follower: "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
+  so101_follower: "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration.",
   lekiwi_sim: "M: official-model arm joint definitions; C: configured educational arm limits and planar base bounds.",
   openarm_v2_bimanual: "M: baked official-model joint chain; C: RoboBuddy shared-base and educational joint-limit configuration.",
   unitree_g1_29dof: "C: no learner joint-limit control is exposed; motion is restricted to authored waypoint, turn, dock, and latch frames."
@@ -97,17 +107,17 @@ const SOURCES = {
   },
   so101_follower: {
     kind: "official URDF baked model",
-    revision: "SO101 official main snapshot baked 2026-07-02",
-    url: "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf",
+    revision: SO101_COMMAND_MODEL.sources.urdf.revision,
+    url: SO101_COMMAND_MODEL.sources.urdf.url,
     provenance: "M",
-    notes: "Official joint chain; configured educational limits are explicitly separate from calibrated hardware limits."
+    notes: "Official joint chain and mechanical limits. LeRobot position fields and calibration semantics are separately pinned in commandInterface; the configured simulation rest is not a physical home."
   },
   lekiwi_sim: {
     kind: "official URDF baked model",
-    revision: "LeKiwi official snapshot baked 2026-07-03",
-    url: "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/main/URDF/LeKiwi.urdf",
+    revision: "efa608d7ee5a495a4803b1d28cd0c955b4f1e033",
+    url: "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/efa608d7ee5a495a4803b1d28cd0c955b4f1e033/URDF/LeKiwi.urdf",
     provenance: "M",
-    notes: "Official visual/kinematic chain with configured planar occupancy-grid base model."
+    notes: "Immutable reviewed official visual/kinematic chain; planar response and collision bounds are configured separately."
   },
   openarm_v2_bimanual: {
     kind: "official collision meshes and baked chain",
@@ -150,7 +160,8 @@ function baseModel(id, options) {
       default: {
         id: "default",
         joints: chain,
-        endFrame: options.endFrame || chain.at(-1)?.id || "root"
+        endFrame: options.endFrame || chain.at(-1)?.id || "root",
+        ...(options.endOffsetMm ? { endOffsetMm: [...options.endOffsetMm] } : {})
       }
     },
     rendererBinding: options.rendererBinding,
@@ -190,15 +201,21 @@ const STATIC_MODELS = {
   }),
   so101_follower: baseModel("so101_follower", {
     chain: SO101_CHAIN,
-    endFrame: "gripper_jaw",
+    endFrame: SO101_COMMAND_MODEL.gripper.toolFrameNode,
+    endOffsetMm: SO101_COMMAND_MODEL.gripper.toolOffsetMm,
     rendererBinding: { kind: "official-baked-mesh-chain", revision: ROBOT_RIG_PREVIEW_CONFIGS.so101_follower.meshData.version, sourceUrl: SO101_MESH_DATA.source.urdf },
     rendererChain: SO101_RENDERER_CHAIN,
     collisionProxies: [...capsuleProxies(SO101_CHAIN, 34), ...SO101_GEOMETRY.collisionProxies],
     rendererRootOffsetMm: SO101_GEOMETRY.rendererRootOffsetMm,
     renderGeometrySamples: SO101_GEOMETRY.renderGeometrySamples,
-    capabilities: ["fixed_base_fk", "position_ik", "joint_path", "fixture_assisted_grasp", "contact_sequences"],
-    fidelity: "Official-model kinematic chain with configured educational joint limits",
-    unsupportedPhysics: ["force sensing", "payload claim", "servo dynamics", "certified calibrated limits"]
+    capabilities: ["fixed_base_fk", "joint_position_command", "position_observation", "contact_sequences"],
+    fidelity: "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+    unsupportedPhysics: [
+      "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior",
+      "physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control",
+      "payload, collision avoidance, hardware validation, and safety certification"
+    ],
+    configured: { commandInterface: deepClone(SO101_COMMAND_MODEL) }
   }),
   lekiwi_sim: baseModel("lekiwi_sim", {
     chain: LEKIWI_CHAIN,
@@ -209,17 +226,25 @@ const STATIC_MODELS = {
     collisionProxies: [...capsuleProxies(LEKIWI_CHAIN, 34), ...LEKIWI_GEOMETRY.collisionProxies],
     rendererRootOffsetMm: LEKIWI_GEOMETRY.rendererRootOffsetMm,
     renderGeometrySamples: LEKIWI_GEOMETRY.renderGeometrySamples,
-    capabilities: ["occupancy_grid_astar", "stow_before_drive", "arm_fk", "position_ik", "joint_path", "grasping", "contact_sequences"],
-    fidelity: "Planar occupancy-grid base and official-model arm kinematics",
-    unsupportedPhysics: ["wheel slip", "base dynamics", "force sensing", "payload claim"],
-    configured: { footprintRadiusMm: 215, gridResolutionMm: 50, stowJointState: Object.fromEntries(ARM_JOINTS.lekiwi_sim.map((item) => [item.id, item.home])) }
+    capabilities: ["planar_se2", "visible_stow_policy", "stow_before_drive", "arm_fk", "joint_position_command", "position_observation", "contact_sequences"],
+    fidelity: "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+    unsupportedPhysics: [
+      "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior",
+      "physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control",
+      "payload, collision avoidance, hardware validation, and safety certification"
+    ],
+    configured: { footprintRadiusMm: 215, gridResolutionMm: 50, watchdogMs: 500, stowRequiredForDrive: false, stowPolicyVisibleToScenarioAndGrader: true, stowJointState: Object.fromEntries(ARM_JOINTS.lekiwi_sim.map((item) => [item.id, item.home])) }
   }),
   openarm_v2_bimanual: baseModel("openarm_v2_bimanual", {
     chains: {},
     rendererBinding: { kind: "baked-mesh-chain", revision: SOURCES.openarm_v2_bimanual.revision },
     capabilities: ["per_arm_fk", "position_ik", "joint_path", "coordinated_bimanual", "shared_base_constraints", "contact_sequences"],
-    fidelity: "Per-arm and coordinated bimanual kinematics with a shared configured base",
-    unsupportedPhysics: ["torque control", "force control", "payload claim", "certified mechanical stand"]
+    fidelity: "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+    unsupportedPhysics: [
+      "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior",
+      "physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control",
+      "payload, collision avoidance, hardware validation, and safety certification"
+    ]
   }),
   unitree_g1_29dof: baseModel("unitree_g1_29dof", {
     chains: {},
@@ -242,7 +267,12 @@ function splitOpenArmChains(chain) {
   const make = (name) => ({
     id: name,
     joints: [...shared, ...chain.filter((item) => item.id === `${name}_mount`), ...side(name)],
-    endFrame: `${name}_j7`
+    endFrame: `${name}_j7`,
+    // The official finger pivots sit 68 mm below J7 and the baked finger
+    // collision meshes extend another ~102 mm. Use that measured fingertip
+    // contact height instead of the wrist pivot or a mid-finger point.
+    // Planning, rendering, and object attachment consume the same offset.
+    endOffsetMm: [0, -168, 0]
   });
   return { left: make("left"), right: make("right") };
 }
@@ -263,6 +293,24 @@ function normalizeMeshChain(chain) {
   }));
 }
 
+function applyRendererCorrections(robotId, rendererData) {
+  const config = ROBOT_RIG_PREVIEW_CONFIGS[robotId] || {};
+  const mountCorrections = config.rendererMountCorrections || {};
+  const partCorrections = config.rendererPartCorrections || {};
+  if (!Object.keys(mountCorrections).length && !Object.keys(partCorrections).length) return rendererData;
+  return {
+    ...rendererData,
+    chain: (rendererData.chain || []).map((item) => {
+      const correction = mountCorrections[item.id];
+      return correction ? { ...item, baseQuat: [...correction.baseQuat] } : item;
+    }),
+    parts: (rendererData.parts || []).map((item) => {
+      const correction = partCorrections[item.key];
+      return correction ? { ...item, ...deepClone(correction) } : item;
+    })
+  };
+}
+
 const loadedModels = new Map(Object.entries(STATIC_MODELS).filter(([id]) => !["openarm_v2_bimanual", "unitree_g1_29dof"].includes(id)));
 
 export const ROBOT_MODEL_CATALOG = deepFreeze(STATIC_MODELS);
@@ -279,9 +327,21 @@ export async function loadRobotModel(robotId) {
     const module = await import("../../simulator/js/robot-mesh-data-openarm-v2.js");
     const mesh = module.ROBOT_RIG_MESH_DATA;
     if (mesh.source?.revision !== base.source.revision) throw new Error("OpenArm baked model revision does not match the canonical claim.");
-    const meshChain = normalizeMeshChain(mesh.chain);
+    const correctedRendererData = applyRendererCorrections(robotId, mesh);
+    const meshChain = normalizeMeshChain(correctedRendererData.chain);
     const chains = splitOpenArmChains(meshChain);
-    const renderGeometry = geometryProbesFromOfficialMesh(mesh, { prefix: "render-openarm" });
+    const renderGeometry = geometryProbesFromOfficialMesh(correctedRendererData, {
+      prefix: "render-openarm",
+      // Bounded baked-mesh surface samples guard the concave finger region near
+      // contact supports. Structural fixtures use oriented conservative link
+      // and mesh-bound proxies, and browser acceptance remains mandatory.
+      samplesPerPart: 96,
+      // Manipulation contact is evaluated against every decoded vertex of the
+      // independently corrected left and right official finger meshes. The
+      // bounded 96-point set remains appropriate for whole-robot/worktop
+      // clearance, but it can miss a curved fingertip entering small glassware.
+      contactSamplePart: (part) => /^((left|right)_finger_(inner|outer)_mesh)$/.test(part.key)
+    });
     const collisionProxies = [
       ...capsuleProxies(chains.left.joints, 42, "left-link"),
       ...capsuleProxies(chains.right.joints, 42, "right-link"),
@@ -293,9 +353,11 @@ export async function loadRobotModel(robotId) {
       chains,
       collisionProxies,
       rendererChain: meshChain,
-      rendererBoundsMm: [...mesh.bboxMm],
+      rendererParts: deepClone(correctedRendererData.parts),
+      rendererBoundsMm: [...correctedRendererData.bboxMm],
       rendererRootOffsetMm: renderGeometry.rendererRootOffsetMm,
-      renderGeometrySamples: renderGeometry.renderGeometrySamples
+      renderGeometrySamples: renderGeometry.renderGeometrySamples,
+      contactGeometrySamples: renderGeometry.contactGeometrySamples
     });
     loadedModels.set(robotId, model);
     return model;
@@ -325,7 +387,11 @@ export async function canonicalRendererData(robotId, rendererData) {
   if (model.rendererBinding.kind === "baked-mesh-chain") {
     const revision = rendererData.source?.revision;
     if (revision !== model.source.revision) throw new Error(`${robotId} renderer revision ${revision || "unknown"} does not match canonical revision ${model.source.revision}.`);
-    return { ...rendererData, chain: deepClone(model.rendererChain) };
+    return {
+      ...rendererData,
+      chain: deepClone(model.rendererChain),
+      parts: deepClone(model.rendererParts || rendererData.parts)
+    };
   }
   if (model.rendererBinding.kind === "official-baked-mesh-chain") {
     if (rendererData.source?.urdf !== model.rendererBinding.sourceUrl) {
@@ -352,11 +418,16 @@ export function modelClaim(robotId) {
   return deepClone({
     modelId: model.id,
     source: model.source,
-    joints: model.joints.map(({ id, min, max, home, unit, type, limitProvenance }) => ({ id, min, max, home, unit, type: type || "revolute", limitProvenance })),
+    joints: model.joints.map(({ id, min, max, home, unit, type, limitProvenance }) => ({
+      id, min, max, home, unit, type: type || "revolute",
+      ...(robotId === "so101_follower" ? { referenceValue: home, referenceKind: "configured_simulation_rest" } : {}),
+      limitProvenance
+    })),
     limitProvenance: LIMIT_PROVENANCE[robotId],
     frames: Object.values(model.chains).flatMap((chain) => chain.joints.map((item) => item.id)),
     collisionProxyProvenance: [...new Set(model.collisionProxies.map((item) => item.provenance))],
     supportedFidelity: model.fidelity,
-    unsupportedPhysics: model.unsupportedPhysics
+    unsupportedPhysics: model.unsupportedPhysics,
+    ...(model.configured.commandInterface ? { commandInterface: model.configured.commandInterface } : {})
   });
 }

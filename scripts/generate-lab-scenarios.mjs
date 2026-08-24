@@ -41,8 +41,8 @@ const HOME_JOINTS = Object.freeze({
   lekiwi_sim: { shoulder_pan: 0, shoulder_lift: 0, elbow_flex: 0, wrist_flex: 0, wrist_roll: 0, gripper: 50 },
   openarm_v2_bimanual: {
     base_yaw: 0,
-    left_j1: -25, left_j2: -35, left_j3: 0, left_j4: 75, left_j5: 0, left_j6: -5, left_j7: 0, left_gripper: 12,
-    right_j1: 25, right_j2: 35, right_j3: 0, right_j4: 75, right_j5: 0, right_j6: 5, right_j7: 0, right_gripper: 12
+    left_j1: -5, left_j2: -40, left_j3: 0, left_j4: 120, left_j5: 0, left_j6: -5, left_j7: 0, left_gripper: 45,
+    right_j1: 5, right_j2: 40, right_j3: 0, right_j4: 120, right_j5: 0, right_j6: 5, right_j7: 0, right_gripper: 45
   },
   unitree_g1_29dof: {
     left_hip_pitch_joint: 0, left_hip_roll_joint: 0, left_hip_yaw_joint: 0, left_knee_joint: 0, left_ankle_pitch_joint: 0, left_ankle_roll_joint: 0,

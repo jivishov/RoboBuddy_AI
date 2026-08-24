@@ -65,7 +65,43 @@ function sampledQuantizedVertices(meshData, meshPayload, limit = DEFAULT_SAMPLES
     }
   }
   extrema.forEach(({ index }) => indexes.add(index));
-  return [...indexes].sort((a, b) => a - b).map((vertex) => [0, 1, 2].map((axis) => decode(vertex, axis)));
+  const unique = new Map();
+  [...indexes].sort((a, b) => a - b).forEach((vertex) => {
+    const point = [0, 1, 2].map((axis) => decode(vertex, axis));
+    unique.set(point.join(","), point);
+  });
+  return [...unique.values()];
+}
+
+function distalTriangleContactSamples(meshData, meshPayload) {
+  const bounds = meshPayload?.bounds?.map(Number);
+  const vertexCount = Number(meshPayload?.vertexCount);
+  if (!meshPayload?.positions || bounds?.length !== 6 || !Number.isInteger(vertexCount) || vertexCount < 3) return [];
+  const bytes = base64Bytes(meshPayload.positions);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const quantization = Number(meshData.quantization) || 65535;
+  const decode = (vertex, axis) => {
+    const ratio = view.getUint16((vertex * 3 + axis) * 2, true) / quantization;
+    return bounds[axis] + (bounds[axis + 3] - bounds[axis]) * ratio;
+  };
+  // The OpenArm fingertip is the distal (minimum baked-Y) end of each official
+  // collision mesh. A 12% distal band, sampled at every triangle vertex and
+  // edge midpoint, is the smallest calibrated set that retained first contact
+  // for all twenty authored direct-apparatus grasps, including the watch-glass
+  // rim whose first intersection falls along a triangle edge rather than a raw
+  // STL vertex.
+  const distalMaximumY = bounds[1] + (bounds[4] - bounds[1]) * 0.12;
+  const unique = new Map();
+  const include = (point) => unique.set(point.join(","), point);
+  for (let first = 0; first + 2 < vertexCount; first += 3) {
+    const triangle = [first, first + 1, first + 2].map((vertex) => [0, 1, 2].map((axis) => decode(vertex, axis)));
+    if (!triangle.every((point) => point[1] <= distalMaximumY + 1e-12)) continue;
+    triangle.forEach(include);
+    include(triangle[0].map((value, axis) => (value + triangle[1][axis]) / 2));
+    include(triangle[1].map((value, axis) => (value + triangle[2][axis]) / 2));
+    include(triangle[2].map((value, axis) => (value + triangle[0][axis]) / 2));
+  }
+  return [...unique.values()];
 }
 
 function transformWithScale(point, position, rotation, scale) {
@@ -96,7 +132,9 @@ function boxesFromBounds(boundsByFrame, prefix, provenance, paddingMm = DEFAULT_
 export function geometryProbesFromOfficialMesh(meshData, options = {}) {
   const boundsByFrame = new Map();
   const samples = [];
+  const contactSamples = [];
   const sampledByMesh = new Map();
+  const contactSampledByMesh = new Map();
   (meshData.parts || []).forEach((part) => {
     if (options.includeGroup && !options.includeGroup(part.group, part)) return;
     const payload = meshData.meshes?.[part.meshKey];
@@ -118,10 +156,22 @@ export function geometryProbesFromOfficialMesh(meshData, options = {}) {
         provenance: "M: sampled vertex from the baked renderer mesh"
       });
     });
+    if (options.contactSamplePart?.(part, payload)) {
+      if (!contactSampledByMesh.has(part.meshKey)) contactSampledByMesh.set(part.meshKey, distalTriangleContactSamples(meshData, payload));
+      contactSampledByMesh.get(part.meshKey).map(local).forEach((point, index) => {
+        contactSamples.push({
+          id: `${part.key || part.meshKey}-contact-${index}`,
+          frameId: part.group || "root",
+          localPointMm: point,
+          provenance: "M: dense decoded vertex from the baked renderer contact mesh"
+        });
+      });
+    }
   });
   return {
     rendererRootOffsetMm: [0, Number(meshData.groundOffsetMm) || 0, 0],
     renderGeometrySamples: samples,
+    contactGeometrySamples: contactSamples,
     collisionProxies: boxesFromBounds(
       boundsByFrame,
       options.prefix || "render-mesh",

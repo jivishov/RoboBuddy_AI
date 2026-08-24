@@ -19,8 +19,8 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       wrist_roll: 0
     },
     camera: {
-      position: [430, 320, 520],
-      target: [150, 110, 0]
+      position: [540, 410, 720],
+      target: [140, 105, -35]
     },
     materials: {
       printed: { color: 0xf2f4f7, roughness: 0.58, metalness: 0.05 },
@@ -122,12 +122,13 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
     units: "mm",
     source: {
       format: "urdf-baked-meshes",
-      url: "https://raw.githubusercontent.com/SIGRobotics-UIUC/LeKiwi/main/URDF/LeKiwi.urdf",
+      url: "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/efa608d7ee5a495a4803b1d28cd0c955b4f1e033/URDF/LeKiwi.urdf",
+      revision: "efa608d7ee5a495a4803b1d28cd0c955b4f1e033",
       notes: "Official URDF joints and decimated STL meshes baked by tools/build-robot-rig-mesh-data.py. STL vertices and transforms are both in the Three.js Y-up frame."
     },
     meshData: {
       module: "./robot-mesh-data-lekiwi.js",
-      version: "20260703-lekiwi-gripper-calibration"
+      version: "20260823-lekiwi-efa608d7-pinned"
     },
     mobileBase: {
       positionScale: 1000,
@@ -293,6 +294,15 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       right_j7: 0,
       right_gripper: 0
     },
+    // The baked left arm mirrors its complete visual assembly through local Z,
+    // so the complementary finger profiles already form an inward cradle. The
+    // unmirrored right arm needs the two official finger profiles bound to the
+    // opposite pivots. A rigid J7 rotation cannot change inward/outward finger
+    // curvature, and mirroring the right meshes would invert their winding.
+    rendererPartCorrections: {
+      right_finger_inner_mesh: { meshKey: "finger_outer" },
+      right_finger_outer_mesh: { meshKey: "finger_inner" }
+    },
     scene: {
       fogNear: 1500,
       fogFar: 3600,
@@ -304,8 +314,8 @@ export const ROBOT_RIG_PREVIEW_CONFIGS = Object.freeze({
       radius: 980
     },
     camera: {
-      position: [1180, 840, 1500],
-      target: [0, 360, 0],
+      position: [-1550, 820, 0],
+      target: [140, 365, 0],
       minDistance: 480,
       maxDistance: 3600
     },

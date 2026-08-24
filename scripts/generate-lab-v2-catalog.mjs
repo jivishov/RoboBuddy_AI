@@ -10,10 +10,11 @@ const DEFINITIONS = resolve(V2, "definitions");
 const GENERATED = resolve(V2, "generated");
 const METADATA = resolve(GENERATED, "build-metadata.json");
 const ROBOT_ORDER = ["arduino_arm", "so101_follower", "lekiwi_sim", "openarm_v2_bimanual", "unitree_g1_29dof"];
+const refreshExisting = process.argv.includes("--refresh");
 
 try {
   await readFile(METADATA, "utf8");
-  throw new Error("The v2 combined catalog was already generated. Refusing an unreviewed second regeneration.");
+  if (!refreshExisting) throw new Error("The v2 combined catalog was already generated. Use --refresh only after reviewed owning-source changes.");
 } catch (error) {
   if (error.code !== "ENOENT") throw error;
 }
@@ -94,5 +95,7 @@ const legacy = { schema: "robobuddy.legacy-v1-export-manifest.v1", readOnly: tru
 await writeFile(resolve(V2, "index.json"), `${JSON.stringify(index, null, 2)}\n`, "utf8");
 await writeFile(resolve(V2, "migration-map.json"), `${JSON.stringify(migration, null, 2)}\n`, "utf8");
 await writeFile(resolve(V2, "legacy-v1-export.json"), `${JSON.stringify(legacy, null, 2)}\n`, "utf8");
-await writeFile(METADATA, `${JSON.stringify({ schema: "robobuddy.lab-v2-build.v1", generatedAt: new Date().toISOString(), invocationCount: 1, scenarioCount: definitions.length }, null, 2)}\n`, "utf8");
-console.log(`Generated the combined ScenarioV2 catalog exactly once with ${definitions.length} scenarios.`);
+if (!refreshExisting) {
+  await writeFile(METADATA, `${JSON.stringify({ schema: "robobuddy.lab-v2-build.v1", generatedAt: new Date().toISOString(), invocationCount: 1, scenarioCount: definitions.length }, null, 2)}\n`, "utf8");
+}
+console.log(`${refreshExisting ? "Refreshed" : "Generated"} the combined ScenarioV2 catalog with ${definitions.length} scenarios.`);

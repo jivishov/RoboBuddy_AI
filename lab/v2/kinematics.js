@@ -2,12 +2,16 @@ import {
   add3,
   clamp,
   composeTransform,
+  cross3,
   deepClone,
   distance3,
+  dot3,
   identityTransform,
   jointTransform,
   norm3,
+  normalize3,
   rotationFromAxisAngle,
+  rotate3,
   seededRandom,
   solveLinearSystem,
   sub3,
@@ -89,38 +93,82 @@ export function forwardKinematics(model, jointState = {}, options = {}) {
   };
 }
 
-function numericalJacobian(model, state, chainId, activeJoints, endFrame, endOffsetMm, basePose, perturbDeg = 0.05) {
-  const base = forwardKinematics(model, state, { chainId, endFrame, endOffsetMm, basePose }).positionMm;
-  return [0, 1, 2].map((dimension) => activeJoints.map((jointId) => {
+function directionError(rotation, constraint = {}) {
+  if (!constraint?.localVector || !constraint?.targetVector) return { angleRad: 0, vector: [0, 0, 0], current: null, target: null };
+  const current = normalize3(rotate3(rotation, constraint.localVector));
+  const target = normalize3(constraint.targetVector);
+  const cosine = clamp(dot3(current, target), -1, 1);
+  const angleRad = Math.acos(cosine);
+  const cross = cross3(current, target);
+  const crossLength = norm3(cross);
+  const axis = crossLength > 1e-9 ? cross.map((value) => value / crossLength) : [0, 0, 0];
+  return { angleRad, vector: axis.map((value) => value * angleRad), current, target };
+}
+
+function directionVectors(constraint) {
+  if (!constraint) return [];
+  const vectors = [{ localVector: constraint.localVector, targetVector: constraint.targetVector }];
+  if (constraint.secondaryLocalVector && constraint.secondaryTargetVector) vectors.push({
+    localVector: constraint.secondaryLocalVector,
+    targetVector: constraint.secondaryTargetVector,
+  });
+  return vectors.filter((item) => item.localVector && item.targetVector);
+}
+
+function numericalJacobian(model, state, chainId, activeJoints, endFrame, endOffsetMm, basePose, directionConstraint, perturbDeg = 0.05) {
+  const base = forwardKinematics(model, state, { chainId, endFrame, endOffsetMm, basePose });
+  const positionRows = [0, 1, 2].map((dimension) => activeJoints.map((jointId) => {
     const perturbed = { ...state, [jointId]: Number(state[jointId]) + perturbDeg };
     const point = forwardKinematics(model, perturbed, { chainId, endFrame, endOffsetMm, basePose }).positionMm;
-    return (point[dimension] - base[dimension]) / perturbDeg;
+    return (point[dimension] - base.positionMm[dimension]) / perturbDeg;
   }));
+  if (!directionConstraint) return positionRows;
+  const weight = Math.max(1, Number(directionConstraint.weightMmPerRad || 120));
+  const directionRows = directionVectors(directionConstraint).flatMap((vector) => {
+    const baseDirection = normalize3(rotate3(base.transform.rotation, vector.localVector));
+    const directionColumns = activeJoints.map((jointId) => {
+      const perturbed = { ...state, [jointId]: Number(state[jointId]) + perturbDeg };
+      const rotation = forwardKinematics(model, perturbed, { chainId, endFrame, endOffsetMm, basePose }).transform.rotation;
+      const nextDirection = normalize3(rotate3(rotation, vector.localVector));
+      const delta = directionError(
+        [1, 0, 0, 0, 1, 0, 0, 0, 1],
+        { localVector: baseDirection, targetVector: nextDirection }
+      ).vector;
+      return delta.map((value) => value * weight / perturbDeg);
+    });
+    return [0, 1, 2].map((dimension) => directionColumns.map((column) => column[dimension]));
+  });
+  return [...positionRows, ...directionRows];
 }
 
 function dlsStep(jacobian, error, damping) {
   const count = jacobian[0].length;
   const normal = Array.from({ length: count }, (_, row) => Array.from({ length: count }, (_, column) => (
-    jacobian[0][row] * jacobian[0][column]
-    + jacobian[1][row] * jacobian[1][column]
-    + jacobian[2][row] * jacobian[2][column]
+    jacobian.reduce((sum, values) => sum + values[row] * values[column], 0)
     + (row === column ? damping * damping : 0)
   )));
   const rhs = Array.from({ length: count }, (_, index) => (
-    jacobian[0][index] * error[0]
-    + jacobian[1][index] * error[1]
-    + jacobian[2][index] * error[2]
+    jacobian.reduce((sum, values, row) => sum + values[index] * error[row], 0)
   ));
   return solveLinearSystem(normal, rhs);
 }
 
-function candidateSeeds(model, chainId, initial, seed, count) {
+function candidateSeeds(model, chainId, initial, seed, count, activeJoints) {
   const limits = jointLimits(model, chainId);
   const random = seededRandom(seed);
+  const active = new Set(activeJoints || limits.map((item) => item.id));
   const home = Object.fromEntries(limits.map((item) => [item.id, item.home]));
-  const candidates = [clampJointState(model, { ...home, ...initial }, chainId), home];
+  const initialState = clampJointState(model, { ...home, ...initial }, chainId);
+  const activeHome = {
+    ...initialState,
+    ...Object.fromEntries(limits.filter((item) => active.has(item.id)).map((item) => [item.id, item.home]))
+  };
+  const candidates = [initialState, activeHome];
   while (candidates.length < count) {
-    candidates.push(Object.fromEntries(limits.map((item) => [item.id, item.min + random() * (item.max - item.min)])));
+    candidates.push({
+      ...initialState,
+      ...Object.fromEntries(limits.filter((item) => active.has(item.id)).map((item) => [item.id, item.min + random() * (item.max - item.min)]))
+    });
   }
   return candidates;
 }
@@ -136,9 +184,20 @@ export function inverseKinematics(model, targetMm, options = {}) {
   const toleranceMm = Number(options.toleranceMm || 2.5);
   const maxIterations = Math.max(1, Number(options.maxIterations || 180));
   const damping = Math.max(0.001, Number(options.damping || 0.35));
-  const starts = candidateSeeds(model, chainId, options.initialJointState || {}, Number(options.seed || 17), Math.max(2, Number(options.starts || 8)));
-  let best = { ok: false, code: "IK_UNREACHABLE", errorMm: Infinity, jointState: starts[0], iterations: 0, seedIndex: 0 };
-  starts.forEach((seedState, seedIndex) => {
+  const directionConstraint = options.directionConstraint?.localVector && options.directionConstraint?.targetVector
+    ? {
+      ...options.directionConstraint,
+      toleranceDeg: Math.max(0.05, Number(options.directionConstraint.toleranceDeg || 2)),
+      weightMmPerRad: Math.max(1, Number(options.directionConstraint.weightMmPerRad || 120)),
+    }
+    : null;
+  const starts = candidateSeeds(model, chainId, options.initialJointState || {}, Number(options.seed ?? 17), Math.max(2, Number(options.starts ?? 8)), activeJoints);
+  let best = { ok: false, code: "IK_UNREACHABLE", errorMm: Infinity, orientationErrorDeg: directionConstraint ? Infinity : 0, combinedError: Infinity, jointState: starts[0], iterations: 0, seedIndex: 0 };
+  let bestAccepted = null;
+  let convergedCount = 0;
+  let rejectedCount = 0;
+  for (let seedIndex = 0; seedIndex < starts.length; seedIndex += 1) {
+    const seedState = starts[seedIndex];
     let state = { ...seedState };
     let stagnant = 0;
     let priorError = Infinity;
@@ -148,15 +207,37 @@ export function inverseKinematics(model, targetMm, options = {}) {
         endFrame: options.endFrame,
         endOffsetMm: options.endOffsetMm,
         basePose: options.basePose
-      }).positionMm;
-      const errorVector = sub3(targetMm, current);
-      const errorMm = norm3(errorVector);
-      if (errorMm < best.errorMm) best = { ok: errorMm <= toleranceMm, code: errorMm <= toleranceMm ? "IK_SOLVED" : "IK_UNREACHABLE", errorMm, jointState: { ...state }, iterations: iteration + 1, seedIndex };
-      if (errorMm <= toleranceMm) break;
-      stagnant = Math.abs(priorError - errorMm) < 1e-5 ? stagnant + 1 : 0;
+      });
+      const positionError = sub3(targetMm, current.positionMm);
+      const errorMm = norm3(positionError);
+      const orientations = directionVectors(directionConstraint).map((vector) => directionError(current.transform.rotation, vector));
+      const orientationErrorDeg = Math.max(0, ...orientations.map((orientation) => orientation.angleRad * 180 / Math.PI));
+      const weightedOrientationError = orientations.flatMap((orientation) => orientation.vector.map((value) => value * Number(directionConstraint?.weightMmPerRad || 0)));
+      const errorVector = [...positionError, ...(directionConstraint ? weightedOrientationError : [])];
+      const combinedError = norm3(positionError) + Math.hypot(...weightedOrientationError);
+      const converged = errorMm <= toleranceMm && (!directionConstraint || orientationErrorDeg <= directionConstraint.toleranceDeg);
+      if (combinedError < best.combinedError) best = { ok: converged, code: converged ? "IK_SOLVED" : "IK_UNREACHABLE", errorMm, orientationErrorDeg, combinedError, jointState: { ...state }, iterations: iteration + 1, seedIndex };
+      if (converged) {
+        convergedCount += 1;
+        const accepted = typeof options.acceptJointState !== "function" || options.acceptJointState({ ...state });
+        if (accepted) {
+          const configuredScore = typeof options.scoreJointState === "function"
+            ? Number(options.scoreJointState({ ...state }))
+            : errorMm;
+          const selectionScore = Number.isFinite(configuredScore) ? configuredScore : Infinity;
+          const solved = { ok: true, code: "IK_SOLVED", errorMm, orientationErrorDeg, combinedError, jointState: { ...state }, iterations: iteration + 1, seedIndex, selectionScore };
+          if (
+            !bestAccepted
+            || selectionScore < bestAccepted.selectionScore - 1e-9
+            || (Math.abs(selectionScore - bestAccepted.selectionScore) <= 1e-9 && errorMm < bestAccepted.errorMm)
+          ) bestAccepted = solved;
+        } else rejectedCount += 1;
+        break;
+      }
+      stagnant = Math.abs(priorError - combinedError) < 1e-5 ? stagnant + 1 : 0;
       if (stagnant > 12) break;
-      priorError = errorMm;
-      const jacobian = numericalJacobian(model, state, chainId, activeJoints, options.endFrame, options.endOffsetMm, options.basePose);
+      priorError = combinedError;
+      const jacobian = numericalJacobian(model, state, chainId, activeJoints, options.endFrame, options.endOffsetMm, options.basePose, directionConstraint);
       const delta = dlsStep(jacobian, errorVector, damping);
       if (!delta || delta.some((value) => !Number.isFinite(value))) break;
       const proposed = { ...state };
@@ -165,8 +246,17 @@ export function inverseKinematics(model, targetMm, options = {}) {
       });
       state = clampJointState(model, proposed, chainId);
     }
-  });
-  return { ...best, targetMm: [...targetMm], withinLimits: withinJointLimits(model, best.jointState, chainId) };
+    if (bestAccepted && options.stopOnFirstAccepted === true) break;
+  }
+  const selected = bestAccepted || (convergedCount > 0
+    ? { ...best, ok: false, code: "IK_GOAL_BLOCKED" }
+    : best);
+  return {
+    ...selected,
+    targetMm: [...targetMm],
+    withinLimits: withinJointLimits(model, selected.jointState, chainId),
+    diagnostics: { convergedCount, rejectedCount }
+  };
 }
 
 export function ikRoundTrip(model, jointState, options = {}) {

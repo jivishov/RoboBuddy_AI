@@ -82,6 +82,14 @@ export function multiplyRotation(a, b) {
   return out;
 }
 
+export function transposeRotation(rotation) {
+  return [
+    rotation[0], rotation[3], rotation[6],
+    rotation[1], rotation[4], rotation[7],
+    rotation[2], rotation[5], rotation[8]
+  ];
+}
+
 export function rotate3(rotation, point) {
   return [
     rotation[0] * point[0] + rotation[1] * point[1] + rotation[2] * point[2],
@@ -94,6 +102,14 @@ export function composeTransform(parent, child) {
   return {
     rotation: multiplyRotation(parent.rotation, child.rotation),
     position: add3(parent.position, rotate3(parent.rotation, child.position))
+  };
+}
+
+export function inverseTransform(transform) {
+  const rotation = transposeRotation(transform.rotation);
+  return {
+    rotation,
+    position: rotate3(rotation, transform.position.map((value) => -value))
   };
 }
 

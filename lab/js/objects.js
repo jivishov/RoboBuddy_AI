@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { APPARATUS_RADIAL_PROFILES } from "../v2/apparatus-geometry.js?v=20260823-physical-fidelity-4";
 
 const COLORS = Object.freeze({
   glass: 0xc7edf0,
@@ -46,7 +47,15 @@ export const APPARATUS_REFERENCE_ASSETS = Object.freeze({
   chromatography_chamber: "chromatography-chamber-with-paper.png",
   separatory_funnel: "separatory-funnel.png",
   vacuum_source: "vacuum-source.png",
-  secured_carrier: "reagent-tray.png"
+  secured_carrier: "reagent-tray.png",
+  apparatus_transport: "reagent-tray.png",
+  document_card: "chromatography-paper.png",
+  chamber_lid: "chromatography-chamber-with-paper.png",
+  chromatography_plate: "chromatography-paper.png",
+  burette_tube: "ring-stand-burette.png",
+  sample_rack: "sample-rack.png",
+  glassware_set: "beaker-250ml.png",
+  chromatography_kit: "chromatography-paper.png"
 });
 
 function standardMaterial(color, options = {}) {
@@ -264,19 +273,19 @@ function createGraduatedCylinder() {
 function createErlenmeyerFlask() {
   const group = new THREE.Group();
   const glass = glassMaterial(0.43);
-  addMesh(group, glassLathe([[36, 0], [39, 5], [37, 18], [31, 55], [15, 83], [14, 111]]), glass);
+  addMesh(group, glassLathe(APPARATUS_RADIAL_PROFILES.erlenmeyer), glass);
   addGlassRim(group, 14, 111, 1.8);
   addTorus(group, 35, 1.5, standardMaterial(COLORS.glassEdge, { transparent: true, opacity: 0.48 }), [0, 3, 0]);
-  return setObjectMetadata(group, { heightMm: 114, footprintMm: [80, 80], sockets: { receive: [0, 98, 0], insert: [0, 112, 0], place: [0, 116, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.flask });
+  return setObjectMetadata(group, { heightMm: 114, footprintMm: [80, 80], sockets: { receive: [0, 98, 0], insert: [0, 112, 0], place: [0, 116, 0], grip: [0, 68, 0], attach: [0, 0, 0] }, attachmentAnchors: { grip: [0, 68, 0], attach: [0, 0, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.flask });
 }
 
 function createVolumetricFlask() {
   const group = new THREE.Group();
   const glass = glassMaterial(0.43);
-  addMesh(group, glassLathe([[29, 0], [34, 4], [35, 20], [31, 42], [17, 63], [9, 76], [9, 151]]), glass);
+  addMesh(group, glassLathe(APPARATUS_RADIAL_PROFILES.volumetricFlask), glass);
   addGlassRim(group, 9, 151, 1.8);
   addTorus(group, 9.3, 0.8, standardMaterial(0x7b5c48, { roughness: 0.6 }), [0, 116, 0]);
-  return setObjectMetadata(group, { heightMm: 154, footprintMm: [72, 72], sockets: { receive: [0, 145, 0], insert: [0, 153, 0], place: [0, 156, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.volumetric_flask });
+  return setObjectMetadata(group, { heightMm: 154, footprintMm: [72, 72], sockets: { receive: [0, 145, 0], insert: [0, 153, 0], place: [0, 156, 0], grip: [0, 98, 0], attach: [0, 0, 0] }, attachmentAnchors: { grip: [0, 98, 0], attach: [0, 0, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.volumetric_flask });
 }
 
 function createFilterFlask() {
@@ -336,7 +345,7 @@ function createChromatographyPaper() {
   addBox(group, [34, 1.2, 2], standardMaterial(0x766b5d, { roughness: 0.82 }), [0, 18, 1.2]);
   [-10, 0, 10].forEach((x) => addCylinder(group, [2.1, 2.1], 1, standardMaterial(0x375e9c), [x, 19, 2.4], [Math.PI / 2, 0, 0], 16));
   addBox(group, [48, 4, 20], standardMaterial(0x6c7678, { roughness: 0.64 }), [0, 2, 0]);
-  return setObjectMetadata(group, { heightMm: 86, footprintMm: [50, 22], sockets: {}, referenceAsset: APPARATUS_REFERENCE_ASSETS.chromatography_paper });
+  return setObjectMetadata(group, { heightMm: 86, footprintMm: [50, 22], sockets: { grip: [0, 76, 0], attach: [0, 0, 0] }, attachmentAnchors: { grip: [0, 76, 0], attach: [0, 0, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.chromatography_paper });
 }
 
 function createGravityFunnel() {
@@ -465,7 +474,7 @@ function createPipettePump() {
 
 function createBottle(id, visualVariant = "standard") {
   const group = new THREE.Group();
-  const isWash = id.includes("wash") || ["wash-bottle", "wash_bottle"].includes(visualVariant);
+  const isWash = id.includes("wash") || visualVariant.includes("wash_bottle") || visualVariant.includes("wash-bottle");
   const body = standardMaterial(isWash ? 0xe4e7e2 : 0x8e4b1f, { roughness: isWash ? 0.38 : 0.22, transparent: !isWash, opacity: isWash ? 1 : 0.78, envMapIntensity: 1.2 });
   if (isWash) {
     markComponent(addCylinder(group, [27, 27], 76, body, [0, 38, 0], [0, 0, 0], 32), "wash-bottle-body", "vessel");
@@ -569,7 +578,8 @@ function createRack(id, visualVariant = "standard") {
 }
 
 function createCarrier(id, visualVariant = "standard") {
-  const formVariant = ["rack", "bin", "tote", "tray", "carrier"].includes(visualVariant) ? visualVariant : id.includes("rack") ? "rack" : id.includes("bin") ? "bin" : id.includes("tote") ? "tote" : id.includes("tray") ? "tray" : "carrier";
+  const openHandlingTray = visualVariant === "handling_tray";
+  const formVariant = openHandlingTray ? "tray" : ["rack", "bin", "tote", "tray", "carrier"].includes(visualVariant) ? visualVariant : id.includes("rack") ? "rack" : id.includes("bin") ? "bin" : id.includes("tote") ? "tote" : id.includes("tray") ? "tray" : "carrier";
   const contentVariant = id.includes("waste") ? "waste" : id.includes("cool") ? "cooled" : id.includes("drying") || id.includes("hot") ? "thermal" : id.includes("filter") || id.includes("supply") || id.includes("gravimetry") ? "filtration" : id.includes("reagent") || id.includes("stock") ? "reagent" : id.includes("sample") || id.includes("blank") ? "sample" : id.includes("queue") ? "queue" : id.includes("empty") ? "empty" : "standard";
   if (formVariant === "rack") {
     const rack = createRack(id, "locked");
@@ -593,18 +603,43 @@ function createCarrier(id, visualVariant = "standard") {
   const bodyHeight = formVariant === "tray" ? 30 : formVariant === "bin" ? 70 : formVariant === "tote" ? 60 : contentVariant === "empty" ? 32 : 58;
   const bodyWidth = formVariant === "tote" ? 164 : 152;
   const bodyDepth = formVariant === "bin" ? 118 : 108;
-  markComponent(addRoundedBox(group, [bodyWidth, bodyHeight, bodyDepth], 9, body, [0, bodyHeight / 2, 0]), `${formVariant}-body`, "secured-body");
-  const lid = markComponent(addRoundedBox(group, [bodyWidth + 6, 9, bodyDepth + 6], 8, dark, [0, bodyHeight + 4.5, 0]), "carrier-lid", "secured-lid");
-  lid.userData.secured = true;
+  if (openHandlingTray) {
+    markComponent(addRoundedBox(group, [bodyWidth, 8, bodyDepth], 5, body, [0, 4, 0]), "handling-tray-base", "stable-base");
+    markComponent(addRoundedBox(group, [bodyWidth, 16, 8], 3, body, [0, 16, -bodyDepth / 2 + 4]), "handling-tray-rear-lip", "raised-perimeter");
+    markComponent(addRoundedBox(group, [bodyWidth, 16, 8], 3, body, [0, 16, bodyDepth / 2 - 4]), "handling-tray-front-lip", "raised-perimeter");
+    markComponent(addRoundedBox(group, [8, 16, bodyDepth - 16], 3, body, [-bodyWidth / 2 + 4, 16, 0]), "handling-tray-left-lip", "raised-perimeter");
+    markComponent(addRoundedBox(group, [8, 16, bodyDepth - 16], 3, body, [bodyWidth / 2 - 4, 16, 0]), "handling-tray-right-lip", "raised-perimeter");
+  } else {
+    markComponent(addRoundedBox(group, [bodyWidth, bodyHeight, bodyDepth], 9, body, [0, bodyHeight / 2, 0]), `${formVariant}-body`, "secured-body");
+    const lid = markComponent(addRoundedBox(group, [bodyWidth + 6, 9, bodyDepth + 6], 8, dark, [0, bodyHeight + 4.5, 0]), "carrier-lid", "secured-lid");
+    lid.userData.secured = true;
+  }
   const labelColor = contentVariant === "waste" ? 0xffe0d1 : contentVariant === "thermal" ? 0xffedc2 : 0xe6e4d8;
-  markComponent(addRoundedBox(group, [78, 28, 3], 3, standardMaterial(labelColor, { roughness: 0.74 }), [0, Math.max(23, bodyHeight * 0.62), 55]), "carrier-identity-panel", "identity-panel");
-  [-48, 48].forEach((x) => markComponent(addRoundedBox(group, [22, 15, 7], 2, standardMaterial(0x9ca7aa, { roughness: 0.25, metalness: 0.55 }), [x, bodyHeight - 2, 58]), "carrier-latch", "latch"));
+  if (!openHandlingTray) {
+    markComponent(addRoundedBox(group, [78, 28, 3], 3, standardMaterial(labelColor, { roughness: 0.74 }), [0, Math.max(23, bodyHeight * 0.62), 55]), "carrier-identity-panel", "identity-panel");
+    [-48, 48].forEach((x) => markComponent(addRoundedBox(group, [22, 15, 7], 2, standardMaterial(0x9ca7aa, { roughness: 0.25, metalness: 0.55 }), [x, bodyHeight - 2, 58]), "carrier-latch", "latch"));
+  }
   const handles = [[-76, "left"], [76, "right"]];
   handles.forEach(([x, side]) => {
     const handle = addTube(group, [[x, 24, -22], [x + (x < 0 ? -10 : 10), 42, -12], [x + (x < 0 ? -10 : 10), 42, 12], [x, 24, 22]], 4.5, dark, `carrier-${side}-handle`, 18);
     handle.userData.componentRole = "grasp-handle";
   });
-  if (contentVariant === "reagent" || contentVariant === "sample") {
+  const frontHandleZ = bodyDepth / 2 + 6;
+  const frontHandle = addTube(group, [[-24, 22, frontHandleZ - 4], [-14, 78, frontHandleZ + 4], [14, 78, frontHandleZ + 4], [24, 22, frontHandleZ - 4]], 4.5, dark, "carrier-front-handle", 24);
+  frontHandle.userData.componentRole = "grasp-handle";
+  if (openHandlingTray && id.includes("watch_glass")) {
+    const watchGlass = createWatchGlass();
+    watchGlass.name = "handling-tray-flat-watch-glass";
+    watchGlass.position.y = 8;
+    watchGlass.userData.componentRole = "flat-supported-apparatus";
+    group.add(watchGlass);
+  } else if (openHandlingTray && id.includes("spatula")) {
+    const spatula = createTool("spatula");
+    spatula.name = "handling-tray-flat-spatula";
+    spatula.position.y = 8;
+    spatula.userData.componentRole = "flat-supported-apparatus";
+    group.add(spatula);
+  } else if (contentVariant === "reagent" || contentVariant === "sample") {
     const insert = new THREE.Group();
     insert.name = "carrier-load-indicator";
     insert.userData.componentRole = "sealed-load-cue";
@@ -624,13 +659,13 @@ function createCarrier(id, visualVariant = "standard") {
   } else if (contentVariant === "queue") {
     [-42, 0, 42].forEach((x, index) => markComponent(addBox(group, [6, 7 + index * 2, 76], standardMaterial(0x97aaa8, { roughness: 0.56 }), [x, bodyHeight + 8, 0]), `carrier-queue-divider-${index + 1}`, "queue-marker"));
   }
-  const heightMm = bodyHeight + 17;
+  const heightMm = 88;
   return setObjectMetadata(group, {
     heightMm,
-    footprintMm: [Math.max(178, bodyWidth + 26), bodyDepth + 10],
-    sockets: { place: [0, heightMm + 2, 0], grip: [0, 39, 0], leftGrip: [-86, 39, 0], rightGrip: [86, 39, 0], attach: [0, 0, 0] },
-    attachmentAnchors: { grip: [0, 39, 0], leftGrip: [-86, 39, 0], rightGrip: [86, 39, 0], attach: [0, 0, 0] },
-    visualVariant: formVariant,
+    footprintMm: [Math.max(178, bodyWidth + 26), bodyDepth + 24],
+    sockets: { place: [0, heightMm + 2, 0], grip: [0, 78, frontHandleZ], leftGrip: [-86, 39, 0], rightGrip: [86, 39, 0], attach: [0, 0, 0] },
+    attachmentAnchors: { grip: [0, 78, frontHandleZ], leftGrip: [-86, 39, 0], rightGrip: [86, 39, 0], attach: [0, 0, 0] },
+    visualVariant: openHandlingTray ? "handling_tray" : formVariant,
     referenceAsset: APPARATUS_REFERENCE_ASSETS.secured_carrier
   });
 }
@@ -689,6 +724,194 @@ function createTool(id) {
   return setObjectMetadata(group, { heightMm: 18, footprintMm: [150, 18], sockets: { grip: [-18, 8, 0], attach: [0, 8, 0] }, attachmentAnchors: { grip: [-18, 8, 0], attach: [0, 8, 0] }, referenceAsset: id.includes("spatula") ? "lab-scoop.png" : "capillary-spotter.png" });
 }
 
+function createDocumentCard(id) {
+  const group = new THREE.Group();
+  const card = standardMaterial(0xf3f0e5, { roughness: 0.88, doubleSided: true });
+  const ink = standardMaterial(id.includes("endpoint") ? 0x9e3e45 : 0x315f75, { roughness: 0.72 });
+  markComponent(addRoundedBox(group, [94, 3, 64], 4, card, [0, 1.5, 0]), "record-card", "record-medium");
+  markComponent(addRoundedBox(group, [78, 1.2, 8], 2, ink, [0, 3.4, -20]), "record-card-heading", "printed-heading");
+  [-8, 3, 14].forEach((z, index) => markComponent(addBox(group, [68 - index * 8, 0.8, 1.4], standardMaterial(0x7f8988, { roughness: 0.78 }), [-4 + index * 4, 3.3, z]), `record-line-${index + 1}`, "printed-line"));
+  markComponent(addRoundedBox(group, [24, 3, 9], 2, standardMaterial(COLORS.brushedMetal, { roughness: 0.28, metalness: 0.62 }), [0, 4, -31]), "record-card-clip", "retaining-clip");
+  return setObjectMetadata(group, { heightMm: 6, footprintMm: [98, 68], sockets: { attach: [0, 0, 0], grip: [0, 4, 0] }, attachmentAnchors: { attach: [0, 0, 0], grip: [0, 4, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.document_card });
+}
+
+function createChamberLid() {
+  const group = new THREE.Group();
+  const glass = glassMaterial(0.42);
+  markComponent(addRoundedBox(group, [108, 4, 78], 5, glass, [0, 2, 0]), "development-chamber-lid", "glass-lid");
+  markComponent(addRoundedBox(group, [42, 8, 18], 4, standardMaterial(COLORS.darkPlastic, { roughness: 0.46 }), [0, 8, 0]), "development-chamber-lid-handle", "lid-handle");
+  return setObjectMetadata(group, { heightMm: 12, footprintMm: [112, 82], sockets: { attach: [0, 0, 0], grip: [0, 9, 0] }, attachmentAnchors: { attach: [0, 0, 0], grip: [0, 9, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.chamber_lid });
+}
+
+function createChromatographyPlate() {
+  const group = new THREE.Group();
+  const plate = standardMaterial(0xeee9d8, { roughness: 0.82, doubleSided: true });
+  markComponent(addRoundedBox(group, [86, 2.4, 62], 2.5, plate, [0, 1.2, 0]), "chromatography-plate", "stationary-phase-plate");
+  markComponent(addBox(group, [72, 0.8, 1.5], standardMaterial(0x796f61, { roughness: 0.82 }), [0, 2.8, 18]), "chromatography-baseline", "baseline");
+  [-20, 0, 20].forEach((x, index) => markComponent(addCylinder(group, [2.4, 2.4], 0.9, standardMaterial([0x315f98, 0x9a4f55, 0x8b6c42][index], { roughness: 0.5 }), [x, 3, 18], [0, 0, 0], 18), `chromatography-spot-${index + 1}`, "sample-spot"));
+  return setObjectMetadata(group, { heightMm: 4, footprintMm: [90, 66], sockets: { attach: [0, 0, 0], grip: [0, 3, 0] }, attachmentAnchors: { attach: [0, 0, 0], grip: [0, 3, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.chromatography_plate });
+}
+
+function createBuretteTube() {
+  const group = new THREE.Group();
+  const glass = glassMaterial(0.4);
+  markComponent(addCylinder(group, [5.2, 5.2], 148, glass, [0, 13, 0], [0, 0, Math.PI / 2], 24, true), "capped-burette-tube", "graduated-vessel");
+  [-76, 76].forEach((x) => markComponent(addCylinder(group, [8, 8], 12, standardMaterial(COLORS.darkPlastic, { roughness: 0.5 }), [x, 13, 0], [0, 0, Math.PI / 2], 24), "burette-protective-cap", "protective-cap"));
+  for (let x = -58; x <= 58; x += 10) markComponent(addTorus(group, 5.5, x % 50 === 0 ? 0.8 : 0.45, standardMaterial(0x59696d, { roughness: 0.64 }), [x, 13, 0], [0, Math.PI / 2, 0], 18), "burette-graduation", "graduation");
+  return setObjectMetadata(group, { heightMm: 26, footprintMm: [166, 22], sockets: { attach: [0, 13, 0], grip: [0, 13, 0] }, attachmentAnchors: { attach: [0, 13, 0], grip: [0, 13, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.burette_tube });
+}
+
+function createSampleRack(id) {
+  const group = new THREE.Group();
+  const rackMaterial = standardMaterial(COLORS.whitePlastic, { roughness: 0.46 });
+  markComponent(addRoundedBox(group, [136, 8, 82], 6, rackMaterial, [0, 4, 0]), "sample-rack-base", "stable-base");
+  markComponent(addMesh(group, perforatedPlateGeometry(128, 72, 6, [-45, -15, 15, 45].map((x) => [x, 0, 10.5])), rackMaterial, [0, 27, 0]), "sample-rack-deck", "perforated-deck");
+  [-59, 59].forEach((x) => [-29, 29].forEach((z) => markComponent(addRoundedBox(group, [6, 23, 6], 2, rackMaterial, [x, 15, z]), "sample-rack-support", "broad-support")));
+  [-45, -15, 15, 45].forEach((x, index) => {
+    const cuvette = createCuvette();
+    cuvette.name = `visible-sample-cuvette-${index + 1}`;
+    cuvette.position.set(x, 27, 0);
+    cuvette.userData.componentRole = "visible-sample-vessel";
+    group.add(cuvette);
+    markComponent(addRoundedBox(group, [18, 4, 18], 3, standardMaterial([0x315f98, 0x9e3e45, 0xb26a2c, 0x2c7771][index], { roughness: 0.38 }), [x, 83, 0]), `sample-cap-${index + 1}`, "protective-cap");
+  });
+  return setObjectMetadata(group, { heightMm: 86, footprintMm: [142, 88], sockets: { attach: [0, 0, 0], grip: [0, 44, 0] }, attachmentAnchors: { attach: [0, 0, 0], grip: [0, 44, 0] }, visualVariant: id.includes("titration") ? "titration" : "capped", referenceAsset: APPARATUS_REFERENCE_ASSETS.sample_rack });
+}
+
+function createGlasswareSet() {
+  const group = new THREE.Group();
+  const beaker = createBeaker();
+  beaker.name = "visible-empty-beaker";
+  beaker.rotation.x = Math.PI / 2;
+  beaker.position.set(-40, 42, 0);
+  beaker.userData.componentRole = "visible-glassware";
+  group.add(beaker);
+  const flask = createErlenmeyerFlask();
+  flask.name = "visible-empty-flask";
+  flask.rotation.x = Math.PI / 2;
+  flask.position.set(36, 48, 0);
+  flask.userData.componentRole = "visible-glassware";
+  group.add(flask);
+  return setObjectMetadata(group, { heightMm: 82, footprintMm: [152, 118], sockets: { attach: [0, 0, 0], grip: [0, 44, 0] }, attachmentAnchors: { attach: [0, 0, 0], grip: [0, 44, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.glassware_set });
+}
+
+function createChromatographyKit() {
+  const group = new THREE.Group();
+  const plate = createChromatographyPlate();
+  plate.name = "visible-chromatography-plate";
+  plate.position.set(-26, 0, -18);
+  group.add(plate);
+  const spotter = createTool("capillary_spotting_tool");
+  spotter.name = "visible-capillary-spotter";
+  spotter.position.set(0, 4, 31);
+  group.add(spotter);
+  return setObjectMetadata(group, { heightMm: 24, footprintMm: [154, 82], sockets: { attach: [0, 0, 0], grip: [0, 12, 0] }, attachmentAnchors: { attach: [0, 0, 0], grip: [0, 12, 0] }, referenceAsset: APPARATUS_REFERENCE_ASSETS.chromatography_kit });
+}
+
+function createApparatusVisual(definition) {
+  const visualVariant = definition.visualVariant || "standard";
+  switch (definition.type) {
+    case "balance": return createBalance();
+    case "watch_glass": return createWatchGlass();
+    case "weigh_boat": return createWeighBoat();
+    case "beaker": return createBeaker();
+    case "cylinder": return createGraduatedCylinder();
+    case "flask": return definition.id.includes("volumetric") || visualVariant.includes("volumetric") ? createVolumetricFlask() : createErlenmeyerFlask();
+    case "filter_flask": return createFilterFlask();
+    case "stopper": return createStopper();
+    case "cuvette": return createCuvette();
+    case "filter_paper": return createFilterPaper(visualVariant);
+    case "chromatography_paper": return createChromatographyPaper();
+    case "funnel": return createGravityFunnel();
+    case "buchner_funnel": return createBuchnerFunnel();
+    case "separatory_funnel": return createSeparatoryFunnel();
+    case "burette": return createBuretteAssembly();
+    case "stand": return createRingStand();
+    case "pipette": return createPipette();
+    case "pipette_pump": return createPipettePump();
+    case "bottle": return createBottle(definition.id, visualVariant);
+    case "instrument": return createSpectrophotometer();
+    case "oven": return createDryingOven();
+    case "cooling_rack": return createCoolingRack();
+    case "rack": return createRack(definition.id, visualVariant);
+    case "secured_carrier": return createCarrier(definition.id, visualVariant);
+    case "chromatography_chamber": return createChromatographyChamber();
+    case "vacuum_source": return createVacuumSource();
+    case "wash_station": return createWashStation();
+    case "queue_station": return createRack(definition.id, visualVariant);
+    case "tool": return createTool(definition.id);
+    case "document_card": return createDocumentCard(definition.id);
+    case "chamber_lid": return createChamberLid();
+    case "chromatography_plate": return createChromatographyPlate();
+    case "burette_tube": return createBuretteTube();
+    case "sample_rack": return createSampleRack(definition.id);
+    case "glassware_set": return createGlasswareSet();
+    case "chromatography_kit": return createChromatographyKit();
+    default: return createFallback(definition.id);
+  }
+}
+
+function createApparatusTransport(definition) {
+  const group = new THREE.Group();
+  const body = standardMaterial(COLORS.carrier, { roughness: 0.42 });
+  const dark = standardMaterial(COLORS.carrierDark, { roughness: 0.52 });
+  const bodyWidth = 152;
+  const bodyDepth = 108;
+  markComponent(addRoundedBox(group, [bodyWidth, 8, bodyDepth], 5, body, [0, 4, 0]), "apparatus-transport-base", "stable-base");
+  markComponent(addRoundedBox(group, [bodyWidth, 16, 8], 3, body, [0, 16, -50]), "apparatus-transport-rear-lip", "raised-perimeter");
+  markComponent(addRoundedBox(group, [bodyWidth, 16, 8], 3, body, [0, 16, 50]), "apparatus-transport-front-lip", "raised-perimeter");
+  markComponent(addRoundedBox(group, [8, 16, 92], 3, body, [-72, 16, 0]), "apparatus-transport-left-lip", "raised-perimeter");
+  markComponent(addRoundedBox(group, [8, 16, 92], 3, body, [72, 16, 0]), "apparatus-transport-right-lip", "raised-perimeter");
+  [[-76, "left"], [76, "right"]].forEach(([x, side]) => {
+    const handle = addTube(group, [[x, 24, -22], [x + (x < 0 ? -10 : 10), 42, -12], [x + (x < 0 ? -10 : 10), 42, 12], [x, 24, 22]], 4.5, dark, `apparatus-transport-${side}-handle`, 18);
+    handle.userData.componentRole = "grasp-handle";
+  });
+  const frontHandle = addTube(group, [[-24, 22, 56], [-14, 78, 64], [14, 78, 64], [24, 22, 56]], 4.5, dark, "apparatus-transport-front-handle", 24);
+  frontHandle.userData.componentRole = "grasp-handle";
+
+  const profile = definition.visual?.apparatus || definition.apparatus || { type: "sample_rack", variant: "configured", id: definition.id };
+  const contents = createApparatusVisual({
+    id: `${profile.id || definition.id}-${profile.variant || "standard"}`,
+    type: profile.type,
+    visualVariant: profile.variant || "standard",
+  });
+  contents.name = `visible-apparatus-${profile.type}`;
+  contents.userData.componentRole = "visible-intended-apparatus";
+  contents.userData.apparatusType = profile.type;
+  contents.userData.apparatusLabel = profile.label;
+  if (["funnel", "buchner_funnel"].includes(profile.type)) {
+    contents.rotation.z = Math.PI / 2;
+    contents.position.set(profile.type === "funnel" ? 52 : 46, 44, 0);
+  } else if (profile.type === "filter_flask") {
+    contents.rotation.x = Math.PI / 2;
+    contents.position.set(0, 48, 0);
+  } else if (["flask", "bottle", "beaker"].includes(profile.type)) {
+    contents.rotation.z = Math.PI / 2;
+    contents.position.set(profile.type === "flask" && String(profile.variant).includes("volumetric") ? 77 : profile.type === "bottle" ? 72 : 40, profile.type === "beaker" ? 42 : profile.type === "bottle" ? 36 : 43, 0);
+  } else if (profile.type === "pipette_pump") {
+    contents.rotation.z = Math.PI / 2;
+    contents.position.set(54, 30, 0);
+  } else if (["tool", "filter_paper", "watch_glass", "weigh_boat", "document_card", "chamber_lid", "chromatography_plate", "burette_tube", "chromatography_kit"].includes(profile.type)) {
+    contents.position.y = 8;
+  } else if (profile.type === "sample_rack") {
+    contents.position.y = 4;
+  } else {
+    contents.position.y = 8;
+  }
+  group.add(contents);
+  group.userData.apparatusType = profile.type;
+  group.userData.apparatusLabel = profile.label;
+  group.userData.contentsVisible = true;
+  return setObjectMetadata(group, {
+    heightMm: Math.max(88, Number(profile.envelopeHeightMm) || 0),
+    footprintMm: [178, 132],
+    sockets: { place: [0, 90, 0], grip: [0, 78, 60], leftGrip: [-86, 39, 0], rightGrip: [86, 39, 0], attach: [0, 0, 0] },
+    attachmentAnchors: { grip: [0, 78, 60], leftGrip: [-86, 39, 0], rightGrip: [86, 39, 0], attach: [0, 0, 0] },
+    visualVariant: "open_low_profile_tray",
+    referenceAsset: APPARATUS_REFERENCE_ASSETS.apparatus_transport,
+  });
+}
+
 function createFallback(id) {
   const group = new THREE.Group();
   addBox(group, [72, 52, 62], standardMaterial(COLORS.neutral), [0, 26, 0]);
@@ -703,44 +926,23 @@ export function referenceAssetFor(definition) {
 }
 
 export function createApparatusObject(definition) {
-  let visual;
   const visualVariant = definition.visualVariant || "standard";
-  switch (definition.type) {
-    case "balance": visual = createBalance(); break;
-    case "watch_glass": visual = createWatchGlass(); break;
-    case "weigh_boat": visual = createWeighBoat(); break;
-    case "beaker": visual = createBeaker(); break;
-    case "cylinder": visual = createGraduatedCylinder(); break;
-    case "flask": visual = definition.id.includes("volumetric") ? createVolumetricFlask() : createErlenmeyerFlask(); break;
-    case "filter_flask": visual = createFilterFlask(); break;
-    case "stopper": visual = createStopper(); break;
-    case "cuvette": visual = createCuvette(); break;
-    case "filter_paper": visual = createFilterPaper(visualVariant); break;
-    case "chromatography_paper": visual = createChromatographyPaper(); break;
-    case "funnel": visual = createGravityFunnel(); break;
-    case "buchner_funnel": visual = createBuchnerFunnel(); break;
-    case "separatory_funnel": visual = createSeparatoryFunnel(); break;
-    case "burette": visual = createBuretteAssembly(); break;
-    case "stand": visual = createRingStand(); break;
-    case "pipette": visual = createPipette(); break;
-    case "pipette_pump": visual = createPipettePump(); break;
-    case "bottle": visual = createBottle(definition.id, visualVariant); break;
-    case "instrument": visual = createSpectrophotometer(); break;
-    case "oven": visual = createDryingOven(); break;
-    case "cooling_rack": visual = createCoolingRack(); break;
-    case "rack": visual = createRack(definition.id, visualVariant); break;
-    case "secured_carrier": visual = createCarrier(definition.id, visualVariant); break;
-    case "chromatography_chamber": visual = createChromatographyChamber(); break;
-    case "vacuum_source": visual = createVacuumSource(); break;
-    case "wash_station": visual = createWashStation(); break;
-    case "queue_station": visual = createRack(definition.id, visualVariant); break;
-    case "tool": visual = createTool(definition.id); break;
-    default: visual = createFallback(definition.id);
-  }
+  const visual = definition.type === "apparatus_transport"
+    ? createApparatusTransport(definition)
+    : createApparatusVisual(definition);
   visual.name = `lab-object-${definition.id}`;
   visual.userData.labObjectId = definition.id;
   visual.userData.referenceAsset = definition.visualReference || referenceAssetFor(definition);
   visual.userData.visualVariant = visualVariant === "standard" ? visual.userData.visualVariant || "standard" : visualVariant;
+  const configuredGripSocket = definition.visual?.gripSocketMm || definition.gripSocketMm;
+  if (Array.isArray(configuredGripSocket) && configuredGripSocket.length === 3) {
+    visual.userData.sockets = { ...(visual.userData.sockets || {}), grip: configuredGripSocket.map(Number) };
+    visual.userData.attachmentAnchors = { ...(visual.userData.attachmentAnchors || {}), grip: configuredGripSocket.map(Number) };
+  }
+  if (definition.visual?.directHandling === true) {
+    visual.userData.directHandling = true;
+    visual.userData.containerFree = definition.visual.containerFree === true;
+  }
   return visual;
 }
 

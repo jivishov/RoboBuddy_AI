@@ -3,7 +3,7 @@
   "schemaVersion": 2,
   "id": "lekiwi-02-glassware-route",
   "title": "Glassware Route",
-  "brief": "Route to the measuring station, transfer the assigned sealed glassware carrier between visible cradles, stow, and return home.",
+  "brief": "Navigate the fixed route, directly grasp and deliver empty erlenmeyer flask, stow, and return without claiming unmodeled laboratory results.",
   "robotId": "lekiwi_sim",
   "canonicalModelId": "lekiwi_sim",
   "rank": 2,
@@ -18,11 +18,11 @@
       "Place Sealed Sample Carrier at Measuring Zone",
       "Return robot home"
     ],
-    "fixtureAssistance": "Visible configured cradles adapt the sealed carrier to the modeled pinch grasp."
+    "fixtureAssistance": "The fixed real transfer bench supports the apparatus directly; the gripper contacts the intended equipment at its declared physical grip region."
   },
   "canonicalModel": {
     "id": "lekiwi_sim",
-    "sourceRevision": "LeKiwi official snapshot baked 2026-07-03"
+    "sourceRevision": "efa608d7ee5a495a4803b1d28cd0c955b4f1e033"
   },
   "frames": {
     "service_base": {
@@ -64,7 +64,7 @@
     "pickup_approach": {
       "positionMm": [
         400,
-        270,
+        347,
         350
       ],
       "role": "approach",
@@ -75,21 +75,21 @@
     },
     "pickup_contact": {
       "positionMm": [
-        400,
-        250,
-        350
+        402.595143,
+        307.351399,
+        351.472235
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
-        "positionMm": 4
+        "positionMm": 18
       },
       "contactFixtureId": "pickup_cradle"
     },
     "pickup_lift": {
       "positionMm": [
         400,
-        290,
+        357,
         350
       ],
       "role": "lift",
@@ -101,7 +101,7 @@
     "delivery": {
       "positionMm": [
         350,
-        270,
+        357,
         400
       ],
       "role": "destination",
@@ -112,14 +112,14 @@
     },
     "delivery_contact": {
       "positionMm": [
-        350,
-        250,
-        400
+        350.556905,
+        308.330882,
+        400.116576
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
-        "positionMm": 4
+        "positionMm": 18
       },
       "contactFixtureId": "destination_fixture"
     },
@@ -184,50 +184,76 @@
         0
       ],
       "label": "Home base"
+    },
+    "delivery_clearance": {
+      "positionMm": [
+        500,
+        377,
+        400
+      ],
+      "role": "retreat",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "label": "Free-space retreat outside the fixed transfer-bench envelope"
     }
   },
   "fixtures": [
     {
       "id": "pickup_cradle",
-      "label": "Visible pickup cradle for Sealed glassware carrier",
+      "label": "Real laboratory transfer bench",
       "visible": true,
       "configuredByTeacher": true,
       "frameId": "pickup_contact",
-      "collisionProxy": {
-        "type": "box",
-        "centerMm": [
-          400,
-          10,
-          350
-        ],
-        "halfExtentsMm": [
-          20,
-          10,
-          20
-        ],
-        "provenance": "C: configured conservative floor support-footprint proxy below the grasp workspace"
-      }
+      "type": "configured_real_transfer_bench",
+      "sourceBackedHolder": true,
+      "claimBoundary": "Configured 290 x 290 x 211 mm wall-backed laboratory transfer bench with a 24 mm rigid worktop and one broad 32 x 250 mm structural back panel. The intended apparatus rests directly on the worktop so its complete initial and reference-calibrated final footprint is supported while the mobile base remains outside the worktop envelope; these dimensions and this pose are fixed across all ten tasks.",
+      "collisionProxies": [
+        {
+          "id": "lekiwi-transfer-worktop",
+          "type": "box",
+          "centerMm": [
+            305,
+            199,
+            390
+          ],
+          "halfExtentsMm": [
+            145,
+            12,
+            145
+          ],
+          "planningRole": "contact_surface",
+          "physicalSupportSurface": true,
+          "provenance": "C: configured fixed 290 x 290 mm real transfer-bench worktop; top y=211 mm; presentation, collision, and stable-rest validation share this box across all ten tasks"
+        },
+        {
+          "id": "lekiwi-transfer-structural-back",
+          "type": "box",
+          "centerMm": [
+            206,
+            99.5,
+            390
+          ],
+          "halfExtentsMm": [
+            16,
+            99.5,
+            125
+          ],
+          "provenance": "C: broad visible floor-and-wall-anchored structural back panel carrying the rigid laboratory worktop across a 32 x 250 mm bearing section"
+        }
+      ]
     },
     {
       "id": "destination_fixture",
-      "label": "Measuring-station carrier cradle",
+      "label": "Marked receiving zone on the real transfer bench",
       "visible": true,
       "configuredByTeacher": true,
       "frameId": "delivery_contact",
-      "collisionProxy": {
-        "type": "box",
-        "centerMm": [
-          350,
-          10,
-          400
-        ],
-        "halfExtentsMm": [
-          20,
-          10,
-          20
-        ],
-        "provenance": "C: configured conservative floor support-footprint proxy below the grasp workspace"
-      }
+      "type": "configured_receiving_zone",
+      "presentationOnly": true,
+      "collisionProxies": [],
+      "claimBoundary": "A painted receiving-zone marker on the worktop; it carries no load and contributes no support or collision geometry."
     },
     {
       "id": "blocked_grid_cells",
@@ -239,7 +265,7 @@
   "objects": [
     {
       "id": "sealed_glassware_carrier",
-      "label": "Sealed glassware carrier",
+      "label": "Empty Erlenmeyer flask",
       "initialFrame": "pickup_contact",
       "compatibleEffectors": [
         "default"
@@ -249,7 +275,146 @@
         "contentsModel": "not simulated",
         "releaseStatus": "configured for this simulation",
         "payloadModel": "not simulated"
-      }
+      },
+      "visible": true,
+      "visual": {
+        "type": "flask",
+        "variant": "erlenmeyer",
+        "reference": "lab/js/objects.js#flask",
+        "gripSocketMm": [
+          0,
+          96,
+          0
+        ],
+        "footprintMm": [
+          80,
+          80
+        ],
+        "heightMm": 114,
+        "directHandling": true,
+        "containerFree": true,
+        "approximation": "C: configured empty Erlenmeyer flask envelope (80 x 114 x 80 mm) follows the procedural apparatus renderer; the lab item is grasped directly and is not carried in a tray, carrier, cassette, bin, or proxy box"
+      },
+      "configuredGripInterface": "direct neck pinch; direct contact with the intended apparatus, with no tray, carrier, cassette, bin, or proxy payload.",
+      "attachmentInterface": "direct_apparatus_grip",
+      "physicalRest": {
+        "schema": "robobuddy.physical-rest.v1",
+        "supportKind": "upright_flask_on_real_work_surface",
+        "sourceRef": "lab/js/objects.js#flask",
+        "gripSocketMm": [
+          -22.472235,
+          96.351399,
+          99.595143
+        ],
+        "gripInterface": "direct neck pinch",
+        "directHandling": true,
+        "containerFree": true,
+        "localUp": [
+          0,
+          1,
+          0
+        ],
+        "centerOfMassLocalMm": [
+          0,
+          42,
+          0
+        ],
+        "geometry": {
+          "type": "box",
+          "centerLocalMm": [
+            0,
+            57,
+            0
+          ],
+          "halfExtentsMm": [
+            40,
+            57,
+            40
+          ],
+          "provenance": "C: configured empty Erlenmeyer flask envelope (80 x 114 x 80 mm) follows the procedural apparatus renderer; the lab item is grasped directly and is not carried in a tray, carrier, cassette, bin, or proxy box; proxy encloses the directly handled apparatus, not a transport container"
+        },
+        "tolerance": {
+          "maxTiltDeg": 2,
+          "maxGapMm": 2.5,
+          "maxPenetrationMm": 0.5,
+          "minimumEdgeMarginMm": 2,
+          "targetPositionToleranceMm": 12.5
+        },
+        "poses": {
+          "pickup_contact": {
+            "surfaceId": "lekiwi-transfer-worktop",
+            "graspFrameId": "pickup_contact",
+            "positionMm": [
+              303,
+              211,
+              329
+            ],
+            "rotationMatrix": [
+              0,
+              0,
+              1,
+              0,
+              1,
+              0,
+              -1,
+              0,
+              0
+            ]
+          },
+          "delivery": {
+            "surfaceId": "lekiwi-transfer-worktop",
+            "graspFrameId": "delivery_contact",
+            "positionMm": [
+              248.986766,
+              211.586777,
+              405.762001
+            ],
+            "rotationMatrix": [
+              -0.273197592,
+              -0.003889684,
+              0.961950075,
+              -0.001593608,
+              0.999992283,
+              0.003590918,
+              -0.961956619,
+              -0.000551941,
+              -0.273201682
+            ]
+          }
+        },
+        "capabilityBoundary": "The empty erlenmeyer flask is an upright, directly opposed LeKiwi payload. Flat loose plates, unsupported watch glasses, narrow cuvettes, transport trays, carriers, cassettes, and proxy boxes are outside this task role.",
+        "referenceCalibration": {
+          "source": "source-pinned LeKiwi FK plus independently sampled fixed and moving finger meshes",
+          "contactBaseFrame": "service_base",
+          "contactActionIndex": 51,
+          "placementActionIndex": 71,
+          "contactBodies": [
+            "wrist_roll_08c_v1__",
+            "moving_jaw_08d_v1__"
+          ],
+          "schemaToolReferenceSocketLocalMm": [
+            -22.472235,
+            96.351399,
+            99.595143
+          ],
+          "visibleContactInterface": "direct neck pinch",
+          "fingerSurfaceClearanceMm": [
+            0,
+            0
+          ],
+          "conservativeBoxFingerDepthMm": [
+            0.11801,
+            2.86782
+          ],
+          "maximumAdmittedMeshPenetrationMm": 0.5,
+          "initialGapMm": 0,
+          "finalGapMm": 0.379396,
+          "finalTiltDeg": 0.225096,
+          "releasePoseSource": "actual opened-gripper FK pose; no release teleport or pose substitution",
+          "physicalHardwareValidated": false
+        }
+      },
+      "configuredApparatusProfile": "flask"
     }
   ],
   "grasps": [
@@ -257,11 +422,20 @@
       "id": "sealed_glassware_carrier_configured_grasp",
       "objectId": "sealed_glassware_carrier",
       "effector": "default",
-      "mode": "configured-pinch",
+      "mode": "direct-apparatus",
       "approachFrame": "pickup_approach",
       "contactFrame": "pickup_contact",
       "liftFrame": "pickup_lift",
-      "geometryBasis": "configured educational grasp region; no force or payload claim"
+      "geometryBasis": "Rendered apparatus grip socket and declared broad workbench rest; no force, payload, or hardware-validation claim.",
+      "interface": "direct_neck_pinch",
+      "fixtureId": "pickup_cradle",
+      "visible": true,
+      "allowedRobotContactBodies": [
+        "wrist_roll_08c_v1__",
+        "moving_jaw_08d_v1__"
+      ],
+      "contactRequirement": "Both independently sampled rendered LeKiwi finger bodies must contact the apparatus before the public close command crosses the closed threshold.",
+      "releaseRequirement": "Detach only when the public gripper-open command reaches the actual placement FK pose and the apparatus has a stable nonpenetrating worktop rest."
     }
   ],
   "processModels": [
@@ -352,52 +526,7 @@
       "frameId": "restricted_base_stop"
     }
   ],
-  "evidenceRequirements": [
-    {
-      "id": "route_and_placement_observation",
-      "label": "Record what was visibly observed after the configured route, fixture placement, stow, and return.",
-      "prompt": "Describe the configured route, visible delivery/seating outcome, and completed return; do not report an unmodeled measurement.",
-      "kind": "learner-recorded",
-      "minLength": 30,
-      "valuePattern": "(?=.*(?:route|path))(?=.*(?:placed|delivered))(?=.*(?:seated|fixture))",
-      "availableWhen": {
-        "op": "all",
-        "predicates": [
-          {
-            "op": "any",
-            "predicates": [
-              {
-                "op": "frame_visited",
-                "frameId": "service_base"
-              },
-              {
-                "op": "frame_visited",
-                "frameId": "alternate_service_base"
-              }
-            ]
-          },
-          {
-            "op": "object_at",
-            "objectId": "sealed_glassware_carrier",
-            "frameId": "delivery"
-          },
-          {
-            "op": "process_state",
-            "processId": "placement_latch",
-            "value": "seated"
-          },
-          {
-            "op": "frame_visited",
-            "frameId": "home_base"
-          }
-        ]
-      },
-      "requiresEvent": {
-        "type": "DETACH_OBJECT",
-        "objectId": "sealed_glassware_carrier"
-      }
-    }
-  ],
+  "evidenceRequirements": [],
   "provenance": [
     {
       "label": "M",
@@ -415,17 +544,21 @@
     },
     {
       "label": "C",
-      "claim": "Grid cells, route destinations, task frames, support proxies, grasp regions, release labels, and seating states are visible configured educational values."
+      "claim": "Grid cells, route destinations, task frames, support proxies, grasp regions, release labels, and seating states are visible configured educational values. Physical-rest repair: a configured real wall-backed laboratory transfer bench supports the intended apparatus directly at pickup and delivery; the bench is fixed across tasks and no container or small support geometry is used."
+    },
+    {
+      "label": "R",
+      "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
     }
   ],
   "modelClaim": {
     "modelId": "lekiwi_sim",
     "source": {
       "kind": "official URDF baked model",
-      "revision": "LeKiwi official snapshot baked 2026-07-03",
-      "url": "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/main/URDF/LeKiwi.urdf",
+      "revision": "efa608d7ee5a495a4803b1d28cd0c955b4f1e033",
+      "url": "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/efa608d7ee5a495a4803b1d28cd0c955b4f1e033/URDF/LeKiwi.urdf",
       "provenance": "M",
-      "notes": "Official visual/kinematic chain with configured planar occupancy-grid base model."
+      "notes": "Immutable reviewed official visual/kinematic chain; planar response and collision bounds are configured separately."
     },
     "joints": [
       {
@@ -496,18 +629,18 @@
       "C: conservative link envelope around canonical joint pivots",
       "M/C: baked renderer mesh bounds with configured conservative padding"
     ],
-    "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
+    "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
     "unsupportedPhysics": [
-      "wheel slip",
-      "base dynamics",
-      "force sensing",
-      "payload claim"
+      "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior",
+      "physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control",
+      "payload, collision avoidance, hardware validation, and safety certification"
     ]
   },
   "api": {
     "level": "builder",
     "namedFramesDiscoverable": true,
-    "phaseBoundary": "Base navigation occurs only while the arm is stowed; each manipulation ends at a base-specific stow retreat before the return drive."
+    "phaseBoundary": "Base navigation occurs only while the arm is stowed; each manipulation ends at a base-specific stow retreat before the return drive.",
+    "runtime": "robobuddy.portable-python.v1"
   },
   "navigation": {
     "planner": "planar occupancy-grid A*",
@@ -563,216 +696,2255 @@
     "referenceExecutions": [
       {
         "id": "primary-a-star-route",
-        "calls": [
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "service_base"
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "sealed_glassware_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "primary_delivery_retreat",
-              "effector": "default",
-              "seed": 17,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "home_base"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "route_and_placement_observation",
-              "value": "Configured route used; Sealed glassware carrier placed and visibly seated."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        }
       }
     ],
     "acceptedAlternates": [
       {
         "id": "alternate-a-star-route-and-ik-seed",
-        "calls": [
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "alternate_service_base"
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "sealed_glassware_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "alternate_delivery_retreat",
-              "effector": "default",
-              "seed": 991,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "home_base"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "route_and_placement_observation",
-              "value": "Alternate configured route used; Sealed glassware carrier delivered and visibly seated."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        }
       }
     ],
     "negativeCases": [
       {
         "id": "no-actions-misses-goals",
         "expectedFailureKind": "goal",
-        "calls": []
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "missing-evidence-after-valid-outcome",
         "expectedFailureKind": "evidence",
-        "calls": [
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "service_base"
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "sealed_glassware_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "primary_delivery_retreat",
-              "effector": "default",
-              "seed": 17,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "home_base"
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "restricted-stop-route",
         "expectedFailureKind": "prohibited",
-        "calls": [
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "restricted_base_stop"
-            }
-          },
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "service_base"
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "sealed_glassware_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "primary_delivery_retreat",
-              "effector": "default",
-              "seed": 71,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "home_base"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "route_and_placement_observation",
-              "value": "Configured route used; Sealed glassware carrier placed and visibly seated."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "approach-frame-is-not-contact",
         "expectedFailureKind": "causal",
-        "calls": [
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "service_base"
-            }
-          },
-          {
-            "method": "robot.grasp",
-            "args": {
-              "objectId": "sealed_glassware_carrier",
-              "contactFrame": "pickup_approach",
-              "effector": "default"
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "arm-transport-before-base-route",
         "expectedFailureKind": "causal",
-        "calls": [
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "sealed_glassware_carrier",
-              "approachFrame": "pickup_approach",
-              "contactFrame": "pickup_contact",
-              "liftFrame": "pickup_lift",
-              "destinationFrame": "delivery",
-              "placeFrame": "delivery_contact",
-              "retreatFrame": "primary_delivery_retreat",
-              "effector": "default",
-              "seed": 113,
-              "processId": "placement_latch",
-              "processValue": "seated"
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       }
     ]
+  },
+  "hiddenGradingRequirements": [
+    {
+      "id": "route_and_placement_observation",
+      "label": "Record what was visibly observed after the configured route, fixture placement, stow, and return.",
+      "prompt": "Describe the configured route, visible delivery/seating outcome, and completed return; do not report an unmodeled measurement.",
+      "kind": "learner-recorded",
+      "minLength": 30,
+      "valuePattern": "(?=.*(?:route|path))(?=.*(?:placed|delivered))(?=.*(?:seated|fixture))",
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "any",
+            "predicates": [
+              {
+                "op": "frame_visited",
+                "frameId": "service_base"
+              },
+              {
+                "op": "frame_visited",
+                "frameId": "alternate_service_base"
+              }
+            ]
+          },
+          {
+            "op": "object_at",
+            "objectId": "sealed_glassware_carrier",
+            "frameId": "delivery"
+          },
+          {
+            "op": "process_state",
+            "processId": "placement_latch",
+            "value": "seated"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "home_base"
+          }
+        ]
+      },
+      "requiresEvent": {
+        "type": "DETACH_OBJECT",
+        "objectId": "sealed_glassware_carrier"
+      },
+      "learnerCallable": false,
+      "authority": "plant/events"
+    }
+  ],
+  "portablePython": {
+    "version": 1,
+    "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending.",
+    "execution": "whole synchronous script with __name__ == '__main__'",
+    "compatibilityModules": "browser-provided modules under exact public import paths; not upstream hardware packages",
+    "externalProfiles": [
+      "transport.json",
+      "workcell.json"
+    ],
+    "referenceActions": [
+      {
+        "label": "explicit stow before drive",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 1
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop between route segments",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": -0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop between route segments",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop between route segments",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.1
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -3.41021,
+          "arm_shoulder_lift.pos": -3.571653,
+          "arm_elbow_flex.pos": 3.762079,
+          "arm_wrist_flex.pos": 3.989755,
+          "arm_wrist_roll.pos": -0.264196,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -6.820419,
+          "arm_shoulder_lift.pos": -7.143307,
+          "arm_elbow_flex.pos": 7.524158,
+          "arm_wrist_flex.pos": 7.97951,
+          "arm_wrist_roll.pos": -0.528392,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -10.230629,
+          "arm_shoulder_lift.pos": -10.71496,
+          "arm_elbow_flex.pos": 11.286236,
+          "arm_wrist_flex.pos": 11.969265,
+          "arm_wrist_roll.pos": -0.792588,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -13.640839,
+          "arm_shoulder_lift.pos": -14.286614,
+          "arm_elbow_flex.pos": 15.048315,
+          "arm_wrist_flex.pos": 15.95902,
+          "arm_wrist_roll.pos": -1.056784,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -17.051049,
+          "arm_shoulder_lift.pos": -17.858267,
+          "arm_elbow_flex.pos": 18.810394,
+          "arm_wrist_flex.pos": 19.948775,
+          "arm_wrist_roll.pos": -1.32098,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -20.461258,
+          "arm_shoulder_lift.pos": -21.42992,
+          "arm_elbow_flex.pos": 22.572473,
+          "arm_wrist_flex.pos": 23.93853,
+          "arm_wrist_roll.pos": -1.585176,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -23.871468,
+          "arm_shoulder_lift.pos": -25.001574,
+          "arm_elbow_flex.pos": 26.334551,
+          "arm_wrist_flex.pos": 27.928285,
+          "arm_wrist_roll.pos": -1.849372,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -27.281678,
+          "arm_shoulder_lift.pos": -28.573227,
+          "arm_elbow_flex.pos": 30.09663,
+          "arm_wrist_flex.pos": 31.91804,
+          "arm_wrist_roll.pos": -2.113568,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -30.691887,
+          "arm_shoulder_lift.pos": -32.14488,
+          "arm_elbow_flex.pos": 33.858709,
+          "arm_wrist_flex.pos": 35.907796,
+          "arm_wrist_roll.pos": -2.377764,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -34.102097,
+          "arm_shoulder_lift.pos": -35.716534,
+          "arm_elbow_flex.pos": 37.620788,
+          "arm_wrist_flex.pos": 39.897551,
+          "arm_wrist_roll.pos": -2.64196,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -37.512307,
+          "arm_shoulder_lift.pos": -39.288187,
+          "arm_elbow_flex.pos": 41.382867,
+          "arm_wrist_flex.pos": 43.887306,
+          "arm_wrist_roll.pos": -2.906156,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -40.922516,
+          "arm_shoulder_lift.pos": -42.859841,
+          "arm_elbow_flex.pos": 45.144945,
+          "arm_wrist_flex.pos": 47.877061,
+          "arm_wrist_roll.pos": -3.170353,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -44.332726,
+          "arm_shoulder_lift.pos": -46.431494,
+          "arm_elbow_flex.pos": 48.907024,
+          "arm_wrist_flex.pos": 51.866816,
+          "arm_wrist_roll.pos": -3.434549,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -47.742936,
+          "arm_shoulder_lift.pos": -50.003147,
+          "arm_elbow_flex.pos": 52.669103,
+          "arm_wrist_flex.pos": 55.856571,
+          "arm_wrist_roll.pos": -3.698745,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -51.153146,
+          "arm_shoulder_lift.pos": -53.574801,
+          "arm_elbow_flex.pos": 56.431182,
+          "arm_wrist_flex.pos": 59.846326,
+          "arm_wrist_roll.pos": -3.962941,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -54.563355,
+          "arm_shoulder_lift.pos": -57.146454,
+          "arm_elbow_flex.pos": 60.19326,
+          "arm_wrist_flex.pos": 63.836081,
+          "arm_wrist_roll.pos": -4.227137,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -57.973565,
+          "arm_shoulder_lift.pos": -60.718107,
+          "arm_elbow_flex.pos": 63.955339,
+          "arm_wrist_flex.pos": 67.825836,
+          "arm_wrist_roll.pos": -4.491333,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "pre_contact path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.383775,
+          "arm_shoulder_lift.pos": -64.289761,
+          "arm_elbow_flex.pos": 67.717418,
+          "arm_wrist_flex.pos": 71.815591,
+          "arm_wrist_roll.pos": -4.755529,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "contact approach path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.422385,
+          "arm_shoulder_lift.pos": -63.811794,
+          "arm_elbow_flex.pos": 64.603571,
+          "arm_wrist_flex.pos": 70.107521,
+          "arm_wrist_roll.pos": -5.049626,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "contact approach path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.460995,
+          "arm_shoulder_lift.pos": -63.333827,
+          "arm_elbow_flex.pos": 61.489724,
+          "arm_wrist_flex.pos": 68.39945,
+          "arm_wrist_roll.pos": -5.343723,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "arm contact approach",
+        "action": {
+          "arm_shoulder_pan.pos": -61.499605,
+          "arm_shoulder_lift.pos": -62.855861,
+          "arm_elbow_flex.pos": 58.375877,
+          "arm_wrist_flex.pos": 66.69138,
+          "arm_wrist_roll.pos": -5.637821,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "close after FK contact",
+        "action": {
+          "arm_shoulder_pan.pos": -61.499605,
+          "arm_shoulder_lift.pos": -62.855861,
+          "arm_elbow_flex.pos": 58.375877,
+          "arm_wrist_flex.pos": 66.69138,
+          "arm_wrist_roll.pos": -5.637821,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.9
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.495156,
+          "arm_shoulder_lift.pos": -63.876452,
+          "arm_elbow_flex.pos": 62.148327,
+          "arm_wrist_flex.pos": 64.047908,
+          "arm_wrist_roll.pos": -5.631949,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.490706,
+          "arm_shoulder_lift.pos": -64.897043,
+          "arm_elbow_flex.pos": 65.920777,
+          "arm_wrist_flex.pos": 61.404437,
+          "arm_wrist_roll.pos": -5.626077,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.486257,
+          "arm_shoulder_lift.pos": -65.917635,
+          "arm_elbow_flex.pos": 69.693228,
+          "arm_wrist_flex.pos": 58.760966,
+          "arm_wrist_roll.pos": -5.620204,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.481808,
+          "arm_shoulder_lift.pos": -66.938226,
+          "arm_elbow_flex.pos": 73.465678,
+          "arm_wrist_flex.pos": 56.117494,
+          "arm_wrist_roll.pos": -5.614332,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.477358,
+          "arm_shoulder_lift.pos": -67.958817,
+          "arm_elbow_flex.pos": 77.238128,
+          "arm_wrist_flex.pos": 53.474023,
+          "arm_wrist_roll.pos": -5.60846,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.472909,
+          "arm_shoulder_lift.pos": -68.979409,
+          "arm_elbow_flex.pos": 81.010579,
+          "arm_wrist_flex.pos": 50.830552,
+          "arm_wrist_roll.pos": -5.602588,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "lift path",
+        "action": {
+          "arm_shoulder_pan.pos": -61.468459,
+          "arm_shoulder_lift.pos": -70,
+          "arm_elbow_flex.pos": 84.783029,
+          "arm_wrist_flex.pos": 48.18708,
+          "arm_wrist_roll.pos": -5.596716,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "transfer path",
+        "action": {
+          "arm_shoulder_pan.pos": -64.714523,
+          "arm_shoulder_lift.pos": -73.525735,
+          "arm_elbow_flex.pos": 88.19969,
+          "arm_wrist_flex.pos": 48.204909,
+          "arm_wrist_roll.pos": -5.642751,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "transfer path",
+        "action": {
+          "arm_shoulder_pan.pos": -67.960588,
+          "arm_shoulder_lift.pos": -77.051471,
+          "arm_elbow_flex.pos": 91.616351,
+          "arm_wrist_flex.pos": 48.222738,
+          "arm_wrist_roll.pos": -5.688786,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "transfer path",
+        "action": {
+          "arm_shoulder_pan.pos": -71.206652,
+          "arm_shoulder_lift.pos": -80.577206,
+          "arm_elbow_flex.pos": 95.033012,
+          "arm_wrist_flex.pos": 48.240567,
+          "arm_wrist_roll.pos": -5.73482,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "transfer path",
+        "action": {
+          "arm_shoulder_pan.pos": -74.452716,
+          "arm_shoulder_lift.pos": -84.102941,
+          "arm_elbow_flex.pos": 98.449673,
+          "arm_wrist_flex.pos": 48.258396,
+          "arm_wrist_roll.pos": -5.780855,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "transfer path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.69878,
+          "arm_shoulder_lift.pos": -87.628677,
+          "arm_elbow_flex.pos": 101.866334,
+          "arm_wrist_flex.pos": 48.276225,
+          "arm_wrist_roll.pos": -5.82689,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement descent path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.649456,
+          "arm_shoulder_lift.pos": -86.801104,
+          "arm_elbow_flex.pos": 98.094103,
+          "arm_wrist_flex.pos": 51.145617,
+          "arm_wrist_roll.pos": -5.802445,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement descent path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.600132,
+          "arm_shoulder_lift.pos": -85.973532,
+          "arm_elbow_flex.pos": 94.321872,
+          "arm_wrist_flex.pos": 54.015009,
+          "arm_wrist_roll.pos": -5.778,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement descent path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.550808,
+          "arm_shoulder_lift.pos": -85.145959,
+          "arm_elbow_flex.pos": 90.549642,
+          "arm_wrist_flex.pos": 56.8844,
+          "arm_wrist_roll.pos": -5.753556,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement descent path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.501484,
+          "arm_shoulder_lift.pos": -84.318387,
+          "arm_elbow_flex.pos": 86.777411,
+          "arm_wrist_flex.pos": 59.753792,
+          "arm_wrist_roll.pos": -5.729111,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement descent path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.45216,
+          "arm_shoulder_lift.pos": -83.490815,
+          "arm_elbow_flex.pos": 83.00518,
+          "arm_wrist_flex.pos": 62.623184,
+          "arm_wrist_roll.pos": -5.704667,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement descent path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.402836,
+          "arm_shoulder_lift.pos": -82.663242,
+          "arm_elbow_flex.pos": 79.23295,
+          "arm_wrist_flex.pos": 65.492576,
+          "arm_wrist_roll.pos": -5.680222,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "placement contact",
+        "action": {
+          "arm_shoulder_pan.pos": -77.353512,
+          "arm_shoulder_lift.pos": -81.83567,
+          "arm_elbow_flex.pos": 75.460719,
+          "arm_wrist_flex.pos": 68.361967,
+          "arm_wrist_roll.pos": -5.655778,
+          "arm_gripper.pos": 85,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "release at live tool pose",
+        "action": {
+          "arm_shoulder_pan.pos": -77.353512,
+          "arm_shoulder_lift.pos": -81.83567,
+          "arm_elbow_flex.pos": 75.460719,
+          "arm_wrist_flex.pos": 68.361967,
+          "arm_wrist_roll.pos": -5.655778,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.9
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.324186,
+          "arm_shoulder_lift.pos": -82.04688,
+          "arm_elbow_flex.pos": 79.08519,
+          "arm_wrist_flex.pos": 70.383012,
+          "arm_wrist_roll.pos": -5.310438,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.294859,
+          "arm_shoulder_lift.pos": -82.25809,
+          "arm_elbow_flex.pos": 82.709661,
+          "arm_wrist_flex.pos": 72.404056,
+          "arm_wrist_roll.pos": -4.965099,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -77.265533,
+          "arm_shoulder_lift.pos": -82.4693,
+          "arm_elbow_flex.pos": 86.334132,
+          "arm_wrist_flex.pos": 74.4251,
+          "arm_wrist_roll.pos": -4.61976,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -76.207226,
+          "arm_shoulder_lift.pos": -78.558621,
+          "arm_elbow_flex.pos": 85.285733,
+          "arm_wrist_flex.pos": 71.270057,
+          "arm_wrist_roll.pos": -5.685063,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -75.14892,
+          "arm_shoulder_lift.pos": -74.647943,
+          "arm_elbow_flex.pos": 84.237334,
+          "arm_wrist_flex.pos": 68.115014,
+          "arm_wrist_roll.pos": -6.750366,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -74.090614,
+          "arm_shoulder_lift.pos": -70.737264,
+          "arm_elbow_flex.pos": 83.188934,
+          "arm_wrist_flex.pos": 64.959971,
+          "arm_wrist_roll.pos": -7.81567,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -73.032307,
+          "arm_shoulder_lift.pos": -66.826586,
+          "arm_elbow_flex.pos": 82.140535,
+          "arm_wrist_flex.pos": 61.804928,
+          "arm_wrist_roll.pos": -8.880973,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -71.974001,
+          "arm_shoulder_lift.pos": -62.915907,
+          "arm_elbow_flex.pos": 81.092136,
+          "arm_wrist_flex.pos": 58.649885,
+          "arm_wrist_roll.pos": -9.946276,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -70.915695,
+          "arm_shoulder_lift.pos": -59.005229,
+          "arm_elbow_flex.pos": 80.043737,
+          "arm_wrist_flex.pos": 55.494842,
+          "arm_wrist_roll.pos": -11.011579,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -69.857388,
+          "arm_shoulder_lift.pos": -55.094551,
+          "arm_elbow_flex.pos": 78.995337,
+          "arm_wrist_flex.pos": 52.339799,
+          "arm_wrist_roll.pos": -12.076882,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -68.799082,
+          "arm_shoulder_lift.pos": -51.183872,
+          "arm_elbow_flex.pos": 77.946938,
+          "arm_wrist_flex.pos": 49.184756,
+          "arm_wrist_roll.pos": -13.142186,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -67.740776,
+          "arm_shoulder_lift.pos": -47.273194,
+          "arm_elbow_flex.pos": 76.898539,
+          "arm_wrist_flex.pos": 46.029713,
+          "arm_wrist_roll.pos": -14.207489,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -66.682469,
+          "arm_shoulder_lift.pos": -43.362515,
+          "arm_elbow_flex.pos": 75.85014,
+          "arm_wrist_flex.pos": 42.87467,
+          "arm_wrist_roll.pos": -15.272792,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -65.624163,
+          "arm_shoulder_lift.pos": -39.451837,
+          "arm_elbow_flex.pos": 74.80174,
+          "arm_wrist_flex.pos": 39.719627,
+          "arm_wrist_roll.pos": -16.338095,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -64.565857,
+          "arm_shoulder_lift.pos": -35.541158,
+          "arm_elbow_flex.pos": 73.753341,
+          "arm_wrist_flex.pos": 36.564584,
+          "arm_wrist_roll.pos": -17.403399,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -63.50755,
+          "arm_shoulder_lift.pos": -31.63048,
+          "arm_elbow_flex.pos": 72.704942,
+          "arm_wrist_flex.pos": 33.409541,
+          "arm_wrist_roll.pos": -18.468702,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -62.449244,
+          "arm_shoulder_lift.pos": -27.719801,
+          "arm_elbow_flex.pos": 71.656543,
+          "arm_wrist_flex.pos": 30.254498,
+          "arm_wrist_roll.pos": -19.534005,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -59.248782,
+          "arm_shoulder_lift.pos": -28.321726,
+          "arm_elbow_flex.pos": 67.889988,
+          "arm_wrist_flex.pos": 29.009955,
+          "arm_wrist_roll.pos": -20.445411,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -56.048321,
+          "arm_shoulder_lift.pos": -28.923651,
+          "arm_elbow_flex.pos": 64.123433,
+          "arm_wrist_flex.pos": 27.765413,
+          "arm_wrist_roll.pos": -21.356817,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -52.847859,
+          "arm_shoulder_lift.pos": -29.525576,
+          "arm_elbow_flex.pos": 60.356879,
+          "arm_wrist_flex.pos": 26.52087,
+          "arm_wrist_roll.pos": -22.268223,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -49.647397,
+          "arm_shoulder_lift.pos": -30.1275,
+          "arm_elbow_flex.pos": 56.590324,
+          "arm_wrist_flex.pos": 25.276328,
+          "arm_wrist_roll.pos": -23.179629,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -46.446935,
+          "arm_shoulder_lift.pos": -30.729425,
+          "arm_elbow_flex.pos": 52.82377,
+          "arm_wrist_flex.pos": 24.031785,
+          "arm_wrist_roll.pos": -24.091035,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -43.246474,
+          "arm_shoulder_lift.pos": -31.33135,
+          "arm_elbow_flex.pos": 49.057215,
+          "arm_wrist_flex.pos": 22.787243,
+          "arm_wrist_roll.pos": -25.002441,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -40.046012,
+          "arm_shoulder_lift.pos": -31.933275,
+          "arm_elbow_flex.pos": 45.290661,
+          "arm_wrist_flex.pos": 21.5427,
+          "arm_wrist_roll.pos": -25.913847,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -36.84555,
+          "arm_shoulder_lift.pos": -32.5352,
+          "arm_elbow_flex.pos": 41.524106,
+          "arm_wrist_flex.pos": 20.298158,
+          "arm_wrist_roll.pos": -26.825253,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -33.645088,
+          "arm_shoulder_lift.pos": -33.137125,
+          "arm_elbow_flex.pos": 37.757552,
+          "arm_wrist_flex.pos": 19.053615,
+          "arm_wrist_roll.pos": -27.736659,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -30.444627,
+          "arm_shoulder_lift.pos": -33.739049,
+          "arm_elbow_flex.pos": 33.990997,
+          "arm_wrist_flex.pos": 17.809073,
+          "arm_wrist_roll.pos": -28.648065,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -27.244165,
+          "arm_shoulder_lift.pos": -34.340974,
+          "arm_elbow_flex.pos": 30.224442,
+          "arm_wrist_flex.pos": 16.564531,
+          "arm_wrist_roll.pos": -29.559471,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -24.043703,
+          "arm_shoulder_lift.pos": -34.942899,
+          "arm_elbow_flex.pos": 26.457888,
+          "arm_wrist_flex.pos": 15.319988,
+          "arm_wrist_roll.pos": -30.470877,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -20.843241,
+          "arm_shoulder_lift.pos": -35.544824,
+          "arm_elbow_flex.pos": 22.691333,
+          "arm_wrist_flex.pos": 14.075446,
+          "arm_wrist_roll.pos": -31.382283,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -17.642779,
+          "arm_shoulder_lift.pos": -36.146749,
+          "arm_elbow_flex.pos": 18.924779,
+          "arm_wrist_flex.pos": 12.830903,
+          "arm_wrist_roll.pos": -32.293689,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -14.442318,
+          "arm_shoulder_lift.pos": -36.748673,
+          "arm_elbow_flex.pos": 15.158224,
+          "arm_wrist_flex.pos": 11.586361,
+          "arm_wrist_roll.pos": -33.205095,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "retreat path",
+        "action": {
+          "arm_shoulder_pan.pos": -11.241856,
+          "arm_shoulder_lift.pos": -37.350598,
+          "arm_elbow_flex.pos": 11.39167,
+          "arm_wrist_flex.pos": 10.341818,
+          "arm_wrist_roll.pos": -34.116501,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.3
+      },
+      {
+        "label": "explicit stow before drive",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 1
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop between route segments",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0.192308,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop between route segments",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "visible configured base-route segment",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": -0.192308,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop between route segments",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.26
+      },
+      {
+        "label": "explicit base stop",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 0.1
+      },
+      {
+        "label": "explicit final stow",
+        "action": {
+          "arm_shoulder_pan.pos": 0,
+          "arm_shoulder_lift.pos": 0,
+          "arm_elbow_flex.pos": 0,
+          "arm_wrist_flex.pos": 0,
+          "arm_wrist_roll.pos": 0,
+          "arm_gripper.pos": 20,
+          "x.vel": 0,
+          "y.vel": 0,
+          "theta.vel": 0
+        },
+        "hold_seconds": 1
+      }
+    ],
+    "gradingAuthority": "authoritative fixed-step plant, FK contact, object, fixture, and event state only",
+    "learnerGradingCalls": false,
+    "unsupported": [
+      "dynamics and controller emulation",
+      "physical transport/calibration/sensing",
+      "hardware certification and validation"
+    ],
+    "referenceExecution": {
+      "id": "physical-style-python-reference",
+      "actionCount": 138,
+      "source": "collision-checked IK/base trace emitted exclusively as official-shape LeKiwiClient.send_action fields",
+      "causalGrasp": "open -> live two-finger contact -> close -> attach",
+      "causalRelease": "stable placement contact -> open at live FK pose -> detach -> retreat",
+      "stableInitialGapMm": 0,
+      "stableFinalGapMm": 0.379396,
+      "taskOutcomeExpected": true
+    },
+    "officialLeRobotContract": {
+      "imports": [
+        "lerobot.robots.lekiwi.LeKiwiClient",
+        "lerobot.robots.lekiwi.LeKiwiClientConfig"
+      ],
+      "construction": "LeKiwiClient(LeKiwiClientConfig(remote_ip=transport['remote_ip'], cameras={}))",
+      "publicCommand": "robot.send_action(action)",
+      "actionFields": [
+        "arm_shoulder_pan.pos",
+        "arm_shoulder_lift.pos",
+        "arm_elbow_flex.pos",
+        "arm_wrist_flex.pos",
+        "arm_wrist_roll.pos",
+        "arm_gripper.pos",
+        "x.vel",
+        "y.vel",
+        "theta.vel"
+      ],
+      "execution": "ordinary synchronous official-shape LeRobot Python; each send_action target is immediate while the browser plant advances at fixed 20 ms steps",
+      "authority": "authoritative browser plant/FK/contact/object state; no learner grading shortcuts"
+    },
+    "baseCommandTiming": {
+      "resendPeriodSeconds": 0.26,
+      "watchdogSeconds": 0.5,
+      "stopPolicy": "explicit stop at every turn, configured stop, and arm boundary; continuous same-velocity commands only within one collision-clear straight route lane",
+      "automaticMotion": false
+    }
   }
 }

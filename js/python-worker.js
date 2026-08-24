@@ -461,89 +461,18 @@ json.dumps(__result)
 `;
 
 const V2_PROTOCOL = "robobuddy.pyodide-rpc.v2";
-const V2_RUNTIME_CODE = `
-import contextlib
-import inspect
-import io
-import json
-import traceback
+let v2RuntimeCodePromise = null;
 
-stdout_buffer = io.StringIO()
-stderr_buffer = io.StringIO()
-
-def _camel_key(value):
-    parts = str(value).split("_")
-    return parts[0] + "".join(part[:1].upper() + part[1:] for part in parts[1:])
-
-def _normalize_payload(value):
-    if isinstance(value, dict):
-        return {_camel_key(key): _normalize_payload(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_normalize_payload(item) for item in value]
-    return value
-
-async def _rpc(method, args=None):
-    payload = {} if args is None else _normalize_payload(args)
-    text = await __robobuddy_api_call(str(method), json.dumps(payload))
-    return json.loads(str(text))
-
-class RobotV2:
-    async def frames(self): return await _rpc("lab.frames")
-    async def joint_state(self): return await _rpc("robot.joint_state")
-    async def plan_to_frame(self, frame_id, **kwargs): return await _rpc("robot.plan_to_frame", {"frameId": frame_id, **kwargs})
-    async def execute(self, plan_id, **kwargs): return await _rpc("robot.execute", {"planId": plan_id, **kwargs})
-    async def grasp(self, object_id, **kwargs): return await _rpc("robot.grasp", {"objectId": object_id, **kwargs})
-    async def release(self, object_id, **kwargs): return await _rpc("robot.release", {"objectId": object_id, **kwargs})
-    async def navigate(self, frame_id, **kwargs): return await _rpc("robot.navigate", {"frameId": frame_id, **kwargs})
-    async def dock(self, object_id, **kwargs): return await _rpc("robot.dock", {"objectId": object_id, **kwargs})
-    async def replan(self, frame_id, **kwargs): return await _rpc("robot.replan", {"frameId": frame_id, **kwargs})
-    async def transport(self, object_id, **kwargs): return await _rpc("skills.transport", {"objectId": object_id, **kwargs})
-    async def solve_ik(self, **kwargs): return await _rpc("challenge.solve_ik", kwargs)
-    async def plan_waypoints(self, frame_ids, **kwargs): return await _rpc("challenge.plan_waypoints", {"frameIds": list(frame_ids), **kwargs})
-    async def execute_waypoints(self, plan_ids, **kwargs): return await _rpc("challenge.execute_waypoints", {"planIds": list(plan_ids), **kwargs})
-    async def pause(self): return await _rpc("robot.pause")
-    async def resume(self): return await _rpc("robot.resume")
-    async def stop(self, reason="python"): return await _rpc("robot.stop", {"reason": reason})
-    async def reset(self): return await _rpc("robot.reset")
-
-class LabV2:
-    async def frames(self): return await _rpc("lab.frames")
-    async def observe(self): return await _rpc("lab.observe")
-    async def record_evidence(self, requirement_id, value): return await _rpc("lab.record_evidence", {"requirementId": requirement_id, "value": value})
-    async def fixture_operation(self, process_id, **kwargs): return await _rpc("skills.fixture_operation", {"processId": process_id, **kwargs})
-
-robot = RobotV2()
-lab = LabV2()
-namespace = {"robot": robot, "lab": lab, "__name__": "__main__"}
-
-try:
-    with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(stderr_buffer):
-        exec(__V2_USER_CODE__, namespace, namespace)
-        entry = namespace.get("main")
-        if entry is None:
-            raise ValueError("Define async main(robot, lab) as the program entry point")
-        outcome = entry(robot, lab)
-        if not inspect.isawaitable(outcome):
-            raise ValueError("main(robot, lab) must be async")
-        await outcome
-    __v2_result = {
-        "ok": True,
-        "stdout": stdout_buffer.getvalue(),
-        "stderr": stderr_buffer.getvalue(),
-        "error": "",
-        "traceback": "",
-    }
-except Exception as exc:
-    __v2_result = {
-        "ok": False,
-        "stdout": stdout_buffer.getvalue(),
-        "stderr": stderr_buffer.getvalue(),
-        "error": f"{type(exc).__name__}: {exc}",
-        "traceback": traceback.format_exc(limit=8),
-    }
-
-json.dumps(__v2_result)
-`;
+function loadV2RuntimeCode() {
+  if (!v2RuntimeCodePromise) {
+    const url = new URL("python-compat-runtime.py?v=20260823-portable-python-v1", self.location.href);
+    v2RuntimeCodePromise = fetch(url).then((response) => {
+      if (!response.ok) throw new Error(`Portable Python runtime failed to load (${response.status}).`);
+      return response.text();
+    });
+  }
+  return v2RuntimeCodePromise;
+}
 
 let activeV2Run = null;
 
@@ -577,8 +506,9 @@ async function executeV2Run(data) {
   };
   activeV2Run = run;
   try {
-    const pyodide = await loadRuntime();
+    const [pyodide, runtimeCode] = await Promise.all([loadRuntime(), loadV2RuntimeCode()]);
     if (run.cancelled) throw new Error("Run cancelled before Python started.");
+    if (String(data.robotId || "") === "lekiwi_sim") await pyodide.loadPackage("numpy");
     const apiCall = async (method, argsJson) => {
       await waitWhilePaused(run);
       if (run.cancelled || activeV2Run !== run) throw new Error("Python run stopped.");
@@ -590,7 +520,9 @@ async function executeV2Run(data) {
     };
     pyodide.globals.set("__robobuddy_api_call", apiCall);
     pyodide.globals.set("__V2_USER_CODE__", String(data.python || ""));
-    const resultText = await pyodide.runPythonAsync(V2_RUNTIME_CODE);
+    pyodide.globals.set("__V2_ROBOT_ID__", String(data.robotId || ""));
+    pyodide.globals.set("__V2_PROFILE_FILES_JSON__", JSON.stringify(data.profileFiles && typeof data.profileFiles === "object" ? data.profileFiles : {}));
+    const resultText = await pyodide.runPythonAsync(runtimeCode);
     if (activeV2Run !== run || run.cancelled) return;
     const result = JSON.parse(String(resultText || "{}"));
     postV2("RESULT", { runId: run.runId, ...result, code: result.ok ? "PYTHON_COMPLETE" : "PYTHON_ERROR" });

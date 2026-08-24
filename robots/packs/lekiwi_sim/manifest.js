@@ -58,8 +58,9 @@
     modelSource: {
       format: "urdf",
       repository: "https://github.com/SIGRobotics-UIUC/LeKiwi",
+      revision: "efa608d7ee5a495a4803b1d28cd0c955b4f1e033",
       path: "URDF/LeKiwi.urdf",
-      url: "https://raw.githubusercontent.com/SIGRobotics-UIUC/LeKiwi/main/URDF/LeKiwi.urdf",
+      url: "https://github.com/SIGRobotics-UIUC/LeKiwi/blob/efa608d7ee5a495a4803b1d28cd0c955b4f1e033/URDF/LeKiwi.urdf",
       notes: "The in-browser simulator loads an official URDF/STL-derived LeKiwi assembly."
     },
     chooser: {

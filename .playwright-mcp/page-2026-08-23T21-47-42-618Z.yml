@@ -1,0 +1,177 @@
+- generic [active] [ref=e1]:
+  - link "Skip to lab programming workbench" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - complementary "RoboBuddy primary navigation" [ref=e3]:
+    - link "RoboBuddy Main" [ref=e4] [cursor=pointer]:
+      - /url: index.html
+    - navigation "Primary" [ref=e5]:
+      - link "Main" [ref=e6] [cursor=pointer]:
+        - /url: index.html
+      - link "Python" [ref=e11] [cursor=pointer]:
+        - /url: python.html
+      - link "Gemini" [ref=e17] [cursor=pointer]:
+        - /url: gemini.html
+      - link "Lab Tasks" [ref=e21] [cursor=pointer]:
+        - /url: lab-scenarios.html
+      - link "Docs" [ref=e25] [cursor=pointer]:
+        - /url: python-docs.html
+  - banner [ref=e30]:
+    - generic [ref=e31]:
+      - heading "Two-Hand Weighing Handoff" [level=1] [ref=e66]
+      - paragraph [ref=e33]: Coordinate a watch-glass delivery and spatula return through separate, observable left/right contact sequences.
+    - generic [ref=e34]:
+      - link "Back to Tasks" [ref=e35] [cursor=pointer]:
+        - /url: lab-scenarios.html?robot=openarm_v2_bimanual&task=openarm-01-weighing-handoff
+      - generic [ref=e38]: Change lab task
+      - combobox "Change OpenArm V2 Bimanual task" [ref=e69]:
+        - option "1. Two-Hand Weighing Handoff" [selected]
+        - option "2. Bimanual Glassware Handoff"
+        - option "3. Cuvette and Reference Handoff"
+        - option "4. Fixture-Assisted Filtration Workcell"
+        - option "5. Fixture-Assisted Titration Workcell"
+        - option "6. Configured Cooling-Station Handoff"
+        - option "7. Fixture-Assisted Chromatography Workcell"
+        - option "8. Fixture-Assisted Spectrometer Workcell"
+        - option "9. Fixture-Assisted Standardization Workcell"
+        - option "10. Fixture-Assisted Gravimetric Workcell"
+      - generic [ref=e40]: Simulation only
+      - button "STOP simulation" [ref=e44] [cursor=pointer]
+  - main [ref=e75]:
+    - generic [ref=e76]:
+      - complementary "Task procedure and feedback" [ref=e77]:
+        - generic [ref=e78]:
+          - heading "Active task" [level=2] [ref=e79]
+          - generic [ref=e80]: 2 / 6
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - text: OpenArm V2 Bimanual
+            - heading "Programmed handling sequence" [level=2] [ref=e83]
+            - paragraph [ref=e84]: Complete each observable checkpoint with explicit robot and laboratory commands.
+          - generic [ref=e85]:
+            - generic [ref=e86]: Rank 1 · Class A
+            - generic [ref=e87]: Guided · guided
+            - generic [ref=e88]:
+              - code [ref=e89]: M
+              - code [ref=e90]: F
+              - code [ref=e91]: R
+              - code [ref=e92]: C
+              - code [ref=e93]: R
+          - generic [ref=e94]:
+            - code [ref=e95]: TARGET_UPDATED
+            - paragraph [ref=e96]: Validated command target updated immediately; live actual state continues on the fixed-step plant.
+          - heading "Task checkpoints" [level=3] [ref=e97]
+          - list "Task checkpoints" [ref=e98]:
+            - listitem [ref=e278]:
+              - generic [ref=e279]: "01"
+              - generic [ref=e280]:
+                - strong [ref=e281]: Place Watch glass secured on a broad handled transport tray at Left-arm short-transfer destination frame
+                - generic [ref=e282]: Verified by authoritative state
+              - generic [ref=e283]: complete
+            - listitem [ref=e284]:
+              - generic [ref=e285]: "02"
+              - generic [ref=e286]:
+                - strong [ref=e287]: Place Spatula secured on a broad handled transport tray at Right-arm short-transfer destination frame
+                - generic [ref=e288]: Current checkpoint
+              - generic [ref=e289]: current
+            - listitem [ref=e290]:
+              - generic [ref=e291]: "03"
+              - generic [ref=e292]:
+                - strong [ref=e293]: "Handoff Confirmed: Confirmed"
+                - generic [ref=e294]: Follows the current checkpoint
+              - generic [ref=e295]: pending
+            - listitem [ref=e296]:
+              - generic [ref=e297]: "04"
+              - generic [ref=e298]:
+                - strong [ref=e299]: Reach Left-arm vertical retreat frame
+                - generic [ref=e300]: Verified by authoritative state
+              - generic [ref=e301]: complete
+            - listitem [ref=e302]:
+              - generic [ref=e303]: "05"
+              - generic [ref=e304]:
+                - strong [ref=e305]: Reach Right-arm vertical retreat frame
+                - generic [ref=e306]: Follows the current checkpoint
+              - generic [ref=e307]: pending
+            - listitem [ref=e308]:
+              - generic [ref=e309]: "06"
+              - generic [ref=e310]:
+                - strong [ref=e311]: After the visible fixture-contact event, record both object ids and their observed left_handoff/right_handoff destination frames.
+                - generic [ref=e312]: Follows the current checkpoint
+              - generic [ref=e313]: pending
+          - button "Model fidelity and limitations" [ref=e136] [cursor=pointer]
+          - button "Safety and transfer boundary" [ref=e141] [cursor=pointer]
+      - region "Robot program editor" [ref=e145]:
+        - generic [ref=e146]:
+          - tablist "Programming language" [ref=e147]:
+            - tab "Blockly" [ref=e148] [cursor=pointer]
+            - tab "Python commands" [selected] [ref=e149] [cursor=pointer]
+          - generic [ref=e150]:
+            - button "Load Starter" [ref=e151] [cursor=pointer]
+            - button "Save Draft" [ref=e156] [cursor=pointer]
+            - button "Export .py" [ref=e161] [cursor=pointer]
+            - group [ref=e165]:
+              - generic "More" [ref=e166] [cursor=pointer]
+        - tabpanel "Python editor" [ref=e168]:
+          - generic [ref=e169]: Python robot program
+          - paragraph [ref=e170]:
+            - text: Runs a complete synchronous physical-style Python script in Pyodide using browser-provided compatibility modules.
+            - strong [ref=e171]: Simulation only; hardware validation pending.
+          - textbox "Python robot program" [ref=e172]:
+            - /placeholder: "import json\nimport time\n\nwith open(\"transport.json\", encoding=\"utf-8\") as stream:\n    transport = json.load(stream)\nwith open(\"workcell.json\", encoding=\"utf-8\") as stream:\n    workcell = json.load(stream)\n\nfrom lerobot.robots.openarm_follower import OpenArmFollowerConfigBase\nfrom lerobot.robots.bi_openarm_follower import BiOpenArmFollower, BiOpenArmFollowerConfig\nconfig = BiOpenArmFollowerConfig(\n    left_arm_config=OpenArmFollowerConfigBase(port=transport[\"left_port\"], side=\"left\", cameras={}),\n    right_arm_config=OpenArmFollowerConfigBase(port=transport[\"right_port\"], side=\"right\", cameras={}),\n    cameras={},\n)\nrobot = BiOpenArmFollower(config)\n\nrobot.connect()\ntry:\n    for step in workcell[\"reference_actions\"]:\n        sent = robot.send_action(step[\"action\"])\n        time.sleep(step[\"hold_seconds\"])\n        observation = robot.get_observation()\n        print(step[\"label\"], observation)\nfinally:\n    robot.disconnect()"
+            - text: "import json import time with open(\"transport.json\", encoding=\"utf-8\") as stream: transport = json.load(stream) with open(\"workcell.json\", encoding=\"utf-8\") as stream: workcell = json.load(stream) from lerobot.robots.openarm_follower import OpenArmFollowerConfigBase from lerobot.robots.bi_openarm_follower import BiOpenArmFollower, BiOpenArmFollowerConfig config = BiOpenArmFollowerConfig( left_arm_config=OpenArmFollowerConfigBase(port=transport[\"left_port\"], side=\"left\", cameras={}), right_arm_config=OpenArmFollowerConfigBase(port=transport[\"right_port\"], side=\"right\", cameras={}), cameras={}, ) robot = BiOpenArmFollower(config) robot.connect() try: for step in workcell[\"reference_actions\"]: sent = robot.send_action(step[\"action\"]) time.sleep(step[\"hold_seconds\"]) observation = robot.get_observation() print(step[\"label\"], observation) finally: robot.disconnect()"
+        - generic [ref=e173]:
+          - button "Run" [disabled] [ref=e174]
+          - button "Pause" [ref=e178] [cursor=pointer]
+          - button "Stop" [ref=e183] [cursor=pointer]
+          - button "Reset Task" [ref=e187] [cursor=pointer]
+          - paragraph [ref=e192]: Executing the whole synchronous Python script through the pinned browser compatibility modules...
+      - complementary "3D simulation and evidence" [ref=e193]:
+        - generic [ref=e194]:
+          - heading "Robot and apparatus" [level=2] [ref=e195]
+          - generic [ref=e196]: Kinematic state
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - generic [ref=e199]: Inspect contact and clearance
+            - generic "Camera controls" [ref=e200]:
+              - button "Camera movement on" [pressed] [ref=e201] [cursor=pointer]:
+                - generic [ref=e207]: "Move view: on"
+              - button "Camera zoom on" [pressed] [ref=e208] [cursor=pointer]:
+                - generic [ref=e212]: "Zoom: on"
+              - button "Reset authored camera view" [ref=e213] [cursor=pointer]:
+                - generic [ref=e219]: Reset view
+              - button "Show OpenArm left gripper outside inspection view" [ref=e220] [cursor=pointer]:
+                - generic [ref=e225]: "Next view: left gripper outside"
+              - button "Expand 3D scene" [ref=e226] [cursor=pointer]:
+                - generic [ref=e232]: Expand scene
+          - img "OpenArm v1 Bimanual (simulator stand) canonical model and ScenarioV2 task geometry" [ref=e233]:
+            - generic "OpenArm v1 Bimanual · Simulator 550 mm Stand/Turntable 3D simulator" [ref=e235]
+          - status: Running · Right Contact · Spatula secured on a broad handled transport tray attached after live contact
+        - generic [ref=e237]:
+          - generic [ref=e238]:
+            - button "Object and instrument state" [expanded] [ref=e239] [cursor=pointer]
+            - table [ref=e244]:
+              - rowgroup [ref=e245]:
+                - row [ref=e246]:
+                  - columnheader "Object" [ref=e247]
+                  - columnheader "Location" [ref=e248]
+                  - columnheader "Contents" [ref=e249]
+                  - columnheader "Temperature" [ref=e250]
+                  - columnheader "Condition" [ref=e251]
+                  - columnheader "Transfer" [ref=e252]
+              - rowgroup [ref=e253]:
+                - row [ref=e314]:
+                  - rowheader "Watch glass secured on a broad handled transport tray" [ref=e315]
+                  - cell "left_handoff" [ref=e316]
+                  - cell "configured" [ref=e317]
+                  - cell "not modeled" [ref=e318]
+                  - cell "configured" [ref=e319]
+                  - cell "unchanged" [ref=e320]
+                - row [ref=e321]:
+                  - rowheader "Spatula secured on a broad handled transport tray" [ref=e322]
+                  - cell "Attached to right" [ref=e323]
+                  - cell "configured" [ref=e324]
+                  - cell "not modeled" [ref=e325]
+                  - cell "configured" [ref=e326]
+                  - cell "unchanged" [ref=e327]
+          - button "Evidence and provenance" [ref=e269] [cursor=pointer]
+          - button "Command trace" [ref=e274] [cursor=pointer]
+  - generic [ref=e51]: Running. Validated command target updated immediately; live actual state continues on the fixed-step plant.

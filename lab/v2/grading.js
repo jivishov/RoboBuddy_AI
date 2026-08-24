@@ -23,6 +23,27 @@ export function evaluatePredicate(state, predicate) {
   return false;
 }
 
+export function describePredicate(predicate) {
+  if (!predicate || typeof predicate !== "object") return "an unknown prerequisite";
+  const value = JSON.stringify(predicate.value);
+  if (predicate.op === "equal") return `${predicate.path} must equal ${value}`;
+  if (predicate.op === "not_equal") return `${predicate.path} must not equal ${value}`;
+  if (predicate.op === "truthy") return `${predicate.path} must be present`;
+  if (predicate.op === "object_at") return `${predicate.objectId} must be placed at ${predicate.frameId}`;
+  if (predicate.op === "attached_to") return `${predicate.objectId} must be attached to ${predicate.effector}`;
+  if (predicate.op === "process_state") return `${predicate.processId} must be in state ${predicate.value}`;
+  if (predicate.op === "frame_visited") return `frame ${predicate.frameId} must be visited`;
+  if (predicate.op === "event") {
+    const details = Object.entries(predicate.match || {}).map(([key, item]) => `${key}=${item}`).join(", ");
+    return `event ${details || "matching the configured condition"} must occur`;
+  }
+  if (predicate.op === "evidence") return `evidence ${predicate.requirementId} must be recorded`;
+  if (predicate.op === "all") return `all of: ${(predicate.predicates || []).map(describePredicate).join("; ")}`;
+  if (predicate.op === "any") return `at least one of: ${(predicate.predicates || []).map(describePredicate).join("; ")}`;
+  if (predicate.op === "not") return `not (${describePredicate(predicate.predicate)})`;
+  return `unsupported prerequisite operation ${predicate.op || "unknown"}`;
+}
+
 export function causalViolations(state) {
   const events = state.eventLog || [];
   const violations = [];
@@ -52,6 +73,12 @@ export function evaluateEvidenceRequirement(state, requirement, entry) {
   return true;
 }
 
+export function evaluateHiddenGradingRequirement(state, requirement) {
+  if (requirement.availableWhen && !evaluatePredicate(state, requirement.availableWhen)) return false;
+  if (requirement.requiresEvent && eventIndex(state.eventLog || [], requirement.requiresEvent) < 0) return false;
+  return Boolean(requirement.availableWhen || requirement.requiresEvent);
+}
+
 export function gradeScenario(definition, state) {
   const goals = (definition.goalPredicates || []).map((predicate, index) => ({ id: predicate.id || `goal-${index + 1}`, passed: evaluatePredicate(state, predicate), predicate }));
   const prohibited = (definition.prohibitedStates || []).map((predicate, index) => ({ id: predicate.id || `prohibited-${index + 1}`, triggered: evaluatePredicate(state, predicate), predicate }));
@@ -60,7 +87,12 @@ export function gradeScenario(definition, state) {
     passed: (state.evidence || []).some((entry) => entry.requirementId === requirement.id && evaluateEvidenceRequirement(state, requirement, entry)),
     requirement
   }));
+  const hidden = (definition.hiddenGradingRequirements || []).map((requirement) => ({
+    id: requirement.id,
+    passed: evaluateHiddenGradingRequirement(state, requirement),
+    requirement
+  }));
   const causal = causalViolations(state);
-  const passed = goals.every((item) => item.passed) && prohibited.every((item) => !item.triggered) && evidence.every((item) => item.passed) && causal.length === 0;
-  return { passed, goals, prohibited, evidence, causal, code: passed ? "OUTCOME_AND_EVIDENCE_COMPLETE" : "OUTCOME_OR_EVIDENCE_INCOMPLETE" };
+  const passed = goals.every((item) => item.passed) && prohibited.every((item) => !item.triggered) && evidence.every((item) => item.passed) && hidden.every((item) => item.passed) && causal.length === 0;
+  return { passed, goals, prohibited, evidence, hidden, causal, code: passed ? "OUTCOME_AND_EVIDENCE_COMPLETE" : "OUTCOME_OR_EVIDENCE_INCOMPLETE" };
 }

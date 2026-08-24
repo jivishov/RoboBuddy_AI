@@ -1,0 +1,76 @@
+2026-08-23T13:00:37-05:00 AUDIT START
+Scope: independent post-implementation fidelity and UI/UX audit/refinement for SO-101, LeKiwi, and OpenArm portable Python.
+Constraints: preserve unrelated dirty work; no reset/clean/stage/commit/push/publish/deploy; no delegation.
+Claim boundary: API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending.
+
+BASELINE CONTROL
+- Inspected governing instructions, dirty status/diff inventory, prior portable plan/log, interrupted table-clearance plan/log, compatibility catalog, plant, model catalog, collision/FK/support/renderer paths, owning refiners/generator, current runtime, prior screenshots, and focused tests.
+- Found live stale process `node scripts/extract-portable-reference-actions.mjs --openarm-only` (PIDs 22744 and 9344) still changing files. Stopped only those exact validated processes and re-inventoried the checkout.
+- Stable post-stop output was partial: OpenArm 01-03 had 99-102 actions while 04-10 had 16; extractor used hard-coded `clearanceY = 500` and dense interpolated Cartesian waypoints. Rejected as physically and architecturally unowned.
+
+EXECUTED BEFORE-STATE EVIDENCE
+- PASS `npm run test:v2:python-compat` before edits.
+- FAIL `npm run test:v2:portable-references`: SO-101 task 01 collision at plant clock 2.26 s, rendered wrist/gripper proxy versus `weigh_boat_pickup_adapter:1`.
+- FAIL `npm run test:v2:openarm-workbench-regression`: OpenArm task 01 left contact approach collision at plant clock 1.60 s, `left_link6-8` versus `left-worktop`.
+- PASS `npm run validate:v2` (50/50 structural validation), demonstrating structural pass does not prove visible/runtime fidelity.
+- PASS focused LeKiwi family test; FAIL SO-101 family at the same solid-support contact; FAIL OpenArm family support-layout consistency after interrupted edits.
+- PASS installed Edge current-origin shell load with no console exceptions; FAIL Edge portable origin run with `SIMULATOR_COLLISION_FAULT`.
+- FAIL current Chrome/Pyodide OpenArm reference: editor error, but task feedback became `DISCONNECTED` and stage status remained `Ready`. Captured before-state 1440x900, collision, 1366x768, and 200%-equivalent images.
+- Inspected all three supplied prior screenshots. They exist and show OpenArm table penetration during contact/retreat.
+
+NEXT
+- Repair owning geometry/reference generators and canonical runtime before UI polish; add failing regressions for every reproduced contract breach.
+
+IMPLEMENTED FIDELITY REFINEMENTS
+- Replaced world-AABB collapse for rotated robot boxes with oriented boxes and 15-axis SAT; added capsule-versus-OBB checks. Structural fixtures remain solid. Curved/contact-support parts use bounded baked renderer samples so a mesh-frame box cannot fill the intentional finger concavity; this remains a bounded approximation, not triangle-mesh physics.
+- Kept every `contact_surface` solid to robot links and fingers. The only excluded structural contact is the explicitly authored robot mount contact.
+- Replaced SO-101 full-area pickup/destination pads with source-authored visible edge cradles and narrow adapter tabs that preserve an open pinch corridor. Presentation and plant use the same authored boxes.
+- Replaced OpenArm inferred/full-area support pads with visible fixed registration pins while leaving both worktops and legs stationary. Objects, grip sockets, and configured task frames own the required height; this does not claim gravity, stability, or force support.
+- Removed the interrupted hard-coded `clearanceY = 500` and 8 mm Cartesian micro-waypoints. OpenArm references now contain 16 semantic actions each, use direct collision-checked approach/transfer first, and use the source-configured 480 mm transit tool-center plane only as a deterministic fallback. `base_yaw` is held; J5/J7 changes remain minimized by source profiles/scoring.
+- Required live FK contact while open followed by an actual closure transition before attachment. Starting closed or breaking contact before closure cannot attach. Carried objects follow the live tool/socket position and rotation and release at the actual world pose.
+- Collision-checks the proposed LeKiwi base pose before commit; preserved explicit stow-before-drive learner actions, explicit base stops, and the 500 ms watchdog.
+- Preserved collision faults across cleanup/disconnect and propagated fault snapshots to the renderer/UI. Run/Pause/STOP/Reset cannot overwrite the fault or fabricate completion.
+
+GENERATOR OWNERSHIP AND DETERMINISM
+- Repaired the SO-101 owning refiner after the required double-run exposed description accumulation on every pass.
+- Ran the full owner sequence twice consecutively: `refine-so101-v2-source`, `refine-portable-python-fidelity`, `refine-openarm-table-clearance`, and `extract-portable-reference-actions`.
+- SHA-256 comparison was stable for all 61 definition/generated/index files across the two complete passes.
+- Current reference action counts: SO-101 8 or 15 by task; LeKiwi 149 or 175 with explicit stow/base segments/stops; OpenArm exactly 16 for all ten tasks.
+
+IMPLEMENTED UI/UX REFINEMENTS
+- Reduced global STOP to one control; made Run the primary ready action and Reset the primary recovery action after stopped/fault states.
+- Scoped the task selector to the current robot family; translated internal predicates into learner-facing checkpoints and marks only the first incomplete checkpoint current.
+- Made collision, running, paused, stopped, success, reset, timeout, unsupported API, and browser/JSPI failures distinct and actionable. A final visual pass caught and fixed camera switching that could leave a paused 3D status strip stale.
+- Preserved the established three-panel workbench at 1440x900; added a 1366x768 two-column reflow with a large 3D stage. Long limitations, safety, evidence, and trace use explicit progressive disclosure; the task panel has one visible scrollbar and its true bottom remains reachable.
+- Corrected synchronous portable-Python copy; retained editable Python and Blockly meanings; added visible `.py` export and delayed blob-URL cleanup until the browser accepts the download.
+- Added arrow/Home/End tab behavior, Ctrl+Enter Run, Ctrl+Shift+P Pause/Resume, Escape STOP, Ctrl+S draft save, visible editor focus, state announcements, 40 px desktop/44 px narrow controls, readable text, and reduced-motion handling.
+- Persisted only the supplied project-root design context in `.impeccable.md`; did not create or alter `.github/copilot-instructions.md`.
+
+EXECUTED AFTER-STATE STATIC AND RUNTIME EVIDENCE
+- PASS `npm run test:v2:so101`.
+- PASS `node tests/v2/lekiwi/lekiwi-v2.test.mjs`.
+- PASS `node tests/v2/openarm/openarm.test.mjs`: 4,224 executed trajectory samples; minimum configured inter-effector separation 557.6 mm.
+- PASS `npm run test:v2:python-compat` including contact-before-closure, broken-contact/no-attach, starting-closed/no-attach, live release rotation, LeKiwi proposed-base collision, and control semantics.
+- PASS `npm run test:v2:openarm-workbench-regression`: both independently unsafe left/right below-worktop targets fault at the last valid pose and never create completion events.
+- PASS `npm run test:v2:portable-workbench-ux`.
+- PASS `npm run test:v2:portable-references`: 30/30 hand-code and Blockly-generated full task runs plus camera-negative cases.
+- PASS `npm run validate:v2`: 50 unique successors and all structural/catalog gates.
+- PASS final `npm run test:v2:all`: 50 reference executions, 50 legitimate alternates, 166 declared-category negatives, and 50 legacy export hash checks.
+- PASS representative installed-Edge current-origin Pyodide gate for SO-101, LeKiwi, and OpenArm: compatibility source, generated Blockly `send_action`, and each full reference reached `OUTCOME_AND_EVIDENCE_COMPLETE`. A one-nanosecond tolerance replaced an exact binary-float comparison at ten 20 ms ticks; the underlying fixed-step clock was unchanged.
+
+EXECUTED AFTER-STATE BROWSER/VISUAL EVIDENCE
+- Chrome current origin at 1440x900: OpenArm task 01 completed 6/6, released both objects, and retreated with no collision. Pausing at live left contact held attachment, frame, progress, and trace stable; camera changes retained `Paused`; STOP retained the actual 1/6 attached pose; Reset restored Home/0/6 and preserved the 26-line draft.
+- Chrome keyboard path: Ctrl+Enter -> Running, Ctrl+Shift+P -> Paused, Escape -> Stopped, with color-independent text and live-region state.
+- Chrome 1366x768: no document-level horizontal or vertical overflow; large 3D stage plus editor/task column; the visible task-panel scrollbar reaches final checkpoints and both disclosures.
+- Edge 151.0.4129.101 current origin: shell and renderer loaded without console exceptions. Automated OpenArm left-contact and right-contact runs captured authored, outside, inside, opposite-side, and top inspection views while paused; the completed capture shows release/retreat and 6/6 success with no attachment.
+- Edge DPR-2 720x450 CSS viewport (1440x900 raster, 200%-equivalent reflow): no horizontal overflow; 563x379 3D region; 44 px minimum visible control height; limitations/safety/trace collapsed; `prefers-reduced-motion: reduce` matched and transition duration was 0.00001 s.
+- Edge `.py` export: completed download `openarm-01-weighing-handoff.py`, 936 bytes, first line `import json`, with `BiOpenArmFollower` source and hardware-validation-pending status.
+
+HONEST LIMITATIONS / UNRUN EVIDENCE
+- Browser-visible acceptance was deep for OpenArm task 01 and representative for SO-101/LeKiwi/OpenArm through the current-origin Pyodide gate. All 30 full references ran in both hand-code and Blockly form under Node/runtime; 30 separate browser screenshot sequences were not run.
+- OpenArm contact-support collision uses bounded baked mesh samples, not exact continuous triangle-mesh collision or dynamics. Registration pins are configured kinematic fixtures, not a claim about gravity, stability, friction, or payload.
+- Native browser-menu zoom was unavailable through the Chrome control surface; the executed accessibility evidence is a DPR-2 720x450 CSS viewport equivalent to 1440x900 at 200%, not a claim that Chrome's menu zoom was directly toggled.
+- Keyboard/focus, live text, reduced motion, target size, and reflow were executed. No screen-reader session, axe scan, Lighthouse/performance profile, phone/mobile device matrix, deployment, or physical robot validation was run.
+- Physical SO-101, LeKiwi, and OpenArm validation remains pending. Public claim remains: "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
+
+AUDIT COMPLETE 2026-08-23

@@ -240,71 +240,71 @@
       "id": "so101-v2-01-weigh-boat",
       "robotId": "so101_follower",
       "rank": 1,
-      "title": "Weigh Boat Placement",
-      "brief": "Place the configured dry-practice weigh boat into the balance-side support nest without contacting the balance mechanism.",
+      "title": "Reagent Bottle Placement",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Guided",
       "apiLevel": "guided",
       "migrationClass": "B",
       "supersedes": "so101-01-weigh-boat",
-      "learningObjective": "Program the SO-101 follower to place the weigh boat at the balance station, recover from invalid sequence states, and distinguish simulated state from learner evidence.",
+      "learningObjective": "Program the SO-101 follower to place the capped reagent bottle at the balance station, recover from invalid sequence states, and distinguish simulated state from learner evidence.",
       "provenanceLabels": [
         "M",
         "F",
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-01-weigh-boat.json"
     },
     {
       "id": "so101-v2-02-mixing-station",
       "robotId": "so101_follower",
       "rank": 2,
-      "title": "Mixing Station Delivery",
-      "brief": "Stage the reagent bottle and volumetric flask in visible, morphology-compatible station nests.",
+      "title": "Reagent Bottle and Beaker Staging",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Guided",
       "apiLevel": "guided",
       "migrationClass": "B",
       "supersedes": "so101-02-mixing-station",
-      "learningObjective": "Program the SO-101 follower to stage the reagent bottle and volumetric flask at the mixing station while respecting sequence and compatibility feedback.",
+      "learningObjective": "Program the SO-101 follower to stage the reagent bottle and empty beaker at the mixing station while respecting sequence and compatibility feedback.",
       "provenanceLabels": [
         "M",
         "F",
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-02-mixing-station.json"
     },
     {
       "id": "so101-v2-03-cuvette-orientation",
       "robotId": "so101_follower",
       "rank": 3,
-      "title": "Oriented Cuvette Queue Load",
-      "brief": "Load a dry practice cuvette into a keyed orientation cassette for the instrument queue; no instrument reading is simulated.",
+      "title": "Sample Bottle Queue Placement",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Guided",
       "apiLevel": "guided",
       "migrationClass": "C",
       "supersedes": "so101-03-cuvette-orientation",
-      "learningObjective": "Program an oriented cuvette handling sequence and distinguish the configured instrument-ready state from learner-recorded evidence.",
+      "learningObjective": "Program an oriented capped sample bottle handling sequence and distinguish the configured instrument-ready state from learner-recorded evidence.",
       "provenanceLabels": [
         "M",
         "F",
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-03-cuvette-orientation.json"
     },
     {
       "id": "so101-v2-04-filter-assembly",
       "robotId": "so101_follower",
       "rank": 4,
-      "title": "Funnel Assembly",
-      "brief": "Place dry practice components into a visible alignment jig and commit the discrete seated-assembly state.",
+      "title": "Filtration Glassware Staging",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "B",
@@ -316,8 +316,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-04-filter-assembly.json"
     },
     {
@@ -325,7 +325,7 @@
       "robotId": "so101_follower",
       "rank": 5,
       "title": "Pipette Pump Coupling",
-      "brief": "Place the dry practice pump in a keyed coupling cradle and commit the discrete coupled state.",
+      "brief": "Directly grasp, transfer, and stably place Dry practice pipette pump on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "B",
@@ -337,37 +337,37 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-05-pipette-pump.json"
     },
     {
       "id": "so101-v2-06-quantitative-transfer",
       "robotId": "so101_follower",
       "rank": 6,
-      "title": "Transfer and Rinse Station Readiness",
-      "brief": "Stage a sealed aliquot carrier and capped rinse bottle in a visible transfer-station adapter; no liquid behavior is simulated.",
+      "title": "Transfer Bottle and Rinse Station Readiness",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Capped reagent bottle on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
       "supersedes": "so101-06-quantitative-transfer",
-      "learningObjective": "Program the configured aliquot-transfer and rinse preparation sequence while distinguishing robot staging from unsupported liquid behavior.",
+      "learningObjective": "Program the configured capped aliquot bottle-transfer and rinse preparation sequence while distinguishing robot staging from unsupported liquid behavior.",
       "provenanceLabels": [
         "M",
         "F",
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-06-quantitative-transfer.json"
     },
     {
       "id": "so101-v2-07-chromatography-spotting",
       "robotId": "so101_follower",
       "rank": 7,
-      "title": "Chromatography Spotting Station Readiness",
-      "brief": "Stage a capped spotting-tool carrier in a visible origin-line dock; no droplet or chromatographic dynamics are simulated.",
+      "title": "Chromatography Solvent Bottle Staging",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -379,37 +379,37 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-07-chromatography-spotting.json"
     },
     {
       "id": "so101-v2-08-burette-initial-reading",
       "robotId": "so101_follower",
       "rank": 8,
-      "title": "Burette Setup Queue",
-      "brief": "Stage a capped dry-practice burette carrier and funnel carrier in a visible setup rack; no filling or measurement is simulated.",
+      "title": "Titration Glassware Setup Queue",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
       "supersedes": "so101-08-burette-initial-reading",
-      "learningObjective": "Program the ordered burette setup preparation and distinguish a configured setup-ready cue from a measurement.",
+      "learningObjective": "Program the ordered capped titrant bottle setup preparation and distinguish a configured setup-ready cue from a measurement.",
       "provenanceLabels": [
         "M",
         "F",
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-08-burette-initial-reading.json"
     },
     {
       "id": "so101-v2-09-vacuum-filtration",
       "robotId": "so101_follower",
       "rank": 9,
-      "title": "Vacuum Filtration Station Readiness",
-      "brief": "Stage sealed dry-practice filtration components in a visible rack; no vacuum, slurry, or wash dynamics are simulated.",
+      "title": "Vacuum Filtration Glassware Staging",
+      "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
@@ -421,8 +421,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-09-vacuum-filtration.json"
     },
     {
@@ -430,7 +430,7 @@
       "robotId": "so101_follower",
       "rank": 10,
       "title": "Endpoint Assistant",
-      "brief": "Place the empty receiver flask in a visible centering cradle and mark a teacher-configured endpoint-observation-ready state; no titrant delivery is simulated.",
+      "brief": "Directly grasp, transfer, and stably place Empty Erlenmeyer flask on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
@@ -442,8 +442,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
-      "limitations": "force sensing; payload claim; servo dynamics; certified calibrated limits",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/so101-v2-10-endpoint-assistant.json"
     },
     {
@@ -451,7 +451,7 @@
       "robotId": "lekiwi_sim",
       "rank": 1,
       "title": "Beaker Courier",
-      "brief": "Plan a configured free-cell base route, place an empty beaker in the visible transfer cradle, stow the arm, and return the base home.",
+      "brief": "Navigate the fixed route, directly grasp and deliver empty beaker, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Guided",
       "apiLevel": "builder",
       "migrationClass": "A",
@@ -463,8 +463,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-01-beaker-courier.json"
     },
     {
@@ -472,7 +472,7 @@
       "robotId": "lekiwi_sim",
       "rank": 2,
       "title": "Glassware Route",
-      "brief": "Route to the measuring station, transfer the assigned sealed glassware carrier between visible cradles, stow, and return home.",
+      "brief": "Navigate the fixed route, directly grasp and deliver empty erlenmeyer flask, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Guided",
       "apiLevel": "builder",
       "migrationClass": "B",
@@ -484,16 +484,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-02-glassware-route.json"
     },
     {
       "id": "lekiwi-03-sample-delivery",
       "robotId": "lekiwi_sim",
       "rank": 3,
-      "title": "Sample Delivery",
-      "brief": "Navigate to the balance-side workcell and place a dry watch glass in its visible handling fixture without claiming a mass measurement.",
+      "title": "Sample Bottle Delivery",
+      "brief": "Navigate the fixed route, directly grasp and deliver capped sample bottle, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Guided",
       "apiLevel": "builder",
       "migrationClass": "B",
@@ -505,16 +505,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-03-sample-delivery.json"
     },
     {
       "id": "lekiwi-04-filter-station-run",
       "robotId": "lekiwi_sim",
       "rank": 4,
-      "title": "Filter Station Run",
-      "brief": "Choose a configured free-cell route and place the locked rack at the visible filter/instrument fixture before returning home.",
+      "title": "Filter Flask Station Run",
+      "brief": "Navigate the fixed route, directly grasp and deliver empty filter flask, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "B",
@@ -526,8 +526,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-04-filter-station-run.json"
     },
     {
@@ -535,7 +535,7 @@
       "robotId": "lekiwi_sim",
       "rank": 5,
       "title": "Reagent Shuttle",
-      "brief": "Shuttle a closed, teacher-labeled return carrier to its visible receiving cradle; carrier contents and payload are not simulated.",
+      "brief": "Navigate the fixed route, directly grasp and deliver capped reagent bottle, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "B",
@@ -547,16 +547,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-05-reagent-shuttle.json"
     },
     {
       "id": "lekiwi-06-cooling-rack-route",
       "robotId": "lekiwi_sim",
       "rank": 6,
-      "title": "Cooling Rack Route",
-      "brief": "Visit both configured logistics stops in a safe order, deliver a teacher-released carrier, stow, and return home without simulating dilution or temperature.",
+      "title": "Cooling Flask Route",
+      "brief": "Navigate the fixed route, directly grasp and deliver empty cooling flask, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -568,16 +568,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-06-cooling-rack-route.json"
     },
     {
       "id": "lekiwi-07-chromatography-route",
       "robotId": "lekiwi_sim",
       "rank": 7,
-      "title": "Chromatography Route",
-      "brief": "Deliver a sealed supply bin to the visible chromatography station fixture, stow, and return home.",
+      "title": "Chromatography Solvent Route",
+      "brief": "Navigate the fixed route, directly grasp and deliver capped chromatography solvent bottle, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -589,16 +589,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-07-chromatography-route.json"
     },
     {
       "id": "lekiwi-08-spectrometer-route",
       "robotId": "lekiwi_sim",
       "rank": 8,
-      "title": "Spectrometer Route",
-      "brief": "Avoid configured blocked cells and deliver a teacher-released rack to the spectrometer queue before stowing and returning home.",
+      "title": "Spectrometer Sample Bottle Route",
+      "brief": "Navigate the fixed route, directly grasp and deliver capped spectrometer sample bottle, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
@@ -610,16 +610,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-08-spectrometer-route.json"
     },
     {
       "id": "lekiwi-09-titration-logistics",
       "robotId": "lekiwi_sim",
       "rank": 9,
-      "title": "Titration Logistics",
-      "brief": "Visit both configured logistics stops in a causally safe order and deliver a locked rack to the visible titration queue before returning home.",
+      "title": "Titration Reagent Logistics",
+      "brief": "Navigate the fixed route, directly grasp and deliver capped titration reagent bottle, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
@@ -631,16 +631,16 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-09-titration-logistics.json"
     },
     {
       "id": "lekiwi-10-hard-water-logistics",
       "robotId": "lekiwi_sim",
       "rank": 10,
-      "title": "Hard-Water Logistics",
-      "brief": "Visit both configured logistics stops, deliver the carrier to the visible balance queue, stow, and return home without simulating filtration, drying, cooling, or mass.",
+      "title": "Hard-Water Sample Logistics",
+      "brief": "Navigate the fixed route, directly grasp and deliver capped hard-water sample bottle, stow, and return without claiming unmodeled laboratory results.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
@@ -652,8 +652,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Planar occupancy-grid base and official-model arm kinematics",
-      "limitations": "wheel slip; base dynamics; force sensing; payload claim",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/lekiwi-10-hard-water-logistics.json"
     },
     {
@@ -661,7 +661,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 1,
       "title": "Two-Hand Weighing Handoff",
-      "brief": "Coordinate a watch-glass delivery and spatula return through separate, observable left/right contact sequences.",
+      "brief": "Coordinate direct handling of 150 mm watch glass and capped reagent bottle through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Guided",
       "apiLevel": "guided",
       "migrationClass": "A",
@@ -673,8 +673,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-01-weighing-handoff.json"
     },
     {
@@ -682,7 +682,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 2,
       "title": "Bimanual Glassware Handoff",
-      "brief": "Replace unsupported solvent transfer with coordinated placement of sealed glassware at a visible receiving fixture.",
+      "brief": "Coordinate direct handling of empty volumetric flask and capped reagent bottle through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Guided",
       "apiLevel": "guided",
       "migrationClass": "C",
@@ -694,8 +694,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-02-glassware-handoff.json"
     },
     {
@@ -703,7 +703,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 3,
       "title": "Cuvette and Reference Handoff",
-      "brief": "Replace unsupported inversion mixing with separate-arm transport of a capped cuvette carrier and reference card.",
+      "brief": "Coordinate direct handling of capped sample cuvette and capped sample cuvette through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Guided",
       "apiLevel": "guided",
       "migrationClass": "C",
@@ -715,8 +715,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-03-cuvette-handoff.json"
     },
     {
@@ -724,7 +724,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 4,
       "title": "Fixture-Assisted Filtration Workcell",
-      "brief": "Coordinate a gravity funnel carrier and filter-paper cassette at a visible assembly fixture.",
+      "brief": "Coordinate direct handling of empty filter flask and capped rinse bottle through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -736,8 +736,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-04-filtration-workcell.json"
     },
     {
@@ -745,7 +745,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 5,
       "title": "Fixture-Assisted Titration Workcell",
-      "brief": "Coordinate an empty receiver flask and endpoint record card at a visible burette workcell without simulating liquid delivery.",
+      "brief": "Coordinate direct handling of empty erlenmeyer flask and capped reagent bottle through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -757,8 +757,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-05-titration-workcell.json"
     },
     {
@@ -766,7 +766,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 6,
       "title": "Configured Cooling-Station Handoff",
-      "brief": "Replace unsupported pouring with bimanual transfer of a sealed sample carrier and station tag to a visible cooling rack.",
+      "brief": "Coordinate direct handling of capped sample cuvette and capped sample cuvette through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -778,8 +778,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-06-cooling-handoff.json"
     },
     {
@@ -787,7 +787,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 7,
       "title": "Fixture-Assisted Chromatography Workcell",
-      "brief": "Coordinate a dry chromatography plate carrier and chamber lid at a visible alignment fixture.",
+      "brief": "Coordinate direct handling of capped reagent bottle and empty volumetric flask through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Builder",
       "apiLevel": "builder",
       "migrationClass": "C",
@@ -799,8 +799,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-07-chromatography-workcell.json"
     },
     {
@@ -808,7 +808,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 8,
       "title": "Fixture-Assisted Spectrometer Workcell",
-      "brief": "Replace unsupported phase separation with coordinated handling of capped sample and reference cuvette carriers.",
+      "brief": "Coordinate direct handling of capped sample cuvette and capped sample cuvette through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "C",
@@ -820,8 +820,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-08-spectrometer-workcell.json"
     },
     {
@@ -829,7 +829,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 9,
       "title": "Fixture-Assisted Standardization Workcell",
-      "brief": "Coordinate a sealed standard carrier and observation card at a visible workcell without claiming endpoint measurement.",
+      "brief": "Coordinate direct handling of capped reagent bottle and empty volumetric flask through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "B",
@@ -841,8 +841,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-09-standardization-workcell.json"
     },
     {
@@ -850,7 +850,7 @@
       "robotId": "openarm_v2_bimanual",
       "rank": 10,
       "title": "Fixture-Assisted Gravimetric Workcell",
-      "brief": "Coordinate an empty filter-flask carrier and secured dry-tray carrier through a visible gravimetric handoff fixture.",
+      "brief": "Coordinate direct handling of empty filter flask and capped rinse bottle through separate, observable left/right approach, grasp, lift, transfer, placement, release, and retreat sequences.",
       "assistanceLevel": "Challenge",
       "apiLevel": "challenge",
       "migrationClass": "B",
@@ -862,8 +862,8 @@
         "R",
         "C"
       ],
-      "supportedFidelity": "Per-arm and coordinated bimanual kinematics with a shared configured base",
-      "limitations": "torque control; force control; payload claim; certified mechanical stand",
+      "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
+      "limitations": "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior; physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control; payload, collision avoidance, hardware validation, and safety certification",
       "definition": "missions/lab-assistant/v2/generated/scenarios/openarm-10-gravimetric-workcell.json"
     },
     {

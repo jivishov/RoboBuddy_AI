@@ -65,7 +65,7 @@ function render() {
 function selectTask(taskId, focusDetails = false) {
   state.selectedId = taskId;
   render();
-  if (focusDetails) elements.details.focus();
+  if (focusDetails) elements.details.querySelector(".lab-detail__body")?.focus();
   announce(elements.live, `${selectedTask()?.title || "Task"} selected.`);
 }
 

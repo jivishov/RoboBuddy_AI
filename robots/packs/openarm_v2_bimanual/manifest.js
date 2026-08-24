@@ -20,8 +20,8 @@
 
   registry.register({
     id: "openarm_v2_bimanual",
-    name: "OpenArm V2 Bimanual · Low Stand + Rotating Base",
-    shortName: "OpenArm V2 Bimanual",
+    name: "OpenArm v1 Bimanual · Simulator 550 mm Stand/Turntable",
+    shortName: "OpenArm v1 Bimanual (simulator stand)",
     formFactor: "bimanual_manipulator",
     maturity: "tier1_sim_only",
     defaultMode: "simulate",
@@ -45,28 +45,28 @@
     ],
     joints: [
       joint("base_yaw", "Rotational Base", -180, 180, 0),
-      joint("left_j1", "Left J1 · Shoulder Pan", -200, 80, -25),
-      joint("left_j2", "Left J2 · Shoulder Lift", -190, 10, -35),
+      joint("left_j1", "Left J1 · Shoulder Pan", -200, 80, -5),
+      joint("left_j2", "Left J2 · Shoulder Lift", -190, 10, -40),
       joint("left_j3", "Left J3 · Shoulder Rotation", -90, 90, 0),
-      joint("left_j4", "Left J4 · Elbow Flex", 0, 140, 75),
+      joint("left_j4", "Left J4 · Elbow Flex", 0, 140, 120),
       joint("left_j5", "Left J5 · Wrist Roll", -90, 90, 0),
       joint("left_j6", "Left J6 · Wrist Pitch", -45, 45, -5),
       joint("left_j7", "Left J7 · Wrist Rotation", -90, 90, 0),
-      joint("left_gripper", "Left Gripper", 0, 45, 12, "gripper", { side: "left", open: 45, close: 0 }),
-      joint("right_j1", "Right J1 · Shoulder Pan", -80, 200, 25),
-      joint("right_j2", "Right J2 · Shoulder Lift", -10, 190, 35),
+      joint("left_gripper", "Left Gripper", 0, 45, 45, "gripper", { side: "left", open: 45, close: 0 }),
+      joint("right_j1", "Right J1 · Shoulder Pan", -80, 200, 5),
+      joint("right_j2", "Right J2 · Shoulder Lift", -10, 190, 40),
       joint("right_j3", "Right J3 · Shoulder Rotation", -90, 90, 0),
-      joint("right_j4", "Right J4 · Elbow Flex", 0, 140, 75),
+      joint("right_j4", "Right J4 · Elbow Flex", 0, 140, 120),
       joint("right_j5", "Right J5 · Wrist Roll", -90, 90, 0),
       joint("right_j6", "Right J6 · Wrist Pitch", -45, 45, 5),
       joint("right_j7", "Right J7 · Wrist Rotation", -90, 90, 0),
-      joint("right_gripper", "Right Gripper", 0, 45, 12, "gripper", { side: "right", open: 45, close: 0 })
+      joint("right_gripper", "Right Gripper", 0, 45, 45, "gripper", { side: "right", open: 45, close: 0 })
     ],
     presets: {
       ready: {
         base_yaw: 0,
-        left_j1: -25, left_j2: -35, left_j3: 0, left_j4: 75, left_j5: 0, left_j6: -5, left_j7: 0, left_gripper: 12,
-        right_j1: 25, right_j2: 35, right_j3: 0, right_j4: 75, right_j5: 0, right_j6: 5, right_j7: 0, right_gripper: 12
+        left_j1: -5, left_j2: -40, left_j3: 0, left_j4: 120, left_j5: 0, left_j6: -5, left_j7: 0, left_gripper: 45,
+        right_j1: 5, right_j2: 40, right_j3: 0, right_j4: 120, right_j5: 0, right_j6: 5, right_j7: 0, right_gripper: 45
       },
       surface_reach: {
         base_yaw: 0,
@@ -98,11 +98,11 @@
     chooser: {
       level: "Advanced",
       modeLabel: "Simulation only",
-      description: "Bimanual 7-DOF OpenArm with dual grippers, low stand, and 360° base"
+      description: "Physical OpenArm v1 geometry on a separately configured simulator-only 550 mm stand/turntable"
     },
     limitations: [
       "No physical-hardware adapter, motor mapping, calibration profile, collision planner, or torque limits are included.",
-      "The shortened stand and rotational base require independent mechanical validation before fabrication."
+      "The 550 mm stand and turntable are simulator-specific morphology and are not part of physical OpenArm v1."
     ]
   });
 })();

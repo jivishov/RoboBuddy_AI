@@ -1,4 +1,5 @@
 const V2_PREFIX = "robobuddy:lab:v2:";
+const PORTABLE_V3_PREFIX = "robobuddy:lab:portable-python:v3:";
 const V1_DRAFT_PREFIX = "robobuddy:lab-draft:v1:";
 const V1_PROGRESS_PREFIXES = ["robobuddy:lab-progress:v1:", "robobuddy:lab-state:v1:"];
 
@@ -25,6 +26,30 @@ export function saveV2Draft(taskId, language, value, storage) {
   if (!target) return false;
   target.setItem(v2DraftKey(taskId, language), String(value || ""));
   return true;
+}
+
+export function portableV3DraftKey(taskId, language) {
+  return `${PORTABLE_V3_PREFIX}draft:${taskId}:${language}`;
+}
+
+export function loadPortableV3Draft(taskId, language, fallback = "", storage) {
+  const target = storageOrNull(storage);
+  if (!target) return fallback;
+  return target.getItem(portableV3DraftKey(taskId, language)) ?? fallback;
+}
+
+export function savePortableV3Draft(taskId, language, value, storage) {
+  const target = storageOrNull(storage);
+  if (!target) return false;
+  target.setItem(portableV3DraftKey(taskId, language), String(value || ""));
+  return true;
+}
+
+export function readPriorV2Draft(taskId, language, storage) {
+  const target = storageOrNull(storage);
+  if (!target) return null;
+  const value = target.getItem(v2DraftKey(taskId, language));
+  return value === null ? null : { key: v2DraftKey(taskId, language), value, readOnly: true };
 }
 
 export function loadV2Progress(taskId, storage) {

@@ -1,4 +1,5 @@
-import { deepClone } from "./math.js";
+import { deepClone } from "./math.js?v=20260823-physical-fidelity-3";
+import { validatePhysicalRestDefinition } from "./physical-rest.js?v=20260823-physical-fidelity-3";
 
 export const SCENARIO_V2_SCHEMA = "robobuddy.lab-scenario.v2";
 export const PROVENANCE_LABELS = Object.freeze(["M", "F", "R", "C"]);
@@ -50,7 +51,23 @@ export function validateScenarioV2(definition, options = {}) {
     add(Array.isArray(process.prerequisites), `processModels.${index}.prerequisites`, "must declare prerequisites");
   });
   add((definition.goalPredicates || []).length > 0, "goalPredicates", "must contain observable outcome predicates");
-  add((definition.evidenceRequirements || []).length > 0, "evidenceRequirements", "must require learner evidence");
+  const portablePython = definition.api?.runtime === "robobuddy.portable-python.v1";
+  add(portablePython || (definition.evidenceRequirements || []).length > 0, "evidenceRequirements", "must require learner evidence unless hidden authoritative portable-Python grading is declared");
+  if (portablePython) {
+    add(object(definition.portablePython), "portablePython", "must declare the portable Python runtime contract");
+    add(definition.portablePython?.learnerGradingCalls === false, "portablePython.learnerGradingCalls", "must keep grading APIs unavailable to learner source");
+    add(Array.isArray(definition.hiddenGradingRequirements) && definition.hiddenGradingRequirements.length > 0, "hiddenGradingRequirements", "must preserve prior evidence intent as at least one hidden plant/event requirement");
+    (definition.hiddenGradingRequirements || []).forEach((requirement, index) => {
+      add(nonEmpty(requirement.id), `hiddenGradingRequirements.${index}.id`, "must identify the hidden requirement");
+      add(requirement.learnerCallable === false, `hiddenGradingRequirements.${index}.learnerCallable`, "must not expose a learner-callable grading path");
+      add(requirement.authority === "plant/events", `hiddenGradingRequirements.${index}.authority`, "must name authoritative plant/events state");
+      add(object(requirement.availableWhen) || object(requirement.requiresEvent), `hiddenGradingRequirements.${index}`, "must be gated by an authoritative predicate or event");
+    });
+  }
+  if (["so101_follower", "lekiwi_sim", "openarm_v2_bimanual"].includes(definition.robotId)) {
+    const physicalRest = validatePhysicalRestDefinition(definition);
+    physicalRest.errors.forEach((error) => errors.push(error));
+  }
   (definition.evidenceRequirements || []).forEach((requirement, index) => {
     add(nonEmpty(requirement.id), `evidenceRequirements.${index}.id`, "must identify the evidence requirement");
     add(nonEmpty(requirement.label || requirement.prompt), `evidenceRequirements.${index}.label`, "must provide a visible label or prompt");
@@ -85,6 +102,19 @@ export function assertScenarioV2(definition, options = {}) {
 
 export function stripValidationForClient(definition) {
   const output = deepClone(definition);
+  if (definition.robotId === "openarm_v2_bimanual" && definition.api?.runtime !== "robobuddy.portable-python.v1") {
+    const starterCalls = definition.validation?.referenceExecutions?.[0]?.calls;
+    if (Array.isArray(starterCalls) && starterCalls.length > 0) {
+      output.api = { ...output.api, starterCalls: deepClone(starterCalls).map((call) => {
+        const sanitized = { ...call, args: { ...(call.args || {}) } };
+        if (call.method === "lab.record_evidence") sanitized.args.value = "";
+        if (call.method === "skills.transport") {
+          ["seed", "pathSeed", "starts", "maxIterations"].forEach((key) => delete sanitized.args[key]);
+        }
+        return sanitized;
+      }) };
+    }
+  }
   delete output.validation;
   output.validationAvailable = true;
   return output;

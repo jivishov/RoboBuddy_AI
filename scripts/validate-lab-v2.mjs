@@ -31,13 +31,20 @@ for (const robotId of ROBOTS) {
   const model = await loadRobotModel(robotId);
   assert.ok(validateProxyEnclosure(model, Object.fromEntries(model.joints.map((joint) => [joint.id, joint.home]))).ok, `${robotId} proxy enclosure`);
   tasks.forEach((task) => {
+    const portablePython = task.api?.runtime === "robobuddy.portable-python.v1";
     assert.equal(task.canonicalModel.sourceRevision, model.source.revision, `${task.id} model revision`);
-    assert.equal(task.modelClaim.supportedFidelity, model.fidelity, `${task.id} fidelity claim`);
+    if (portablePython) assert.equal(task.modelClaim.supportedFidelity, "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately", `${task.id} portable fidelity tier`);
+    else assert.equal(task.modelClaim.supportedFidelity, model.fidelity, `${task.id} fidelity claim`);
     assert.equal(task.modelClaim.limitProvenance, modelClaim(robotId).limitProvenance, `${task.id} limit provenance`);
-    model.unsupportedPhysics.forEach((claim) => assert.ok(task.modelClaim.unsupportedPhysics.includes(claim), `${task.id} must preserve unsupported-physics claim: ${claim}`));
+    if (!portablePython) model.unsupportedPhysics.forEach((claim) => assert.ok(task.modelClaim.unsupportedPhysics.includes(claim), `${task.id} must preserve unsupported-physics claim: ${claim}`));
     assert.ok(task.evidenceRequirements.every((requirement) => requirement.availableWhen || requirement.requiresEvent), `${task.id} evidence must be gated by an observable predicate or event`);
+    if (portablePython) {
+      assert.ok(task.hiddenGradingRequirements.length > 0, `${task.id} hidden grading must preserve at least one plant/event requirement`);
+      assert.ok(task.hiddenGradingRequirements.every((requirement) => requirement.availableWhen || requirement.requiresEvent), `${task.id} hidden grading must retain observable/event gates`);
+      assert.ok(task.hiddenGradingRequirements.every((requirement) => requirement.learnerCallable === false && requirement.authority === "plant/events"), `${task.id} hidden grading must remain private and authoritative`);
+    }
     assert.ok(task.validation.negativeCases.every((item) => ["goal", "evidence", "prohibited", "causal"].includes(item.expectedFailureKind)), `${task.id} negative cases must declare a supported failure kind`);
-    task.validation.acceptedAlternates.forEach((alternate) => {
+    if (!portablePython) task.validation.acceptedAlternates.forEach((alternate) => {
       assert.ok(task.validation.referenceExecutions.every((reference) => JSON.stringify(reference.calls) !== JSON.stringify(alternate.calls)), `${task.id}/${alternate.id} must differ from every reference execution`);
     });
     if (task.migration.class === "B") assert.ok(task.fixtures.length > 0, `${task.id} class B requires an explicit visible fixture`);

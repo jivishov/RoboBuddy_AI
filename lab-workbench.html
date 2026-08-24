@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/style.css?v=20260811-unitree-g1-solu-1">
   <link rel="stylesheet" href="css/workbench-shell.css?v=20260719-remediation-1">
   <link rel="stylesheet" href="simulator/css/arm-preview-3d.css?v=20260718-calm-workbench-1">
-  <link rel="stylesheet" href="lab/css/styles.css?v=20260812-lab-fidelity-14">
+  <link rel="stylesheet" href="lab/css/styles.css?v=20260823-portable-fidelity-ux-audit-1">
   <script type="importmap">
     {
       "imports": {
@@ -47,7 +47,7 @@
       <label class="visually-hidden" for="labTaskSelect">Change lab task</label>
       <select class="lab-task-select" id="labTaskSelect" aria-label="Change lab task"><option>Loading tasks</option></select>
       <span class="lab-status-chip"><i data-lucide="monitor-check" aria-hidden="true"></i>Simulation only</span>
-      <button class="lab-button lab-button--danger" id="labEmergencyStop" type="button" aria-keyshortcuts="Escape"><i data-lucide="octagon-alert" aria-hidden="true"></i>Simulation Stop</button>
+      <button class="lab-button lab-button--danger" id="labEmergencyStop" type="button" aria-keyshortcuts="Escape"><i data-lucide="octagon-alert" aria-hidden="true"></i>STOP simulation</button>
     </div>
   </header>
 
@@ -75,18 +75,19 @@
             <p>Complete each observable checkpoint with explicit robot and laboratory commands.</p>
           </section>
           <div class="lab-task-meta"><span id="labRank">Rank</span><span id="labAssistance">Assistance</span><span class="lab-source-list" id="labSourceRefs"></span></div>
-          <section class="lab-collapsible">
-            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labLimitationsBody"><span>Model limitations</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
-            <div class="lab-collapsible__body" id="labLimitationsBody"><p id="labLimitations"></p></div>
-          </section>
-          <section class="lab-collapsible">
-            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labSafetyBody"><span>Safety boundary</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
-            <div class="lab-collapsible__body" id="labSafetyBody"><p id="labSafetyBoundary"></p></div>
-          </section>
-          <ol class="lab-checkpoints" id="labCheckpointList" aria-label="Task checkpoints"></ol>
           <section class="lab-feedback" id="labFeedback" data-tone="ready" aria-live="polite" aria-atomic="true">
             <code id="labFeedbackCode">READY</code>
             <p id="labFeedbackMessage">Task state is ready.</p>
+          </section>
+          <h3 class="lab-section-heading">Task checkpoints</h3>
+          <ol class="lab-checkpoints" id="labCheckpointList" aria-label="Task checkpoints"></ol>
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="false" aria-controls="labLimitationsBody"><span>Model fidelity and limitations</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <div class="lab-collapsible__body" id="labLimitationsBody" hidden><p id="labLimitations"></p></div>
+          </section>
+          <section class="lab-collapsible">
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="false" aria-controls="labSafetyBody"><span>Safety and transfer boundary</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <div class="lab-collapsible__body" id="labSafetyBody" hidden><p id="labSafetyBoundary"></p></div>
           </section>
         </div>
       </aside>
@@ -100,21 +101,25 @@
           <div class="lab-editor-actions">
             <button class="lab-button" id="labLoadStarter" type="button"><i data-lucide="file-input" aria-hidden="true"></i>Load Starter</button>
             <button class="lab-button" id="labSaveDraft" type="button" aria-keyshortcuts="Control+S"><i data-lucide="save" aria-hidden="true"></i>Save Draft</button>
-            <button class="lab-button" id="labExportLegacy" type="button"><i data-lucide="archive" aria-hidden="true"></i>Export legacy v1</button>
+            <button class="lab-button" id="labExportPython" type="button"><i data-lucide="download" aria-hidden="true"></i>Export .py</button>
             <button class="lab-button" id="labGeneratePython" type="button"><i data-lucide="arrow-right-left" aria-hidden="true"></i>Generate Python</button>
+            <details class="lab-more-actions">
+              <summary class="lab-button">More</summary>
+              <div><button class="lab-button" id="labExportLegacy" type="button"><i data-lucide="archive" aria-hidden="true"></i>Export read-only legacy v1 data</button></div>
+            </details>
           </div>
         </header>
         <div class="lab-editor-surface">
           <section class="lab-code-panel" id="labBlocklyPanel" role="tabpanel" aria-label="Blockly editor"><div id="labBlocklyEditor"></div></section>
           <section class="lab-code-panel" id="labPythonPanel" role="tabpanel" aria-label="Python editor" hidden>
             <label class="visually-hidden" for="labPythonEditor">Python robot program</label>
-            <p class="lab-editor-note">Runs a real <code>async main(robot, lab)</code> in Pyodide. The exposed API is bounded by this task's Guided, Builder, or Challenge level.</p>
-            <textarea id="labPythonEditor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="# One simulation command per line&#10;robot.move_to_pose(&quot;supply_zone&quot;)&#10;robot.grasp(&quot;watch_glass&quot;)" aria-describedby="labEditorStatus"></textarea>
+            <p class="lab-editor-note" id="labEditorNote">Runs Python in Pyodide against this task's bounded simulation API.</p>
+            <textarea id="labPythonEditor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Write or load a Python program." aria-describedby="labEditorNote labEditorStatus"></textarea>
           </section>
         </div>
         <footer class="lab-runbar">
-          <button class="lab-button lab-button--primary" id="labRun" type="button"><i data-lucide="play" aria-hidden="true"></i><span>Run</span></button>
-          <button class="lab-button" id="labPause" type="button" aria-pressed="false" disabled><i data-lucide="pause" aria-hidden="true"></i><span>Pause</span></button>
+          <button class="lab-button lab-button--primary" id="labRun" type="button" aria-keyshortcuts="Control+Enter"><i data-lucide="play" aria-hidden="true"></i><span>Run</span></button>
+          <button class="lab-button" id="labPause" type="button" aria-keyshortcuts="Control+Shift+P" aria-pressed="false" disabled><i data-lucide="pause" aria-hidden="true"></i><span>Pause</span></button>
           <button class="lab-button" id="labStop" type="button"><i data-lucide="square" aria-hidden="true"></i><span>Stop</span></button>
           <button class="lab-button" id="labReset" type="button"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset Task</span></button>
           <p class="lab-runbar__status" id="labEditorStatus" data-tone="ready" aria-live="polite">Drafts are independent by language and saved only in this browser.</p>
@@ -123,13 +128,14 @@
 
       <aside class="lab-panel lab-evidence-panel" aria-label="3D simulation and evidence">
         <div class="lab-panel__header"><h2>Robot and apparatus</h2><span class="lab-kicker">Kinematic state</span></div>
-        <div class="lab-preview-stage" id="labPreviewStage">
+          <div class="lab-preview-stage" id="labPreviewStage">
           <div class="lab-stage-toolbar">
-            <button class="lab-button lab-button--danger lab-stage-stop" id="labStageStop" type="button" aria-keyshortcuts="Escape"><i data-lucide="octagon-alert" aria-hidden="true"></i><span>Simulation Stop</span></button>
+            <span class="lab-stage-toolbar__label">Inspect contact and clearance</span>
             <div class="lab-camera-controls" aria-label="Camera controls">
               <button class="lab-icon-button" id="labCameraMovement" type="button" aria-pressed="true" aria-label="Camera movement on" title="Camera movement on"><i data-lucide="move-3d" aria-hidden="true"></i><span>Move view: on</span></button>
               <button class="lab-icon-button" id="labCameraZoom" type="button" aria-pressed="true" aria-label="Camera zoom on" title="Camera zoom on"><i data-lucide="zoom-in" aria-hidden="true"></i><span>Zoom: on</span></button>
               <button class="lab-icon-button" id="labCameraReset" type="button" aria-label="Reset authored camera view" title="Reset authored camera view"><i data-lucide="scan" aria-hidden="true"></i><span>Reset view</span></button>
+              <button class="lab-icon-button" id="labCameraInspection" type="button" aria-label="Show robot inspection view" title="Show robot inspection view" hidden><i data-lucide="rotate-3d" aria-hidden="true"></i><span>Next inspection view</span></button>
               <button class="lab-icon-button" id="labSceneFullscreen" type="button" aria-expanded="false" aria-label="Expand 3D scene" title="Expand 3D scene"><i data-lucide="maximize-2" aria-hidden="true"></i><span>Expand scene</span></button>
             </div>
           </div>
@@ -144,12 +150,12 @@
             </div>
           </section>
           <section class="lab-collapsible">
-            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labEvidencePanel"><span>Evidence and provenance</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
-            <ol class="lab-evidence-list" id="labEvidenceLog"></ol>
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="false" aria-controls="labEvidencePanel"><span>Evidence and provenance</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <ol class="lab-evidence-list" id="labEvidenceLog" hidden></ol>
           </section>
           <section class="lab-collapsible">
-            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="true" aria-controls="labCommandPanel"><span>Command trace</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
-            <ol class="lab-command-list" id="labCommandLog"></ol>
+            <button class="lab-collapsible__toggle" type="button" data-lab-collapse aria-expanded="false" aria-controls="labCommandPanel"><span>Command trace</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+            <ol class="lab-command-list" id="labCommandLog" hidden></ol>
           </section>
         </div>
       </aside>
@@ -167,8 +173,8 @@
   <script src="robots/packs/unitree_g1_29dof/manifest.js?v=20260812-g1-registration-fix-1"></script>
   <script src="lab/js/simulation-safety.js?v=20260812-lab-fidelity-1"></script>
   <script src="robots/adapters/simulation/simulation.js?v=20260812-openarm-g1-solu-1"></script>
-  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260812-g1-registration-fix-2"></script>
-  <script type="module" src="lab/js/workbench-v2.js?v=20260813-scenario-v2-4"></script>
+  <script type="module" src="simulator/js/arm-preview-3d.js?v=20260815-openarm-inward-grippers-2-so101-camera-3"></script>
+  <script type="module" src="lab/js/workbench-v2.js?v=20260823-physical-fidelity-6"></script>
   <script>document.addEventListener("DOMContentLoaded", function () { window.lucide?.createIcons(); });</script>
 </body>
 </html>

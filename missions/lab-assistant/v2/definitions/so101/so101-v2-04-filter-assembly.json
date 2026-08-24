@@ -2,8 +2,8 @@
   "schema": "robobuddy.lab-scenario.v2",
   "schemaVersion": 2,
   "id": "so101-v2-04-filter-assembly",
-  "title": "Funnel Assembly",
-  "brief": "Place dry practice components into a visible alignment jig and commit the discrete seated-assembly state.",
+  "title": "Filtration Glassware Staging",
+  "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
   "robotId": "so101_follower",
   "rank": 4,
   "supersedes": "so101-04-filter-assembly",
@@ -15,13 +15,13 @@
   },
   "canonicalModel": {
     "id": "so101_follower",
-    "sourceRevision": "SO101 official main snapshot baked 2026-07-02"
+    "sourceRevision": "7629d2ad9853d10fb903093a33ef6114099d97e5"
   },
   "frames": {
-    "filter_paper_carrier_approach": {
+    "filtration_reagent_bottle_approach": {
       "positionMm": [
         50,
-        180,
+        185,
         -250
       ],
       "role": "approach",
@@ -29,38 +29,65 @@
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "filter_paper_carrier_pickup_adapter"
+      "directionConstraint": {
+        "localVector": [
+          1,
+          0,
+          0
+        ],
+        "targetVector": [
+          -0.9971721206513157,
+          0,
+          -0.07515159210394602
+        ],
+        "toleranceDeg": 14,
+        "weightMmPerRad": 180
+      }
     },
-    "filter_paper_carrier_contact": {
+    "filtration_reagent_bottle_contact": {
       "positionMm": [
         50,
-        80,
+        85,
         -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
-        "positionMm": 4
+        "positionMm": 1.5
       },
-      "contactFixtureId": "filter_paper_carrier_pickup_adapter"
+      "contactFixtureId": "filtration_reagent_bottle_pickup_adapter",
+      "directionConstraint": {
+        "localVector": [
+          1,
+          0,
+          0
+        ],
+        "targetVector": [
+          -0.9971721206513157,
+          0,
+          -0.07515159210394602
+        ],
+        "toleranceDeg": 14,
+        "weightMmPerRad": 180
+      },
+      "visitToleranceMm": 22
     },
-    "filter_paper_carrier_lift": {
+    "filtration_reagent_bottle_lift": {
       "positionMm": [
         50,
-        220,
+        185,
         -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      },
-      "contactFixtureId": "filter_paper_carrier_pickup_adapter"
+      }
     },
-    "filter_paper_carrier_destination": {
+    "filtration_reagent_bottle_destination": {
       "positionMm": [
         300,
-        80,
+        185,
         150
       ],
       "role": "destination",
@@ -68,25 +95,24 @@
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "filter_paper_carrier_destination_slot"
+      "semantic": "Semantic transfer frame above the tallest configured resting apparatus plus the carried item's complete lower envelope and a 24 mm physical clearance; release occurs only at the distinct placement-contact frame."
     },
-    "filter_paper_carrier_retreat": {
+    "filtration_reagent_bottle_retreat": {
       "positionMm": [
         300,
-        220,
+        185,
         150
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      },
-      "contactFixtureId": "filter_paper_carrier_destination_slot"
+      }
     },
-    "filter_flask_approach": {
+    "filtration_beaker_approach": {
       "positionMm": [
         250,
-        180,
+        195,
         -250
       ],
       "role": "approach",
@@ -94,38 +120,65 @@
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "filter_flask_pickup_adapter"
+      "directionConstraint": {
+        "localVector": [
+          1,
+          0,
+          0
+        ],
+        "targetVector": [
+          -0.7880107536067219,
+          0,
+          -0.6156614753256584
+        ],
+        "toleranceDeg": 14,
+        "weightMmPerRad": 180
+      }
     },
-    "filter_flask_contact": {
+    "filtration_beaker_contact": {
       "positionMm": [
         250,
-        80,
+        73,
         -250
       ],
       "role": "contact",
       "chainId": "default",
       "tolerance": {
-        "positionMm": 4
+        "positionMm": 1.5
       },
-      "contactFixtureId": "filter_flask_pickup_adapter"
+      "contactFixtureId": "filtration_beaker_pickup_adapter",
+      "directionConstraint": {
+        "localVector": [
+          1,
+          0,
+          0
+        ],
+        "targetVector": [
+          -0.7880107536067219,
+          0,
+          -0.6156614753256584
+        ],
+        "toleranceDeg": 14,
+        "weightMmPerRad": 180
+      },
+      "visitToleranceMm": 22
     },
-    "filter_flask_lift": {
+    "filtration_beaker_lift": {
       "positionMm": [
         250,
-        220,
+        195,
         -250
       ],
       "role": "lift",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
-      },
-      "contactFixtureId": "filter_flask_pickup_adapter"
+      }
     },
-    "filter_flask_destination": {
+    "filtration_beaker_destination": {
       "positionMm": [
         -50,
-        80,
+        195,
         250
       ],
       "role": "destination",
@@ -133,137 +186,223 @@
       "tolerance": {
         "positionMm": 4
       },
-      "contactFixtureId": "filter_flask_destination_slot"
+      "semantic": "Semantic transfer frame above the tallest configured resting apparatus plus the carried item's complete lower envelope and a 24 mm physical clearance; release occurs only at the distinct placement-contact frame."
     },
-    "filter_flask_retreat": {
+    "filtration_beaker_retreat": {
       "positionMm": [
         -50,
-        220,
+        195,
         250
       ],
       "role": "retreat",
       "chainId": "default",
       "tolerance": {
         "positionMm": 4
+      }
+    },
+    "filtration_reagent_bottle_place_contact": {
+      "positionMm": [
+        300,
+        85,
+        150
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
       },
-      "contactFixtureId": "filter_flask_destination_slot"
+      "contactFixtureId": "filtration_reagent_bottle_destination_slot",
+      "coincidentWith": "filtration_reagent_bottle_destination",
+      "semantic": "Physical direct-apparatus placement contact; the item's real footprint rests on the broad receiving workbench zone."
+    },
+    "filtration_beaker_place_contact": {
+      "positionMm": [
+        -50,
+        73,
+        250
+      ],
+      "role": "contact",
+      "chainId": "default",
+      "tolerance": {
+        "positionMm": 4
+      },
+      "contactFixtureId": "filtration_beaker_destination_slot",
+      "coincidentWith": "filtration_beaker_destination",
+      "semantic": "Physical direct-apparatus placement contact; the item's real footprint rests on the broad receiving workbench zone."
     }
   },
   "fixtures": [
     {
-      "id": "filter_paper_carrier_pickup_adapter",
-      "label": "Dry filter-paper carrier pickup adapter",
+      "id": "so101_base_mount",
+      "label": "SO-101 fixed base mounting plate",
       "visible": true,
-      "type": "morphology_adapter",
+      "type": "so101_base_mount",
       "configured": true,
-      "atFrame": "filter_paper_carrier_contact",
       "positionMm": [
-        50,
-        72,
-        -250
+        38.8,
+        -7,
+        0
       ],
       "collisionProxy": {
+        "id": "so101-base-mount",
         "type": "box",
         "centerMm": [
-          50,
-          72,
-          -250
+          38.8,
+          -7,
+          0
         ],
         "halfExtentsMm": [
-          30,
-          8,
-          24
-        ]
+          68,
+          7,
+          58
+        ],
+        "planningRole": "robot_mount_contact",
+        "provenance": "C: real fixed robot mounting plate; not an apparatus support"
       },
-      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+      "description": "Configured opaque flush mounting plate aligned to the fixed-base root support plane. It supports the robot base only and is never used to prop task apparatus."
     },
     {
-      "id": "filter_paper_carrier_destination_slot",
-      "label": "Dry filter-paper carrier destination slot",
+      "id": "filtration_reagent_bottle_pickup_adapter",
+      "label": "Pickup work-surface zone for Capped reagent bottle",
       "visible": true,
-      "type": "morphology_adapter",
+      "type": "configured_real_work_surface",
       "configured": true,
-      "atFrame": "filter_paper_carrier_destination",
+      "atFrame": "filtration_reagent_bottle_contact",
       "positionMm": [
-        300,
-        72,
-        150
+        34.19945005357917,
+        0,
+        -251.190803934446
       ],
-      "collisionProxy": {
-        "type": "box",
-        "centerMm": [
-          300,
-          72,
-          150
-        ],
-        "halfExtentsMm": [
-          30,
-          8,
-          24
-        ]
-      },
-      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
+      "description": "A broad, level section of the real workbench supports the complete lab-apparatus footprint. It is not a pin, post, tab, pedestal, container, or reachability aid; the SO-101 contacts the rendered apparatus directly.",
+      "collisionProxies": [
+        {
+          "id": "filtration_reagent_bottle_pickup_adapter-worktop",
+          "type": "box",
+          "centerMm": [
+            35.57612675152752,
+            -12,
+            -251.08705108825166
+          ],
+          "halfExtentsMm": [
+            98,
+            12,
+            80
+          ],
+          "planningRole": "contact_surface",
+          "physicalSupportSurface": true,
+          "provenance": "C: configured 196 x 160 mm real-workbench staging zone centered beneath the level directly handled apparatus; adjacent objects retain a physical gap"
+        }
+      ],
+      "sourceBackedHolder": true
     },
     {
-      "id": "filter_flask_pickup_adapter",
-      "label": "Empty filter flask pickup adapter",
+      "id": "filtration_reagent_bottle_destination_slot",
+      "label": "Receiving work-surface zone for Capped reagent bottle",
       "visible": true,
-      "type": "morphology_adapter",
+      "type": "configured_real_work_surface",
       "configured": true,
-      "atFrame": "filter_flask_contact",
+      "atFrame": "filtration_reagent_bottle_place_contact",
       "positionMm": [
-        250,
-        72,
-        -250
+        284.1994500535792,
+        0,
+        148.809196065554
       ],
-      "collisionProxy": {
-        "type": "box",
-        "centerMm": [
-          250,
-          72,
-          -250
-        ],
-        "halfExtentsMm": [
-          30,
-          8,
-          24
-        ]
-      },
-      "description": "Visible configured support with a narrow presentation tab for fixture-assisted SO-101 contact; dimensions are educational configuration, not hardware measurements."
+      "description": "A broad, level section of the real workbench supports the complete lab-apparatus footprint. It is not a pin, post, tab, pedestal, container, or reachability aid; the SO-101 contacts the rendered apparatus directly.",
+      "collisionProxies": [
+        {
+          "id": "filtration_reagent_bottle_destination_slot-worktop",
+          "type": "box",
+          "centerMm": [
+            307.5041708797608,
+            -12,
+            137.63402980094895
+          ],
+          "halfExtentsMm": [
+            115,
+            12,
+            115
+          ],
+          "planningRole": "contact_surface",
+          "physicalSupportSurface": true,
+          "provenance": "C: reference-calibrated broad receiving work-surface footprint (230 x 230 mm) centered beneath the complete level directly handled apparatus at release; no post, pin, or pedestal"
+        }
+      ],
+      "sourceBackedHolder": true
     },
     {
-      "id": "filter_flask_destination_slot",
-      "label": "Empty filter flask destination slot",
+      "id": "filtration_beaker_pickup_adapter",
+      "label": "Pickup work-surface zone for Empty beaker",
       "visible": true,
-      "type": "morphology_adapter",
+      "type": "configured_real_work_surface",
       "configured": true,
-      "atFrame": "filter_flask_destination",
+      "atFrame": "filtration_beaker_contact",
       "positionMm": [
-        -50,
-        72,
-        250
+        228.45156327600642,
+        0,
+        -266.8354838861457
       ],
-      "collisionProxy": {
-        "type": "box",
-        "centerMm": [
-          -50,
-          72,
-          250
-        ],
-        "halfExtentsMm": [
-          30,
-          8,
-          24
-        ]
-      },
-      "description": "Visible configured receiving slot that supports the practice object after release; dimensions are educational configuration, not hardware measurements."
+      "description": "A broad, level section of the real workbench supports the complete lab-apparatus footprint. It is not a pin, post, tab, pedestal, container, or reachability aid; the SO-101 contacts the rendered apparatus directly.",
+      "collisionProxies": [
+        {
+          "id": "filtration_beaker_pickup_adapter-worktop",
+          "type": "box",
+          "centerMm": [
+            227.3520509577313,
+            -12,
+            -267.6945170565811
+          ],
+          "halfExtentsMm": [
+            98,
+            12,
+            80
+          ],
+          "planningRole": "contact_surface",
+          "physicalSupportSurface": true,
+          "provenance": "C: configured 196 x 160 mm real-workbench staging zone centered beneath the level directly handled apparatus; adjacent objects retain a physical gap"
+        }
+      ],
+      "sourceBackedHolder": true
+    },
+    {
+      "id": "filtration_beaker_destination_slot",
+      "label": "Receiving work-surface zone for Empty beaker",
+      "visible": true,
+      "type": "configured_real_work_surface",
+      "configured": true,
+      "atFrame": "filtration_beaker_place_contact",
+      "positionMm": [
+        -71.54843672399359,
+        0,
+        233.16451611385432
+      ],
+      "description": "A broad, level section of the real workbench supports the complete lab-apparatus footprint. It is not a pin, post, tab, pedestal, container, or reachability aid; the SO-101 contacts the rendered apparatus directly.",
+      "collisionProxies": [
+        {
+          "id": "filtration_beaker_destination_slot-worktop",
+          "type": "box",
+          "centerMm": [
+            -22.620373579227515,
+            -12,
+            258.739655985551
+          ],
+          "halfExtentsMm": [
+            115,
+            12,
+            115
+          ],
+          "planningRole": "contact_surface",
+          "physicalSupportSurface": true,
+          "provenance": "C: reference-calibrated broad receiving work-surface footprint (230 x 230 mm) centered beneath the complete level directly handled apparatus at release; no post, pin, or pedestal"
+        }
+      ],
+      "sourceBackedHolder": true
     }
   ],
   "objects": [
     {
-      "id": "filter_paper_carrier",
-      "label": "Dry filter-paper carrier",
-      "initialFrame": "filter_paper_carrier_contact",
+      "id": "filtration_reagent_bottle",
+      "label": "Capped reagent bottle",
+      "initialFrame": "filtration_reagent_bottle_contact",
       "transportable": true,
       "visible": true,
       "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
@@ -271,17 +410,190 @@
         "default"
       ],
       "visual": {
-        "type": "secured_carrier",
-        "variant": "filtration",
-        "scale": 0.42
+        "type": "bottle",
+        "variant": "reagent_bottle",
+        "reference": "lab/js/objects.js#bottle",
+        "gripSocketMm": [
+          14.464777895165525,
+          85,
+          0
+        ],
+        "footprintMm": [
+          64,
+          52
+        ],
+        "heightMm": 110,
+        "directHandling": true,
+        "containerFree": true,
+        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly."
       },
-      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
-      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
+      "configuredGripInterface": "direct body pinch; opposing rendered finger contact with the intended apparatus itself.",
+      "attachmentInterface": "direct_apparatus_grip",
+      "physicalRest": {
+        "schema": "robobuddy.physical-rest.v1",
+        "supportKind": "upright_bottle_on_real_work_surface",
+        "sourceRef": "lab/js/objects.js#bottle",
+        "gripSocketMm": [
+          14.464777895165525,
+          85,
+          0
+        ],
+        "gripInterface": "direct body pinch",
+        "directHandling": true,
+        "containerFree": true,
+        "localUp": [
+          0,
+          1,
+          0
+        ],
+        "centerOfMassLocalMm": [
+          0,
+          46,
+          0
+        ],
+        "geometry": {
+          "type": "box",
+          "centerLocalMm": [
+            0,
+            55,
+            0
+          ],
+          "halfExtentsMm": [
+            32,
+            55,
+            26
+          ],
+          "collisionParts": [
+            {
+              "type": "box",
+              "centerLocalMm": [
+                0,
+                38,
+                0
+              ],
+              "halfExtentsMm": [
+                29,
+                38,
+                23
+              ]
+            },
+            {
+              "type": "box",
+              "centerLocalMm": [
+                0,
+                80,
+                0
+              ],
+              "halfExtentsMm": [
+                25.5,
+                5,
+                20
+              ]
+            },
+            {
+              "type": "box",
+              "footprintShape": "ellipse",
+              "centerLocalMm": [
+                0,
+                87,
+                0
+              ],
+              "halfExtentsMm": [
+                17,
+                6.5,
+                17
+              ]
+            },
+            {
+              "type": "box",
+              "footprintShape": "ellipse",
+              "centerLocalMm": [
+                0,
+                101,
+                0
+              ],
+              "halfExtentsMm": [
+                18,
+                8,
+                18
+              ]
+            }
+          ],
+          "provenance": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly. The collision envelope encloses the directly handled apparatus."
+        },
+        "tolerance": {
+          "maxTiltDeg": 2,
+          "maxGapMm": 2.5,
+          "maxPenetrationMm": 0.5,
+          "minimumEdgeMarginMm": 2,
+          "targetPositionToleranceMm": 12.5
+        },
+        "poses": {
+          "filtration_reagent_bottle_contact": {
+            "surfaceId": "filtration_reagent_bottle_pickup_adapter-worktop",
+            "graspFrameId": "filtration_reagent_bottle_contact",
+            "positionMm": [
+              35.57612675152752,
+              0,
+              -251.08705108825166
+            ],
+            "rotationMatrix": [
+              0.9971721206513157,
+              0,
+              -0.07515159210394602,
+              0,
+              1,
+              0,
+              0.07515159210394602,
+              0,
+              0.9971721206513157
+            ]
+          },
+          "filtration_reagent_bottle_destination": {
+            "surfaceId": "filtration_reagent_bottle_destination_slot-worktop",
+            "graspFrameId": "filtration_reagent_bottle_place_contact",
+            "positionMm": [
+              307.5041708797608,
+              0,
+              137.63402980094895
+            ],
+            "rotationMatrix": [
+              -0.5187892226308496,
+              0,
+              -0.8549021829905915,
+              0,
+              1,
+              0,
+              0.8549021829905915,
+              0,
+              -0.5187892226308496
+            ]
+          }
+        },
+        "referenceContactCalibration": {
+          "source": "generated contact tool transform plus baked fixed-jaw first-contact witness",
+          "gripSocketCorrectionMm": -1.380581,
+          "maximumFacePenetrationMm": 1,
+          "physicalHardwareValidated": false
+        },
+        "referenceCalibration": {
+          "source": "generated collision-checked reference contact and placement tool transforms",
+          "finalYawDeg": -121.251,
+          "levelNormal": [
+            0,
+            1,
+            0
+          ],
+          "physicalHardwareValidated": false
+        }
+      },
+      "configuredApparatusProfile": "bottle",
+      "roleRedesign": "The original low-profile or unsupported item could not be approached and lifted directly by the SO-101 without worktop penetration or an invented support. This configured role uses genuine upright lab apparatus with a stable footprint and reachable direct grip surface."
     },
     {
-      "id": "filter_flask",
-      "label": "Empty filter flask",
-      "initialFrame": "filter_flask_contact",
+      "id": "filtration_beaker",
+      "label": "Empty beaker",
+      "initialFrame": "filtration_beaker_contact",
       "transportable": true,
       "visible": true,
       "contents": "Dry, empty, or sealed practice representation; no payload or material dynamics are modeled.",
@@ -289,33 +601,234 @@
         "default"
       ],
       "visual": {
-        "type": "filter_flask",
-        "scale": 0.44
+        "type": "beaker",
+        "variant": "standard",
+        "reference": "lab/js/objects.js#beaker",
+        "gripSocketMm": [
+          28.740659868674552,
+          73,
+          0
+        ],
+        "footprintMm": [
+          74,
+          74
+        ],
+        "heightMm": 80,
+        "directHandling": true,
+        "containerFree": true,
+        "approximation": "C: configured empty beaker renderer envelope (74 x 80 x 74 mm); the opposing gripper fingers contact this apparatus directly."
       },
-      "configuredGripInterface": "Visible narrow adapter tab presented by the pickup fixture.",
-      "visualScaleProvenance": "C: configured educational display scale for morphology-clear simulation; not a physical dimension, payload, or hardware-fit claim."
+      "configuredGripInterface": "direct rim wall pinch; opposing rendered finger contact with the intended apparatus itself.",
+      "attachmentInterface": "direct_apparatus_grip",
+      "physicalRest": {
+        "schema": "robobuddy.physical-rest.v1",
+        "supportKind": "upright_beaker_on_real_work_surface",
+        "sourceRef": "lab/js/objects.js#beaker",
+        "gripSocketMm": [
+          28.740659868674552,
+          73,
+          0
+        ],
+        "gripInterface": "direct rim wall pinch",
+        "directHandling": true,
+        "containerFree": true,
+        "localUp": [
+          0,
+          1,
+          0
+        ],
+        "centerOfMassLocalMm": [
+          0,
+          38,
+          0
+        ],
+        "geometry": {
+          "type": "box",
+          "footprintShape": "ellipse",
+          "centerLocalMm": [
+            0,
+            40,
+            0
+          ],
+          "halfExtentsMm": [
+            37,
+            40,
+            37
+          ],
+          "provenance": "C: configured empty beaker renderer envelope (74 x 80 x 74 mm); the opposing gripper fingers contact this apparatus directly. The collision envelope encloses the directly handled apparatus."
+        },
+        "tolerance": {
+          "maxTiltDeg": 2,
+          "maxGapMm": 2.5,
+          "maxPenetrationMm": 0.5,
+          "minimumEdgeMarginMm": 2,
+          "targetPositionToleranceMm": 12.5
+        },
+        "poses": {
+          "filtration_beaker_contact": {
+            "surfaceId": "filtration_beaker_pickup_adapter-worktop",
+            "graspFrameId": "filtration_beaker_contact",
+            "positionMm": [
+              227.3520509577313,
+              0,
+              -267.6945170565811
+            ],
+            "rotationMatrix": [
+              0.7880107536067219,
+              0,
+              -0.6156614753256584,
+              0,
+              1,
+              0,
+              0.6156614753256584,
+              0,
+              0.7880107536067219
+            ]
+          },
+          "filtration_beaker_destination": {
+            "surfaceId": "filtration_beaker_destination_slot-worktop",
+            "graspFrameId": "filtration_beaker_place_contact",
+            "positionMm": [
+              -22.620373579227515,
+              0,
+              258.739655985551
+            ],
+            "rotationMatrix": [
+              -0.9526443215249382,
+              0,
+              0.30408682422342853,
+              0,
+              1,
+              0,
+              -0.30408682422342853,
+              0,
+              -0.9526443215249382
+            ]
+          }
+        },
+        "referenceContactCalibration": {
+          "source": "generated contact tool transform plus baked fixed-jaw first-contact witness",
+          "gripSocketCorrectionMm": 1.395301,
+          "maximumFacePenetrationMm": 1,
+          "physicalHardwareValidated": false
+        },
+        "referenceCalibration": {
+          "source": "generated collision-checked reference contact and placement tool transforms",
+          "finalYawDeg": 162.297,
+          "levelNormal": [
+            0,
+            1,
+            0
+          ],
+          "physicalHardwareValidated": false
+        }
+      },
+      "configuredApparatusProfile": "beaker",
+      "roleRedesign": "The original low-profile or unsupported item could not be approached and lifted directly by the SO-101 without worktop penetration or an invented support. This configured role uses genuine upright lab apparatus with a stable footprint and reachable direct grip surface."
     }
   ],
   "grasps": [
     {
-      "id": "filter_paper_carrier_fixture_grasp",
-      "objectId": "filter_paper_carrier",
+      "id": "filtration_reagent_bottle_fixture_grasp",
+      "objectId": "filtration_reagent_bottle",
       "effector": "default",
-      "mode": "fixture-assisted",
-      "contactFrame": "filter_paper_carrier_contact",
-      "fixtureId": "filter_paper_carrier_pickup_adapter",
-      "interface": "configured_narrow_adapter_tab",
-      "visible": true
+      "mode": "direct-apparatus",
+      "contactFrame": "filtration_reagent_bottle_contact",
+      "fixtureId": "filtration_reagent_bottle_pickup_adapter",
+      "interface": "direct_body_pinch",
+      "visible": true,
+      "approachFrame": "filtration_reagent_bottle_approach",
+      "liftFrame": "filtration_reagent_bottle_lift",
+      "allowedRobotContactBodies": [
+        "gripper_link__wrist_roll_follower_so101_v1_stl_1",
+        "moving_jaw_so101_v1_link__moving_jaw_so101_v1_stl_0"
+      ],
+      "physicalContact": {
+        "schema": "robobuddy.opposed-pinch.v1",
+        "axisLocal": [
+          1,
+          0,
+          0
+        ],
+        "bandCenterLocalMm": [
+          0,
+          85,
+          0
+        ],
+        "bandHalfExtentsMm": [
+          27.5,
+          26,
+          14
+        ],
+        "contactHalfExtentMm": 25.5,
+        "capturedThicknessMm": 51,
+        "contactToleranceMm": 1.5,
+        "maxPenetrationMm": 1,
+        "alignmentToleranceDeg": 14,
+        "fixedBodyId": "gripper_link__wrist_roll_follower_so101_v1_stl_1",
+        "movingBodyId": "moving_jaw_so101_v1_link__moving_jaw_so101_v1_stl_0",
+        "fixedFaceSign": 1,
+        "movingFaceSign": -1,
+        "toolAxisTargetWorld": [
+          -0.9971721206513157,
+          0,
+          -0.07515159210394602
+        ],
+        "negativeFaceRole": "moving",
+        "positiveFaceRole": "fixed",
+        "source": "Independently selected first-contact surface witnesses from the baked fixed-jaw and moving-jaw meshes; values are renderer geometry, not hardware force or compliance calibration"
+      }
     },
     {
-      "id": "filter_flask_fixture_grasp",
-      "objectId": "filter_flask",
+      "id": "filtration_beaker_fixture_grasp",
+      "objectId": "filtration_beaker",
       "effector": "default",
-      "mode": "fixture-assisted",
-      "contactFrame": "filter_flask_contact",
-      "fixtureId": "filter_flask_pickup_adapter",
-      "interface": "configured_narrow_adapter_tab",
-      "visible": true
+      "mode": "direct-apparatus",
+      "contactFrame": "filtration_beaker_contact",
+      "fixtureId": "filtration_beaker_pickup_adapter",
+      "interface": "direct_rim_wall_pinch",
+      "visible": true,
+      "approachFrame": "filtration_beaker_approach",
+      "liftFrame": "filtration_beaker_lift",
+      "allowedRobotContactBodies": [
+        "gripper_link__wrist_roll_follower_so101_v1_stl_1",
+        "moving_jaw_so101_v1_link__moving_jaw_so101_v1_stl_0"
+      ],
+      "physicalContact": {
+        "schema": "robobuddy.opposed-pinch.v1",
+        "axisLocal": [
+          1,
+          0,
+          0
+        ],
+        "bandCenterLocalMm": [
+          0,
+          73,
+          0
+        ],
+        "bandHalfExtentsMm": [
+          39,
+          26,
+          14
+        ],
+        "contactHalfExtentMm": 37,
+        "capturedThicknessMm": 74,
+        "contactToleranceMm": 1.5,
+        "maxPenetrationMm": 1,
+        "alignmentToleranceDeg": 14,
+        "fixedBodyId": "gripper_link__wrist_roll_follower_so101_v1_stl_1",
+        "movingBodyId": "moving_jaw_so101_v1_link__moving_jaw_so101_v1_stl_0",
+        "fixedFaceSign": 1,
+        "movingFaceSign": -1,
+        "toolAxisTargetWorld": [
+          -0.7880107536067219,
+          0,
+          -0.6156614753256584
+        ],
+        "negativeFaceRole": "moving",
+        "positiveFaceRole": "fixed",
+        "source": "Independently selected first-contact surface witnesses from the baked fixed-jaw and moving-jaw meshes; values are renderer geometry, not hardware force or compliance calibration"
+      }
     }
   ],
   "processModels": [
@@ -329,76 +842,76 @@
       "prerequisites": [
         {
           "op": "object_at",
-          "objectId": "filter_paper_carrier",
-          "frameId": "filter_paper_carrier_destination"
+          "objectId": "filtration_reagent_bottle",
+          "frameId": "filtration_reagent_bottle_destination"
         }
       ],
-      "fixtureId": "filter_flask_destination_slot",
-      "contactFrame": "filter_flask_destination"
+      "fixtureId": "filtration_beaker_destination_slot",
+      "contactFrame": "filtration_beaker_destination"
     }
   ],
   "goalPredicates": [
     {
-      "id": "filter_paper_carrier_placed",
-      "label": "Dry filter-paper carrier visibly seated in its named destination slot",
+      "id": "filtration_reagent_bottle_placed",
+      "label": "Capped reagent bottle visibly seated stably on its named receiving work-surface zone",
       "op": "object_at",
-      "objectId": "filter_paper_carrier",
-      "frameId": "filter_paper_carrier_destination"
+      "objectId": "filtration_reagent_bottle",
+      "frameId": "filtration_reagent_bottle_destination"
     },
     {
-      "id": "filter_flask_placed",
-      "label": "Empty filter flask visibly seated in its named destination slot",
+      "id": "filtration_beaker_placed",
+      "label": "Empty beaker visibly seated stably on its named receiving work-surface zone",
       "op": "object_at",
-      "objectId": "filter_flask",
-      "frameId": "filter_flask_destination"
+      "objectId": "filtration_beaker",
+      "frameId": "filtration_beaker_destination"
     },
     {
-      "id": "filter_paper_carrier_approach_visited",
-      "label": "Approach frame visited for Dry filter-paper carrier",
+      "id": "filtration_reagent_bottle_approach_visited",
+      "label": "Approach frame visited for capped sample bottle apparatus",
       "op": "frame_visited",
-      "frameId": "filter_paper_carrier_approach"
+      "frameId": "filtration_reagent_bottle_approach"
     },
     {
-      "id": "filter_paper_carrier_contact_visited",
-      "label": "Contact frame visited for Dry filter-paper carrier",
+      "id": "filtration_reagent_bottle_contact_visited",
+      "label": "Contact frame visited for capped sample bottle apparatus",
       "op": "frame_visited",
-      "frameId": "filter_paper_carrier_contact"
+      "frameId": "filtration_reagent_bottle_contact"
     },
     {
-      "id": "filter_paper_carrier_lift_visited",
-      "label": "Lift frame visited for Dry filter-paper carrier",
+      "id": "filtration_reagent_bottle_lift_visited",
+      "label": "Lift frame visited for capped sample bottle apparatus",
       "op": "frame_visited",
-      "frameId": "filter_paper_carrier_lift"
+      "frameId": "filtration_reagent_bottle_lift"
     },
     {
-      "id": "filter_paper_carrier_retreat_visited",
-      "label": "Retreat frame visited for Dry filter-paper carrier",
+      "id": "filtration_reagent_bottle_retreat_visited",
+      "label": "Retreat frame visited for capped sample bottle apparatus",
       "op": "frame_visited",
-      "frameId": "filter_paper_carrier_retreat"
+      "frameId": "filtration_reagent_bottle_retreat"
     },
     {
-      "id": "filter_flask_approach_visited",
-      "label": "Approach frame visited for Empty filter flask",
+      "id": "filtration_beaker_approach_visited",
+      "label": "Approach frame visited for empty filtration beaker",
       "op": "frame_visited",
-      "frameId": "filter_flask_approach"
+      "frameId": "filtration_beaker_approach"
     },
     {
-      "id": "filter_flask_contact_visited",
-      "label": "Contact frame visited for Empty filter flask",
+      "id": "filtration_beaker_contact_visited",
+      "label": "Contact frame visited for empty filtration beaker",
       "op": "frame_visited",
-      "frameId": "filter_flask_contact"
+      "frameId": "filtration_beaker_contact"
     },
     {
-      "id": "filter_flask_lift_visited",
-      "label": "Lift frame visited for Empty filter flask",
+      "id": "filtration_beaker_lift_visited",
+      "label": "Lift frame visited for empty filtration beaker",
       "op": "frame_visited",
-      "frameId": "filter_flask_lift"
+      "frameId": "filtration_beaker_lift"
     },
     {
-      "id": "filter_flask_retreat_visited",
-      "label": "Retreat frame visited for Empty filter flask",
+      "id": "filtration_beaker_retreat_visited",
+      "label": "Retreat frame visited for empty filtration beaker",
       "op": "frame_visited",
-      "frameId": "filter_flask_retreat"
+      "frameId": "filtration_beaker_retreat"
     },
     {
       "id": "station_state",
@@ -415,12 +928,12 @@
       "predicates": [
         {
           "op": "attached_to",
-          "objectId": "filter_paper_carrier",
+          "objectId": "filtration_reagent_bottle",
           "effector": "default"
         },
         {
           "op": "attached_to",
-          "objectId": "filter_flask",
+          "objectId": "filtration_beaker",
           "effector": "default"
         }
       ]
@@ -431,134 +944,109 @@
       "path": "fixedRootViolation"
     }
   ],
-  "evidenceRequirements": [
-    {
-      "id": "completion_observation",
-      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
-      "kind": "learner-recorded",
-      "allowedValues": [
-        "Visible destination seating confirmed with the robot clear."
-      ],
-      "availableWhen": {
-        "op": "all",
-        "predicates": [
-          {
-            "op": "object_at",
-            "objectId": "filter_paper_carrier",
-            "frameId": "filter_paper_carrier_destination"
-          },
-          {
-            "op": "object_at",
-            "objectId": "filter_flask",
-            "frameId": "filter_flask_destination"
-          },
-          {
-            "op": "frame_visited",
-            "frameId": "filter_paper_carrier_retreat"
-          },
-          {
-            "op": "frame_visited",
-            "frameId": "filter_flask_retreat"
-          },
-          {
-            "op": "process_state",
-            "processId": "assembly_seat",
-            "value": "seated"
-          }
-        ]
-      },
-      "requiresEvent": {
-        "type": "PROCESS_COMMIT",
-        "processId": "assembly_seat"
-      }
-    }
-  ],
+  "evidenceRequirements": [],
   "provenance": [
     {
       "label": "M",
-      "claim": "The kinematic chain follows the baked official SO-101 model revision.",
-      "sourceRef": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf"
+      "claim": "The mesh hierarchy and body-joint mechanical limits follow the pinned official SO-101 URDF; the position field names, order, default degree mode, gripper normalization, and partial direct-action behavior follow the pinned LeRobot SOFollower implementation.",
+      "sourceRef": "https://github.com/TheRobotStudio/SO-ARM100/blob/7629d2ad9853d10fb903093a33ef6114099d97e5/Simulation/SO101/so101_new_calib.urdf | https://github.com/huggingface/lerobot/blob/7e241bd630a3719a56157a497ce5d08f244784f1/src/lerobot/robots/so_follower/so_follower.py"
     },
     {
       "label": "F",
-      "claim": "The successor preserves the bounded procedural objective from so101-04-filter-assembly (filtration/assemble-funnel-stand-and-place-filter-paper).",
+      "claim": "The successor preserves the bounded procedural objective from so101-04-filter-assembly (filtration/assemble-funnel-stand-and-place-capped sample bottle).",
       "sourceRef": "missions/lab-assistant/v1/so101-04-filter-assembly.json"
     },
     {
       "label": "R",
-      "claim": "Fixture-assisted manipulation matches the fixed-base SO-101 morphology and available kinematic contact sequence."
+      "claim": "LeRobot correspondence is limited to recognized joint/gripper position targets and observations; direct calls may supply a non-empty field subset, while the named-frame browser IK transport helper is an explicitly labeled simulation convenience and not LeRobot's optional kinematic processor."
     },
     {
       "label": "C",
-      "claim": "Object-specific frames, visible narrow-tab adapters, destination supports, visual scales, tolerances, collision boxes, and readiness states are configured educational values; readiness commits only at final placement contact."
+      "claim": "Object-specific frames, real work-surface dimensions, visual scales, tolerances, collision envelopes, and readiness states are configured educational values. Each intended lab item rests directly and stably on a declared real workbench zone and is grasped at its configured rim, neck, body, shaft, edge, or rack side; no transport container, synthetic support, or hidden reachability aid is used."
+    },
+    {
+      "label": "R",
+      "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
     }
   ],
   "modelClaim": {
     "modelId": "so101_follower",
     "source": {
       "kind": "official URDF baked model",
-      "revision": "SO101 official main snapshot baked 2026-07-02",
-      "url": "https://github.com/TheRobotStudio/SO-ARM100/blob/main/Simulation/SO101/so101_new_calib.urdf",
+      "revision": "7629d2ad9853d10fb903093a33ef6114099d97e5",
+      "url": "https://github.com/TheRobotStudio/SO-ARM100/blob/7629d2ad9853d10fb903093a33ef6114099d97e5/Simulation/SO101/so101_new_calib.urdf",
       "provenance": "M",
-      "notes": "Official joint chain; configured educational limits are explicitly separate from calibrated hardware limits."
+      "notes": "Official joint chain and mechanical limits. LeRobot position fields and calibration semantics are separately pinned in commandInterface; the configured simulation rest is not a physical home."
     },
     "joints": [
       {
         "id": "shoulder_pan",
-        "min": -90,
-        "max": 90,
+        "min": -110,
+        "max": 110,
         "home": 0,
         "unit": "deg",
         "type": "revolute",
-        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+        "referenceValue": 0,
+        "referenceKind": "configured_simulation_rest",
+        "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration."
       },
       {
         "id": "shoulder_lift",
-        "min": -90,
-        "max": 90,
+        "min": -100,
+        "max": 100,
         "home": -90,
         "unit": "deg",
         "type": "revolute",
-        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+        "referenceValue": -90,
+        "referenceKind": "configured_simulation_rest",
+        "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration."
       },
       {
         "id": "elbow_flex",
-        "min": -120,
-        "max": 120,
+        "min": -96.83,
+        "max": 96.83,
         "home": 85,
         "unit": "deg",
         "type": "revolute",
-        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+        "referenceValue": 85,
+        "referenceKind": "configured_simulation_rest",
+        "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration."
       },
       {
         "id": "wrist_flex",
-        "min": -90,
-        "max": 90,
+        "min": -95,
+        "max": 95,
         "home": 72,
         "unit": "deg",
         "type": "revolute",
-        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+        "referenceValue": 72,
+        "referenceKind": "configured_simulation_rest",
+        "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration."
       },
       {
         "id": "wrist_roll",
-        "min": -180,
-        "max": 180,
+        "min": -157.21,
+        "max": 162.79,
         "home": 88,
         "unit": "deg",
         "type": "revolute",
-        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+        "referenceValue": 88,
+        "referenceKind": "configured_simulation_rest",
+        "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration."
       },
       {
         "id": "gripper",
         "min": 0,
         "max": 100,
-        "home": 85,
-        "unit": "percent",
+        "home": 20,
+        "unit": "normalized_0_100",
         "type": "gripper",
-        "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits."
+        "referenceValue": 20,
+        "referenceKind": "configured_simulation_rest",
+        "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration."
       }
     ],
-    "limitProvenance": "M: official-model joint definitions; C: conservative educational limits configured in RoboBuddy, not certified calibrated limits.",
+    "limitProvenance": "M: official URDF mechanical limits for body joints and LeRobot calibrated RANGE_0_100 gripper units; C: those bounds are the browser envelope, not device-specific physical calibration.",
     "frames": [
       "shoulder_pan",
       "shoulder_lift",
@@ -571,17 +1059,318 @@
       "C: conservative link envelope around canonical joint pivots",
       "M/C: baked renderer mesh bounds with configured conservative padding"
     ],
-    "supportedFidelity": "Official-model kinematic chain with configured educational joint limits",
+    "supportedFidelity": "Reference-calibrated kinematic digital model where source-pinned; configured response values are labeled separately",
     "unsupportedPhysics": [
-      "force sensing",
-      "payload claim",
-      "servo dynamics",
-      "certified calibrated limits"
-    ]
+      "motor/controller dynamics, inertia, gravity load, friction, compliance, backlash, thermal/current/voltage behavior",
+      "physical transport, calibration, cameras/sensing, ROS/DDS, datasets, policies, training, force/torque control",
+      "payload, collision avoidance, hardware validation, and safety certification"
+    ],
+    "commandInterface": {
+      "schema": "robobuddy.so101-command-model.v2",
+      "robotId": "so101_follower",
+      "actionMethod": "send_action",
+      "observationMethod": "get_observation",
+      "actionKeys": [
+        "shoulder_pan.pos",
+        "shoulder_lift.pos",
+        "elbow_flex.pos",
+        "wrist_flex.pos",
+        "wrist_roll.pos",
+        "gripper.pos"
+      ],
+      "observationKeys": [
+        "shoulder_pan.pos",
+        "shoulder_lift.pos",
+        "elbow_flex.pos",
+        "wrist_flex.pos",
+        "wrist_roll.pos",
+        "gripper.pos"
+      ],
+      "jointOrder": [
+        "shoulder_pan",
+        "shoulder_lift",
+        "elbow_flex",
+        "wrist_flex",
+        "wrist_roll",
+        "gripper"
+      ],
+      "fields": [
+        {
+          "index": 0,
+          "motorId": 1,
+          "jointId": "shoulder_pan",
+          "actionKey": "shoulder_pan.pos",
+          "observationKey": "shoulder_pan.pos",
+          "unit": "deg",
+          "min": -110,
+          "max": 110,
+          "simulationRest": 0,
+          "rendererNode": "shoulder_pan",
+          "rendererAxis": [
+            0,
+            1,
+            0
+          ],
+          "rendererDirection": 1,
+          "rangeBasis": "Official SO-101 URDF mechanical joint limit used as the simulation envelope"
+        },
+        {
+          "index": 1,
+          "motorId": 2,
+          "jointId": "shoulder_lift",
+          "actionKey": "shoulder_lift.pos",
+          "observationKey": "shoulder_lift.pos",
+          "unit": "deg",
+          "min": -100,
+          "max": 100,
+          "simulationRest": -90,
+          "rendererNode": "shoulder_lift",
+          "rendererAxis": [
+            0,
+            1,
+            0
+          ],
+          "rendererDirection": 1,
+          "rangeBasis": "Official SO-101 URDF mechanical joint limit used as the simulation envelope"
+        },
+        {
+          "index": 2,
+          "motorId": 3,
+          "jointId": "elbow_flex",
+          "actionKey": "elbow_flex.pos",
+          "observationKey": "elbow_flex.pos",
+          "unit": "deg",
+          "min": -96.83,
+          "max": 96.83,
+          "simulationRest": 85,
+          "rendererNode": "elbow_flex",
+          "rendererAxis": [
+            0,
+            1,
+            0
+          ],
+          "rendererDirection": 1,
+          "rangeBasis": "Official SO-101 URDF mechanical joint limit used as the simulation envelope"
+        },
+        {
+          "index": 3,
+          "motorId": 4,
+          "jointId": "wrist_flex",
+          "actionKey": "wrist_flex.pos",
+          "observationKey": "wrist_flex.pos",
+          "unit": "deg",
+          "min": -95,
+          "max": 95,
+          "simulationRest": 72,
+          "rendererNode": "wrist_flex",
+          "rendererAxis": [
+            0,
+            1,
+            0
+          ],
+          "rendererDirection": 1,
+          "rangeBasis": "Official SO-101 URDF mechanical joint limit used as the simulation envelope"
+        },
+        {
+          "index": 4,
+          "motorId": 5,
+          "jointId": "wrist_roll",
+          "actionKey": "wrist_roll.pos",
+          "observationKey": "wrist_roll.pos",
+          "unit": "deg",
+          "min": -157.21,
+          "max": 162.79,
+          "simulationRest": 88,
+          "rendererNode": "wrist_roll",
+          "rendererAxis": [
+            0,
+            1,
+            0
+          ],
+          "rendererDirection": 1,
+          "rangeBasis": "Official SO-101 URDF mechanical joint limit used as the simulation envelope"
+        },
+        {
+          "index": 5,
+          "motorId": 6,
+          "jointId": "gripper",
+          "actionKey": "gripper.pos",
+          "observationKey": "gripper.pos",
+          "unit": "normalized_0_100",
+          "min": 0,
+          "max": 100,
+          "simulationRest": 20,
+          "rendererNode": "gripper_jaw",
+          "rendererAxis": [
+            0,
+            1,
+            0
+          ],
+          "rendererDirection": 1,
+          "rangeBasis": "LeRobot calibrated RANGE_0_100 command/observation normalization"
+        }
+      ],
+      "simulationRest": {
+        "shoulder_pan": 0,
+        "shoulder_lift": -90,
+        "elbow_flex": 85,
+        "wrist_flex": 72,
+        "wrist_roll": 88,
+        "gripper": 20
+      },
+      "gripper": {
+        "jointId": "gripper",
+        "rendererNode": "gripper_jaw",
+        "toolFrameNode": "wrist_roll",
+        "toolOffsetMm": [
+          1.359,
+          -97.71,
+          0.185
+        ],
+        "toolOffsetBasis": "Closed-pinch midpoint of independently selected distal fixed-jaw and moving-jaw transformed mesh features, expressed in the fixed wrist_roll frame",
+        "actionKey": "gripper.pos",
+        "openValue": 20,
+        "graspValue": 85,
+        "rendererOpenDeg": 88,
+        "rendererClosedDeg": 1,
+        "contactGeometry": {
+          "schema": "robobuddy.so101-opposed-jaw-geometry.v1",
+          "axisInToolFrame": [
+            1,
+            0,
+            0
+          ],
+          "fixedWitness": {
+            "role": "fixed_contact_patch",
+            "bodyId": "gripper_link__wrist_roll_follower_so101_v1_stl_1",
+            "frameId": "wrist_roll",
+            "localPointMm": [
+              -8.29564129091325,
+              -101.85084540603893,
+              -2.8515713146747466
+            ]
+          },
+          "movingWitness": {
+            "role": "moving_contact_patch",
+            "bodyId": "moving_jaw_so101_v1_link__moving_jaw_so101_v1_stl_0",
+            "frameId": "gripper_jaw",
+            "localPointMm": [
+              -12.143,
+              22.344998855573355,
+              78.19799673456932
+            ]
+          },
+          "fixedWitnessInToolFrameMm": [
+            -9.65464129091325,
+            -4.14084540603893,
+            -3.0365713146747466
+          ],
+          "maximumFacePenetrationMm": 1,
+          "contactToleranceMm": 1.5,
+          "alignmentToleranceDeg": 14,
+          "provenance": "Independently selected first-contact surface witnesses from the baked fixed-jaw and moving-jaw meshes; values are renderer geometry, not hardware force or compliance calibration"
+        },
+        "provenance": "RoboBuddy visualization/grasp configuration; not a universal physical open/close constant"
+      },
+      "calibration": {
+        "requiredByPhysicalSoftware": true,
+        "physicalRanges": "device_specific",
+        "simulationStatus": "configured_reference_only",
+        "restIsPhysicalHome": false,
+        "statement": "The simulation rest pose is not a physical home or calibration result. LeRobot calibration stores device-specific homing offsets, drive modes, and ranges."
+      },
+      "commandShape": {
+        "advertisedActionFeatures": "all_six_position_fields",
+        "directActionMinimumFields": 1,
+        "directActionMayBePartial": true,
+        "uncommandedPhysicalBehavior": "SOFollower does not include an unprovided motor in that Goal_Position sync_write.",
+        "uncommandedSimulationBehavior": "RoboBuddy retains each uncommanded joint at its current simulated position.",
+        "unknownFieldSimulationBehavior": "RoboBuddy rejects unknown fields instead of silently ignoring non-position metadata."
+      },
+      "normalization": {
+        "pinnedDefaultUseDegrees": true,
+        "bodyModeModeled": "DEGREES",
+        "alternativePhysicalBodyMode": "RANGE_M100_100",
+        "alternativeModeModeled": false,
+        "gripperMode": "RANGE_0_100"
+      },
+      "relativeTargetGuard": {
+        "physicalConfigParameter": "max_relative_target",
+        "pinnedDefault": null,
+        "physicalBehavior": "When configured, SOFollower may clip supplied goals relative to a fresh Present_Position read and returns the clipped action actually sent.",
+        "simulationBehavior": "Not modeled. RoboBuddy applies its explicit URDF-envelope and collision guardrails, then returns the accepted supplied targets unchanged."
+      },
+      "timing": {
+        "physicalSemantics": "Each LeRobot send_action call writes the supplied Goal_Position subset, optionally clipped by max_relative_target; motor/controller timing is not modeled by the physical API surface.",
+        "simulationSemantics": "RoboBuddy linearly interpolates between accepted targets only to make awaited command order visible. This is not servo dynamics or a hardware timing guarantee."
+      },
+      "sources": {
+        "lerobot": {
+          "revision": "7e241bd630a3719a56157a497ce5d08f244784f1",
+          "robotUrl": "https://github.com/huggingface/lerobot/blob/7e241bd630a3719a56157a497ce5d08f244784f1/src/lerobot/robots/so_follower/so_follower.py",
+          "configUrl": "https://github.com/huggingface/lerobot/blob/7e241bd630a3719a56157a497ce5d08f244784f1/src/lerobot/robots/so_follower/config_so_follower.py"
+        },
+        "urdf": {
+          "revision": "7629d2ad9853d10fb903093a33ef6114099d97e5",
+          "url": "https://github.com/TheRobotStudio/SO-ARM100/blob/7629d2ad9853d10fb903093a33ef6114099d97e5/Simulation/SO101/so101_new_calib.urdf"
+        }
+      },
+      "evidenceBoundary": {
+        "sourceStated": [
+          "six ordered position action/observation fields",
+          "body joint positions use degrees with the pinned use_degrees=true default; RANGE_M100_100 is an alternative configuration",
+          "gripper position uses calibrated RANGE_0_100 normalization",
+          "send_action filters the supplied .pos fields, writes that Goal_Position subset, and returns the action actually sent",
+          "configured max_relative_target may clip a supplied action relative to fresh position feedback",
+          "calibration is device-specific"
+        ],
+        "simulationChoices": [
+          "URDF mechanical limits as the browser validation envelope",
+          "degree-mode body commands only; use_degrees=false is not simulated",
+          "non-empty recognized action subsets retain uncommanded simulated joint state",
+          "unknown fields are rejected fail-closed",
+          "max_relative_target clipping is not simulated",
+          "configured rest pose",
+          "linear visual interpolation",
+          "collision rejection",
+          "IK-based task helper decomposition",
+          "configured gripper open/grasp values"
+        ]
+      }
+    }
   },
   "api": {
     "level": "builder",
-    "namedFramesDiscoverable": true
+    "namedFramesDiscoverable": true,
+    "physicalProgrammability": {
+      "commandSurface": "LeRobot SOFollower send_action/get_observation position fields",
+      "actionKeys": [
+        "shoulder_pan.pos",
+        "shoulder_lift.pos",
+        "elbow_flex.pos",
+        "wrist_flex.pos",
+        "wrist_roll.pos",
+        "gripper.pos"
+      ],
+      "jointOrder": [
+        "shoulder_pan",
+        "shoulder_lift",
+        "elbow_flex",
+        "wrist_flex",
+        "wrist_roll",
+        "gripper"
+      ],
+      "bodyUnit": "deg",
+      "gripperUnit": "normalized_0_100",
+      "directActionShape": "one or more recognized <joint>.pos fields; Blockly emits all six for explicit educational state",
+      "alternativeBodyNormalizationModeled": false,
+      "maxRelativeTargetClippingModeled": false,
+      "simulationRestIsPhysicalHome": false,
+      "deviceCalibrationValidated": false,
+      "learnerProgramContract": "ordinary synchronous Python imports the pinned public lerobot.robots.so_follower SO101Follower/SO101FollowerConfig aliases and calls connect, send_action, get_observation, and disconnect",
+      "offlineReferencePlanning": "reference joint targets are generated from the configured URDF/mesh model and collision checked; no Cartesian or skills helper is exposed as a physical SOFollower method"
+    },
+    "runtime": "robobuddy.portable-python.v1"
   },
   "navigation": {
     "fixedBase": true
@@ -590,222 +1379,2355 @@
     "referenceExecutions": [
       {
         "id": "reference-contact-route",
-        "calls": [
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_paper_carrier",
-              "approachFrame": "filter_paper_carrier_approach",
-              "contactFrame": "filter_paper_carrier_contact",
-              "liftFrame": "filter_paper_carrier_lift",
-              "destinationFrame": "filter_paper_carrier_destination",
-              "retreatFrame": "filter_paper_carrier_retreat",
-              "effector": "default",
-              "seed": 17
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_flask",
-              "approachFrame": "filter_flask_approach",
-              "contactFrame": "filter_flask_contact",
-              "liftFrame": "filter_flask_lift",
-              "destinationFrame": "filter_flask_destination",
-              "retreatFrame": "filter_flask_retreat",
-              "effector": "default",
-              "seed": 34,
-              "processId": "assembly_seat",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "completion_observation",
-              "value": "Visible destination seating confirmed with the robot clear."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        }
       }
     ],
     "acceptedAlternates": [
       {
         "id": "alternate-ik-seeds-same-safe-order",
-        "calls": [
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_paper_carrier",
-              "approachFrame": "filter_paper_carrier_approach",
-              "contactFrame": "filter_paper_carrier_contact",
-              "liftFrame": "filter_paper_carrier_lift",
-              "destinationFrame": "filter_paper_carrier_destination",
-              "retreatFrame": "filter_paper_carrier_retreat",
-              "effector": "default",
-              "seed": 991
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_flask",
-              "approachFrame": "filter_flask_approach",
-              "contactFrame": "filter_flask_contact",
-              "liftFrame": "filter_flask_lift",
-              "destinationFrame": "filter_flask_destination",
-              "retreatFrame": "filter_flask_retreat",
-              "effector": "default",
-              "seed": 1008,
-              "processId": "assembly_seat",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "completion_observation",
-              "value": "Visible destination seating confirmed with the robot clear."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        }
       }
     ],
     "negativeCases": [
       {
         "id": "missing-second-object",
         "expectedFailureKind": "goal",
-        "calls": [
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_paper_carrier",
-              "approachFrame": "filter_paper_carrier_approach",
-              "contactFrame": "filter_paper_carrier_contact",
-              "liftFrame": "filter_paper_carrier_lift",
-              "destinationFrame": "filter_paper_carrier_destination",
-              "retreatFrame": "filter_paper_carrier_retreat",
-              "effector": "default",
-              "seed": 211
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "premature-evidence",
         "expectedFailureKind": "evidence",
-        "calls": [
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "completion_observation",
-              "value": "Visible destination seating confirmed with the robot clear."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "outcome-without-evidence",
         "expectedFailureKind": "evidence",
-        "calls": [
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_paper_carrier",
-              "approachFrame": "filter_paper_carrier_approach",
-              "contactFrame": "filter_paper_carrier_contact",
-              "liftFrame": "filter_paper_carrier_lift",
-              "destinationFrame": "filter_paper_carrier_destination",
-              "retreatFrame": "filter_paper_carrier_retreat",
-              "effector": "default",
-              "seed": 17
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_flask",
-              "approachFrame": "filter_flask_approach",
-              "contactFrame": "filter_flask_contact",
-              "liftFrame": "filter_flask_lift",
-              "destinationFrame": "filter_flask_destination",
-              "retreatFrame": "filter_flask_retreat",
-              "effector": "default",
-              "seed": 34,
-              "processId": "assembly_seat",
-              "processValue": "seated"
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "invalid-evidence-value",
         "expectedFailureKind": "evidence",
-        "calls": [
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_paper_carrier",
-              "approachFrame": "filter_paper_carrier_approach",
-              "contactFrame": "filter_paper_carrier_contact",
-              "liftFrame": "filter_paper_carrier_lift",
-              "destinationFrame": "filter_paper_carrier_destination",
-              "retreatFrame": "filter_paper_carrier_retreat",
-              "effector": "default",
-              "seed": 17
-            }
-          },
-          {
-            "method": "skills.transport",
-            "args": {
-              "objectId": "filter_flask",
-              "approachFrame": "filter_flask_approach",
-              "contactFrame": "filter_flask_contact",
-              "liftFrame": "filter_flask_lift",
-              "destinationFrame": "filter_flask_destination",
-              "retreatFrame": "filter_flask_retreat",
-              "effector": "default",
-              "seed": 34,
-              "processId": "assembly_seat",
-              "processValue": "seated"
-            }
-          },
-          {
-            "method": "lab.record_evidence",
-            "args": {
-              "requirementId": "completion_observation",
-              "value": "Everything probably worked."
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "fixed-base-navigation-rejected",
         "expectedFailureKind": "causal",
-        "calls": [
-          {
-            "method": "robot.navigate",
-            "args": {
-              "frameId": "filter_paper_carrier_destination"
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       },
       {
         "id": "process-before-placement",
         "expectedFailureKind": "causal",
-        "calls": [
-          {
-            "method": "skills.fixture_operation",
-            "args": {
-              "processId": "assembly_seat",
-              "fixtureId": "filter_flask_destination_slot",
-              "objectId": "filter_flask",
-              "value": "seated"
-            }
-          }
-        ]
+        "portableProgram": {
+          "runtime": "robobuddy.portable-python.v1",
+          "sourceStyle": "ordinary synchronous physical-style Python",
+          "migratedFromCallCount": 0,
+          "learnerGradingCalls": false
+        },
+        "portableNegative": true
       }
     ]
+  },
+  "hiddenGradingRequirements": [
+    {
+      "id": "completion_observation",
+      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
+      "kind": "learner-recorded",
+      "allowedValues": [
+        "Visible destination seating confirmed with the robot clear."
+      ],
+      "availableWhen": {
+        "op": "all",
+        "predicates": [
+          {
+            "op": "object_at",
+            "objectId": "filtration_reagent_bottle",
+            "frameId": "filtration_reagent_bottle_destination"
+          },
+          {
+            "op": "object_at",
+            "objectId": "filtration_beaker",
+            "frameId": "filtration_beaker_destination"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "filtration_reagent_bottle_retreat"
+          },
+          {
+            "op": "frame_visited",
+            "frameId": "filtration_beaker_retreat"
+          },
+          {
+            "op": "process_state",
+            "processId": "assembly_seat",
+            "value": "seated"
+          }
+        ]
+      },
+      "requiresEvent": {
+        "type": "PROCESS_COMMIT",
+        "processId": "assembly_seat"
+      },
+      "learnerCallable": false,
+      "authority": "plant/events"
+    }
+  ],
+  "portablePython": {
+    "version": 1,
+    "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending.",
+    "execution": "whole synchronous script with __name__ == '__main__'",
+    "compatibilityModules": "browser-provided modules under exact public import paths; not upstream hardware packages",
+    "externalProfiles": [
+      "transport.json",
+      "workcell.json"
+    ],
+    "referenceActions": [
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 0,
+          "shoulder_lift.pos": -90,
+          "elbow_flex.pos": 85,
+          "wrist_flex.pos": 72,
+          "wrist_roll.pos": 88,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -3.940319,
+          "shoulder_lift.pos": -88.060105,
+          "elbow_flex.pos": 82.972023,
+          "wrist_flex.pos": 69.917048,
+          "wrist_roll.pos": 88.202936,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -7.880638,
+          "shoulder_lift.pos": -86.12021,
+          "elbow_flex.pos": 80.944046,
+          "wrist_flex.pos": 67.834095,
+          "wrist_roll.pos": 88.405872,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -11.820958,
+          "shoulder_lift.pos": -84.180315,
+          "elbow_flex.pos": 78.916069,
+          "wrist_flex.pos": 65.751143,
+          "wrist_roll.pos": 88.608808,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -15.761277,
+          "shoulder_lift.pos": -82.240421,
+          "elbow_flex.pos": 76.888092,
+          "wrist_flex.pos": 63.66819,
+          "wrist_roll.pos": 88.811744,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -19.701596,
+          "shoulder_lift.pos": -80.300526,
+          "elbow_flex.pos": 74.860114,
+          "wrist_flex.pos": 61.585238,
+          "wrist_roll.pos": 89.01468,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -23.641915,
+          "shoulder_lift.pos": -78.360631,
+          "elbow_flex.pos": 72.832137,
+          "wrist_flex.pos": 59.502285,
+          "wrist_roll.pos": 89.217616,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -27.582235,
+          "shoulder_lift.pos": -76.420736,
+          "elbow_flex.pos": 70.80416,
+          "wrist_flex.pos": 57.419333,
+          "wrist_roll.pos": 89.420552,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -31.522554,
+          "shoulder_lift.pos": -74.480841,
+          "elbow_flex.pos": 68.776183,
+          "wrist_flex.pos": 55.33638,
+          "wrist_roll.pos": 89.623488,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -35.462873,
+          "shoulder_lift.pos": -72.540946,
+          "elbow_flex.pos": 66.748206,
+          "wrist_flex.pos": 53.253428,
+          "wrist_roll.pos": 89.826424,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -39.403192,
+          "shoulder_lift.pos": -70.601051,
+          "elbow_flex.pos": 64.720229,
+          "wrist_flex.pos": 51.170475,
+          "wrist_roll.pos": 90.02936,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -43.343511,
+          "shoulder_lift.pos": -68.661157,
+          "elbow_flex.pos": 62.692252,
+          "wrist_flex.pos": 49.087523,
+          "wrist_roll.pos": 90.232296,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -47.283831,
+          "shoulder_lift.pos": -66.721262,
+          "elbow_flex.pos": 60.664275,
+          "wrist_flex.pos": 47.00457,
+          "wrist_roll.pos": 90.435232,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -51.22415,
+          "shoulder_lift.pos": -64.781367,
+          "elbow_flex.pos": 58.636298,
+          "wrist_flex.pos": 44.921618,
+          "wrist_roll.pos": 90.638168,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -55.164469,
+          "shoulder_lift.pos": -62.841472,
+          "elbow_flex.pos": 56.60832,
+          "wrist_flex.pos": 42.838666,
+          "wrist_roll.pos": 90.841104,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -59.104788,
+          "shoulder_lift.pos": -60.901577,
+          "elbow_flex.pos": 54.580343,
+          "wrist_flex.pos": 40.755713,
+          "wrist_roll.pos": 91.04404,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -63.045108,
+          "shoulder_lift.pos": -58.961682,
+          "elbow_flex.pos": 52.552366,
+          "wrist_flex.pos": 38.672761,
+          "wrist_roll.pos": 91.246976,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -66.985427,
+          "shoulder_lift.pos": -57.021788,
+          "elbow_flex.pos": 50.524389,
+          "wrist_flex.pos": 36.589808,
+          "wrist_roll.pos": 91.449912,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -70.925746,
+          "shoulder_lift.pos": -55.081893,
+          "elbow_flex.pos": 48.496412,
+          "wrist_flex.pos": 34.506856,
+          "wrist_roll.pos": 91.652848,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -74.866065,
+          "shoulder_lift.pos": -53.141998,
+          "elbow_flex.pos": 46.468435,
+          "wrist_flex.pos": 32.423903,
+          "wrist_roll.pos": 91.855785,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -78.806384,
+          "shoulder_lift.pos": -51.202103,
+          "elbow_flex.pos": 44.440458,
+          "wrist_flex.pos": 30.340951,
+          "wrist_roll.pos": 92.058721,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -82.746704,
+          "shoulder_lift.pos": -49.262208,
+          "elbow_flex.pos": 42.412481,
+          "wrist_flex.pos": 28.257998,
+          "wrist_roll.pos": 92.261657,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "approach",
+        "action": {
+          "shoulder_pan.pos": -86.687023,
+          "shoulder_lift.pos": -47.322313,
+          "elbow_flex.pos": 40.384503,
+          "wrist_flex.pos": 26.175046,
+          "wrist_roll.pos": 92.464593,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.71811,
+          "shoulder_lift.pos": -43.35523,
+          "elbow_flex.pos": 41.696706,
+          "wrist_flex.pos": 25.470628,
+          "wrist_roll.pos": 92.37488,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.749197,
+          "shoulder_lift.pos": -39.388146,
+          "elbow_flex.pos": 43.008908,
+          "wrist_flex.pos": 24.766211,
+          "wrist_roll.pos": 92.285167,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.780283,
+          "shoulder_lift.pos": -35.421062,
+          "elbow_flex.pos": 44.32111,
+          "wrist_flex.pos": 24.061794,
+          "wrist_roll.pos": 92.195455,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.81137,
+          "shoulder_lift.pos": -31.453978,
+          "elbow_flex.pos": 45.633312,
+          "wrist_flex.pos": 23.357376,
+          "wrist_roll.pos": 92.105742,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.842457,
+          "shoulder_lift.pos": -27.486895,
+          "elbow_flex.pos": 46.945514,
+          "wrist_flex.pos": 22.652959,
+          "wrist_roll.pos": 92.016029,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.842457,
+          "shoulder_lift.pos": -27.486895,
+          "elbow_flex.pos": 46.945514,
+          "wrist_flex.pos": 22.652959,
+          "wrist_roll.pos": 92.016029,
+          "gripper.pos": 33
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.842457,
+          "shoulder_lift.pos": -27.486895,
+          "elbow_flex.pos": 46.945514,
+          "wrist_flex.pos": 22.652959,
+          "wrist_roll.pos": 92.016029,
+          "gripper.pos": 46
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.842457,
+          "shoulder_lift.pos": -27.486895,
+          "elbow_flex.pos": 46.945514,
+          "wrist_flex.pos": 22.652959,
+          "wrist_roll.pos": 92.016029,
+          "gripper.pos": 59
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -86.842457,
+          "shoulder_lift.pos": -27.486895,
+          "elbow_flex.pos": 46.945514,
+          "wrist_flex.pos": 22.652959,
+          "wrist_roll.pos": 92.016029,
+          "gripper.pos": 72
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "close_after_contact",
+        "action": {
+          "shoulder_pan.pos": -86.842457,
+          "shoulder_lift.pos": -27.486895,
+          "elbow_flex.pos": 46.945514,
+          "wrist_flex.pos": 22.652959,
+          "wrist_roll.pos": 92.016029,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.9
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -86.908412,
+          "shoulder_lift.pos": -31.093784,
+          "elbow_flex.pos": 44.819712,
+          "wrist_flex.pos": 24.340604,
+          "wrist_roll.pos": 92.030656,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -86.974366,
+          "shoulder_lift.pos": -34.700673,
+          "elbow_flex.pos": 42.69391,
+          "wrist_flex.pos": 26.02825,
+          "wrist_roll.pos": 92.045284,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -87.040321,
+          "shoulder_lift.pos": -38.307562,
+          "elbow_flex.pos": 40.568108,
+          "wrist_flex.pos": 27.715896,
+          "wrist_roll.pos": 92.059911,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -87.106275,
+          "shoulder_lift.pos": -41.914452,
+          "elbow_flex.pos": 38.442305,
+          "wrist_flex.pos": 29.403542,
+          "wrist_roll.pos": 92.074538,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -87.17223,
+          "shoulder_lift.pos": -45.521341,
+          "elbow_flex.pos": 36.316503,
+          "wrist_flex.pos": 31.091187,
+          "wrist_roll.pos": 92.089165,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -83.263005,
+          "shoulder_lift.pos": -44.730283,
+          "elbow_flex.pos": 35.868255,
+          "wrist_flex.pos": 30.654062,
+          "wrist_roll.pos": 92.161708,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -79.35378,
+          "shoulder_lift.pos": -43.939226,
+          "elbow_flex.pos": 35.420007,
+          "wrist_flex.pos": 30.216937,
+          "wrist_roll.pos": 92.23425,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -75.444555,
+          "shoulder_lift.pos": -43.148169,
+          "elbow_flex.pos": 34.971759,
+          "wrist_flex.pos": 29.779811,
+          "wrist_roll.pos": 92.306793,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -71.53533,
+          "shoulder_lift.pos": -42.357111,
+          "elbow_flex.pos": 34.523512,
+          "wrist_flex.pos": 29.342686,
+          "wrist_roll.pos": 92.379336,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -67.626105,
+          "shoulder_lift.pos": -41.566054,
+          "elbow_flex.pos": 34.075264,
+          "wrist_flex.pos": 28.905561,
+          "wrist_roll.pos": 92.451878,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -63.71688,
+          "shoulder_lift.pos": -40.774996,
+          "elbow_flex.pos": 33.627016,
+          "wrist_flex.pos": 28.468436,
+          "wrist_roll.pos": 92.524421,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -59.807655,
+          "shoulder_lift.pos": -39.983939,
+          "elbow_flex.pos": 33.178768,
+          "wrist_flex.pos": 28.03131,
+          "wrist_roll.pos": 92.596963,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -55.89843,
+          "shoulder_lift.pos": -39.192881,
+          "elbow_flex.pos": 32.73052,
+          "wrist_flex.pos": 27.594185,
+          "wrist_roll.pos": 92.669506,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -51.989205,
+          "shoulder_lift.pos": -38.401824,
+          "elbow_flex.pos": 32.282272,
+          "wrist_flex.pos": 27.15706,
+          "wrist_roll.pos": 92.742049,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -48.07998,
+          "shoulder_lift.pos": -37.610767,
+          "elbow_flex.pos": 31.834024,
+          "wrist_flex.pos": 26.719935,
+          "wrist_roll.pos": 92.814591,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -44.170755,
+          "shoulder_lift.pos": -36.819709,
+          "elbow_flex.pos": 31.385776,
+          "wrist_flex.pos": 26.282809,
+          "wrist_roll.pos": 92.887134,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -40.26153,
+          "shoulder_lift.pos": -36.028652,
+          "elbow_flex.pos": 30.937528,
+          "wrist_flex.pos": 25.845684,
+          "wrist_roll.pos": 92.959676,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -36.352304,
+          "shoulder_lift.pos": -35.237594,
+          "elbow_flex.pos": 30.48928,
+          "wrist_flex.pos": 25.408559,
+          "wrist_roll.pos": 93.032219,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -32.443079,
+          "shoulder_lift.pos": -34.446537,
+          "elbow_flex.pos": 30.041032,
+          "wrist_flex.pos": 24.971434,
+          "wrist_roll.pos": 93.104762,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -28.533854,
+          "shoulder_lift.pos": -33.655479,
+          "elbow_flex.pos": 29.592784,
+          "wrist_flex.pos": 24.534308,
+          "wrist_roll.pos": 93.177304,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -24.624629,
+          "shoulder_lift.pos": -32.864422,
+          "elbow_flex.pos": 29.144536,
+          "wrist_flex.pos": 24.097183,
+          "wrist_roll.pos": 93.249847,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -20.715404,
+          "shoulder_lift.pos": -32.073365,
+          "elbow_flex.pos": 28.696288,
+          "wrist_flex.pos": 23.660058,
+          "wrist_roll.pos": 93.322389,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -16.806179,
+          "shoulder_lift.pos": -31.282307,
+          "elbow_flex.pos": 28.24804,
+          "wrist_flex.pos": 23.222933,
+          "wrist_roll.pos": 93.394932,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -12.896954,
+          "shoulder_lift.pos": -30.49125,
+          "elbow_flex.pos": 27.799792,
+          "wrist_flex.pos": 22.785807,
+          "wrist_roll.pos": 93.467475,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -8.987729,
+          "shoulder_lift.pos": -29.700192,
+          "elbow_flex.pos": 27.351545,
+          "wrist_flex.pos": 22.348682,
+          "wrist_roll.pos": 93.540017,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -5.078504,
+          "shoulder_lift.pos": -28.909135,
+          "elbow_flex.pos": 26.903297,
+          "wrist_flex.pos": 21.911557,
+          "wrist_roll.pos": 93.61256,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -1.169279,
+          "shoulder_lift.pos": -28.118077,
+          "elbow_flex.pos": 26.455049,
+          "wrist_flex.pos": 21.474431,
+          "wrist_roll.pos": 93.685102,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 2.739946,
+          "shoulder_lift.pos": -27.32702,
+          "elbow_flex.pos": 26.006801,
+          "wrist_flex.pos": 21.037306,
+          "wrist_roll.pos": 93.757645,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 6.649171,
+          "shoulder_lift.pos": -26.535962,
+          "elbow_flex.pos": 25.558553,
+          "wrist_flex.pos": 20.600181,
+          "wrist_roll.pos": 93.830188,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 10.558396,
+          "shoulder_lift.pos": -25.744905,
+          "elbow_flex.pos": 25.110305,
+          "wrist_flex.pos": 20.163056,
+          "wrist_roll.pos": 93.90273,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 14.467621,
+          "shoulder_lift.pos": -24.953848,
+          "elbow_flex.pos": 24.662057,
+          "wrist_flex.pos": 19.72593,
+          "wrist_roll.pos": 93.975273,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 18.376846,
+          "shoulder_lift.pos": -24.16279,
+          "elbow_flex.pos": 24.213809,
+          "wrist_flex.pos": 19.288805,
+          "wrist_roll.pos": 94.047815,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 22.286071,
+          "shoulder_lift.pos": -23.371733,
+          "elbow_flex.pos": 23.765561,
+          "wrist_flex.pos": 18.85168,
+          "wrist_roll.pos": 94.120358,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 26.195296,
+          "shoulder_lift.pos": -22.580675,
+          "elbow_flex.pos": 23.317313,
+          "wrist_flex.pos": 18.414555,
+          "wrist_roll.pos": 94.1929,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 30.104521,
+          "shoulder_lift.pos": -21.789618,
+          "elbow_flex.pos": 22.869065,
+          "wrist_flex.pos": 17.977429,
+          "wrist_roll.pos": 94.265443,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.102823,
+          "shoulder_lift.pos": -18.047335,
+          "elbow_flex.pos": 23.014657,
+          "wrist_flex.pos": 18.649353,
+          "wrist_roll.pos": 93.814842,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.101126,
+          "shoulder_lift.pos": -14.305053,
+          "elbow_flex.pos": 23.160248,
+          "wrist_flex.pos": 19.321276,
+          "wrist_roll.pos": 93.364241,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.099428,
+          "shoulder_lift.pos": -10.562771,
+          "elbow_flex.pos": 23.305839,
+          "wrist_flex.pos": 19.9932,
+          "wrist_roll.pos": 92.91364,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.097731,
+          "shoulder_lift.pos": -6.820488,
+          "elbow_flex.pos": 23.451431,
+          "wrist_flex.pos": 20.665123,
+          "wrist_roll.pos": 92.463039,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place_contact",
+        "action": {
+          "shoulder_pan.pos": 30.096034,
+          "shoulder_lift.pos": -3.078206,
+          "elbow_flex.pos": 23.597022,
+          "wrist_flex.pos": 21.337047,
+          "wrist_roll.pos": 92.012438,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.096034,
+          "shoulder_lift.pos": -3.078206,
+          "elbow_flex.pos": 23.597022,
+          "wrist_flex.pos": 21.337047,
+          "wrist_roll.pos": 92.012438,
+          "gripper.pos": 72
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.096034,
+          "shoulder_lift.pos": -3.078206,
+          "elbow_flex.pos": 23.597022,
+          "wrist_flex.pos": 21.337047,
+          "wrist_roll.pos": 92.012438,
+          "gripper.pos": 59
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.096034,
+          "shoulder_lift.pos": -3.078206,
+          "elbow_flex.pos": 23.597022,
+          "wrist_flex.pos": 21.337047,
+          "wrist_roll.pos": 92.012438,
+          "gripper.pos": 46
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 30.096034,
+          "shoulder_lift.pos": -3.078206,
+          "elbow_flex.pos": 23.597022,
+          "wrist_flex.pos": 21.337047,
+          "wrist_roll.pos": 92.012438,
+          "gripper.pos": 33
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "open_then_detach",
+        "action": {
+          "shoulder_pan.pos": 30.096034,
+          "shoulder_lift.pos": -3.078206,
+          "elbow_flex.pos": 23.597022,
+          "wrist_flex.pos": 21.337047,
+          "wrist_roll.pos": 92.012438,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.9
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.096031,
+          "shoulder_lift.pos": -3.765478,
+          "elbow_flex.pos": 20.957478,
+          "wrist_flex.pos": 24.645436,
+          "wrist_roll.pos": 92.012172,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.096028,
+          "shoulder_lift.pos": -4.452751,
+          "elbow_flex.pos": 18.317933,
+          "wrist_flex.pos": 27.953825,
+          "wrist_roll.pos": 92.011905,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.096026,
+          "shoulder_lift.pos": -5.140023,
+          "elbow_flex.pos": 15.678389,
+          "wrist_flex.pos": 31.262214,
+          "wrist_roll.pos": 92.011639,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.096023,
+          "shoulder_lift.pos": -5.827296,
+          "elbow_flex.pos": 13.038845,
+          "wrist_flex.pos": 34.570603,
+          "wrist_roll.pos": 92.011372,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "release_clearance",
+        "action": {
+          "shoulder_pan.pos": 30.096021,
+          "shoulder_lift.pos": -6.514568,
+          "elbow_flex.pos": 10.399301,
+          "wrist_flex.pos": 37.878992,
+          "wrist_roll.pos": 92.011105,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.095862,
+          "shoulder_lift.pos": -9.256548,
+          "elbow_flex.pos": 8.876335,
+          "wrist_flex.pos": 37.727879,
+          "wrist_roll.pos": 92.009825,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.095702,
+          "shoulder_lift.pos": -11.998528,
+          "elbow_flex.pos": 7.353368,
+          "wrist_flex.pos": 37.576766,
+          "wrist_roll.pos": 92.008544,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 30.095543,
+          "shoulder_lift.pos": -14.740508,
+          "elbow_flex.pos": 5.830402,
+          "wrist_flex.pos": 37.425652,
+          "wrist_roll.pos": 92.007263,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 26.275673,
+          "shoulder_lift.pos": -14.396333,
+          "elbow_flex.pos": 5.707741,
+          "wrist_flex.pos": 36.802104,
+          "wrist_roll.pos": 92.073885,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 22.455804,
+          "shoulder_lift.pos": -14.052159,
+          "elbow_flex.pos": 5.58508,
+          "wrist_flex.pos": 36.178556,
+          "wrist_roll.pos": 92.140507,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 18.635934,
+          "shoulder_lift.pos": -13.707984,
+          "elbow_flex.pos": 5.462419,
+          "wrist_flex.pos": 35.555007,
+          "wrist_roll.pos": 92.207129,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 14.816064,
+          "shoulder_lift.pos": -13.36381,
+          "elbow_flex.pos": 5.339759,
+          "wrist_flex.pos": 34.931459,
+          "wrist_roll.pos": 92.273752,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 10.996194,
+          "shoulder_lift.pos": -13.019635,
+          "elbow_flex.pos": 5.217098,
+          "wrist_flex.pos": 34.307911,
+          "wrist_roll.pos": 92.340374,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 7.176324,
+          "shoulder_lift.pos": -12.675461,
+          "elbow_flex.pos": 5.094437,
+          "wrist_flex.pos": 33.684362,
+          "wrist_roll.pos": 92.406996,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": 3.356454,
+          "shoulder_lift.pos": -12.331286,
+          "elbow_flex.pos": 4.971776,
+          "wrist_flex.pos": 33.060814,
+          "wrist_roll.pos": 92.473618,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -0.463415,
+          "shoulder_lift.pos": -11.987112,
+          "elbow_flex.pos": 4.849115,
+          "wrist_flex.pos": 32.437266,
+          "wrist_roll.pos": 92.54024,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -4.283285,
+          "shoulder_lift.pos": -11.642937,
+          "elbow_flex.pos": 4.726454,
+          "wrist_flex.pos": 31.813717,
+          "wrist_roll.pos": 92.606863,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -8.103155,
+          "shoulder_lift.pos": -11.298763,
+          "elbow_flex.pos": 4.603794,
+          "wrist_flex.pos": 31.190169,
+          "wrist_roll.pos": 92.673485,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -11.923025,
+          "shoulder_lift.pos": -10.954588,
+          "elbow_flex.pos": 4.481133,
+          "wrist_flex.pos": 30.566621,
+          "wrist_roll.pos": 92.740107,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -15.742895,
+          "shoulder_lift.pos": -10.610414,
+          "elbow_flex.pos": 4.358472,
+          "wrist_flex.pos": 29.943072,
+          "wrist_roll.pos": 92.806729,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -19.562765,
+          "shoulder_lift.pos": -10.266239,
+          "elbow_flex.pos": 4.235811,
+          "wrist_flex.pos": 29.319524,
+          "wrist_roll.pos": 92.873351,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -23.382634,
+          "shoulder_lift.pos": -9.922065,
+          "elbow_flex.pos": 4.11315,
+          "wrist_flex.pos": 28.695976,
+          "wrist_roll.pos": 92.939973,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -27.202504,
+          "shoulder_lift.pos": -9.57789,
+          "elbow_flex.pos": 3.990489,
+          "wrist_flex.pos": 28.072427,
+          "wrist_roll.pos": 93.006596,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -31.022374,
+          "shoulder_lift.pos": -9.233716,
+          "elbow_flex.pos": 3.867829,
+          "wrist_flex.pos": 27.448879,
+          "wrist_roll.pos": 93.073218,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -34.842244,
+          "shoulder_lift.pos": -8.889541,
+          "elbow_flex.pos": 3.745168,
+          "wrist_flex.pos": 26.825331,
+          "wrist_roll.pos": 93.13984,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -38.662114,
+          "shoulder_lift.pos": -8.545367,
+          "elbow_flex.pos": 3.622507,
+          "wrist_flex.pos": 26.201782,
+          "wrist_roll.pos": 93.206462,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -42.481984,
+          "shoulder_lift.pos": -8.201192,
+          "elbow_flex.pos": 3.499846,
+          "wrist_flex.pos": 25.578234,
+          "wrist_roll.pos": 93.273084,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "pre_contact",
+        "action": {
+          "shoulder_pan.pos": -46.301853,
+          "shoulder_lift.pos": -7.857018,
+          "elbow_flex.pos": 3.377185,
+          "wrist_flex.pos": 24.954686,
+          "wrist_roll.pos": 93.339707,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "approach",
+        "action": {
+          "shoulder_pan.pos": -50.121723,
+          "shoulder_lift.pos": -7.512843,
+          "elbow_flex.pos": 3.254525,
+          "wrist_flex.pos": 24.331137,
+          "wrist_roll.pos": 93.406329,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -50.085178,
+          "shoulder_lift.pos": -3.765256,
+          "elbow_flex.pos": 1.673923,
+          "wrist_flex.pos": 26.542762,
+          "wrist_roll.pos": 93.553084,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -50.048633,
+          "shoulder_lift.pos": -0.017668,
+          "elbow_flex.pos": 0.093321,
+          "wrist_flex.pos": 28.754386,
+          "wrist_roll.pos": 93.69984,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -50.012087,
+          "shoulder_lift.pos": 3.72992,
+          "elbow_flex.pos": -1.487281,
+          "wrist_flex.pos": 30.96601,
+          "wrist_roll.pos": 93.846596,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.975542,
+          "shoulder_lift.pos": 7.477508,
+          "elbow_flex.pos": -3.067882,
+          "wrist_flex.pos": 33.177635,
+          "wrist_roll.pos": 93.993352,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.938996,
+          "shoulder_lift.pos": 11.225096,
+          "elbow_flex.pos": -4.648484,
+          "wrist_flex.pos": 35.389259,
+          "wrist_roll.pos": 94.140107,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.902451,
+          "shoulder_lift.pos": 14.972684,
+          "elbow_flex.pos": -6.229086,
+          "wrist_flex.pos": 37.600884,
+          "wrist_roll.pos": 94.286863,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.865906,
+          "shoulder_lift.pos": 18.720271,
+          "elbow_flex.pos": -7.809688,
+          "wrist_flex.pos": 39.812508,
+          "wrist_roll.pos": 94.433619,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.865906,
+          "shoulder_lift.pos": 18.720271,
+          "elbow_flex.pos": -7.809688,
+          "wrist_flex.pos": 39.812508,
+          "wrist_roll.pos": 94.433619,
+          "gripper.pos": 33
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.865906,
+          "shoulder_lift.pos": 18.720271,
+          "elbow_flex.pos": -7.809688,
+          "wrist_flex.pos": 39.812508,
+          "wrist_roll.pos": 94.433619,
+          "gripper.pos": 46
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.865906,
+          "shoulder_lift.pos": 18.720271,
+          "elbow_flex.pos": -7.809688,
+          "wrist_flex.pos": 39.812508,
+          "wrist_roll.pos": 94.433619,
+          "gripper.pos": 59
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "contact",
+        "action": {
+          "shoulder_pan.pos": -49.865906,
+          "shoulder_lift.pos": 18.720271,
+          "elbow_flex.pos": -7.809688,
+          "wrist_flex.pos": 39.812508,
+          "wrist_roll.pos": 94.433619,
+          "gripper.pos": 72
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "close_after_contact",
+        "action": {
+          "shoulder_pan.pos": -49.865906,
+          "shoulder_lift.pos": 18.720271,
+          "elbow_flex.pos": -7.809688,
+          "wrist_flex.pos": 39.812508,
+          "wrist_roll.pos": 94.433619,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.9
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -49.813803,
+          "shoulder_lift.pos": 15.19105,
+          "elbow_flex.pos": -9.7185,
+          "wrist_flex.pos": 41.029493,
+          "wrist_roll.pos": 94.444883,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -49.761699,
+          "shoulder_lift.pos": 11.661829,
+          "elbow_flex.pos": -11.627312,
+          "wrist_flex.pos": 42.246478,
+          "wrist_roll.pos": 94.456147,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -49.709596,
+          "shoulder_lift.pos": 8.132608,
+          "elbow_flex.pos": -13.536125,
+          "wrist_flex.pos": 43.463464,
+          "wrist_roll.pos": 94.467412,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -49.657493,
+          "shoulder_lift.pos": 4.603387,
+          "elbow_flex.pos": -15.444937,
+          "wrist_flex.pos": 44.680449,
+          "wrist_roll.pos": 94.478676,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "lift",
+        "action": {
+          "shoulder_pan.pos": -49.60539,
+          "shoulder_lift.pos": 1.074165,
+          "elbow_flex.pos": -17.353749,
+          "wrist_flex.pos": 45.897434,
+          "wrist_roll.pos": 94.489941,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -45.619798,
+          "shoulder_lift.pos": 0.259114,
+          "elbow_flex.pos": -16.501795,
+          "wrist_flex.pos": 45.811093,
+          "wrist_roll.pos": 94.68985,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -41.634207,
+          "shoulder_lift.pos": -0.555938,
+          "elbow_flex.pos": -15.649842,
+          "wrist_flex.pos": 45.724752,
+          "wrist_roll.pos": 94.88976,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -37.648616,
+          "shoulder_lift.pos": -1.370989,
+          "elbow_flex.pos": -14.797888,
+          "wrist_flex.pos": 45.638412,
+          "wrist_roll.pos": 95.089669,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -33.663025,
+          "shoulder_lift.pos": -2.186041,
+          "elbow_flex.pos": -13.945934,
+          "wrist_flex.pos": 45.552071,
+          "wrist_roll.pos": 95.289579,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -29.677433,
+          "shoulder_lift.pos": -3.001092,
+          "elbow_flex.pos": -13.093981,
+          "wrist_flex.pos": 45.46573,
+          "wrist_roll.pos": 95.489488,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -25.691842,
+          "shoulder_lift.pos": -3.816144,
+          "elbow_flex.pos": -12.242027,
+          "wrist_flex.pos": 45.37939,
+          "wrist_roll.pos": 95.689398,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -21.706251,
+          "shoulder_lift.pos": -4.631195,
+          "elbow_flex.pos": -11.390073,
+          "wrist_flex.pos": 45.293049,
+          "wrist_roll.pos": 95.889307,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -17.72066,
+          "shoulder_lift.pos": -5.446247,
+          "elbow_flex.pos": -10.538119,
+          "wrist_flex.pos": 45.206708,
+          "wrist_roll.pos": 96.089217,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -13.735068,
+          "shoulder_lift.pos": -6.261298,
+          "elbow_flex.pos": -9.686166,
+          "wrist_flex.pos": 45.120368,
+          "wrist_roll.pos": 96.289126,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -9.749477,
+          "shoulder_lift.pos": -7.07635,
+          "elbow_flex.pos": -8.834212,
+          "wrist_flex.pos": 45.034027,
+          "wrist_roll.pos": 96.489036,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -5.763886,
+          "shoulder_lift.pos": -7.891401,
+          "elbow_flex.pos": -7.982258,
+          "wrist_flex.pos": 44.947686,
+          "wrist_roll.pos": 96.688946,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": -1.778295,
+          "shoulder_lift.pos": -8.706453,
+          "elbow_flex.pos": -7.130305,
+          "wrist_flex.pos": 44.861346,
+          "wrist_roll.pos": 96.888855,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 2.207297,
+          "shoulder_lift.pos": -9.521504,
+          "elbow_flex.pos": -6.278351,
+          "wrist_flex.pos": 44.775005,
+          "wrist_roll.pos": 97.088765,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 6.192888,
+          "shoulder_lift.pos": -10.336556,
+          "elbow_flex.pos": -5.426397,
+          "wrist_flex.pos": 44.688664,
+          "wrist_roll.pos": 97.288674,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 10.178479,
+          "shoulder_lift.pos": -11.151607,
+          "elbow_flex.pos": -4.574444,
+          "wrist_flex.pos": 44.602324,
+          "wrist_roll.pos": 97.488584,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 14.16407,
+          "shoulder_lift.pos": -11.966659,
+          "elbow_flex.pos": -3.72249,
+          "wrist_flex.pos": 44.515983,
+          "wrist_roll.pos": 97.688493,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 18.149662,
+          "shoulder_lift.pos": -12.781711,
+          "elbow_flex.pos": -2.870536,
+          "wrist_flex.pos": 44.429642,
+          "wrist_roll.pos": 97.888403,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 22.135253,
+          "shoulder_lift.pos": -13.596762,
+          "elbow_flex.pos": -2.018583,
+          "wrist_flex.pos": 44.343302,
+          "wrist_roll.pos": 98.088312,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 26.120844,
+          "shoulder_lift.pos": -14.411814,
+          "elbow_flex.pos": -1.166629,
+          "wrist_flex.pos": 44.256961,
+          "wrist_roll.pos": 98.288222,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 30.106435,
+          "shoulder_lift.pos": -15.226865,
+          "elbow_flex.pos": -0.314675,
+          "wrist_flex.pos": 44.17062,
+          "wrist_roll.pos": 98.488131,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 34.092027,
+          "shoulder_lift.pos": -16.041917,
+          "elbow_flex.pos": 0.537279,
+          "wrist_flex.pos": 44.08428,
+          "wrist_roll.pos": 98.688041,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 38.077618,
+          "shoulder_lift.pos": -16.856968,
+          "elbow_flex.pos": 1.389232,
+          "wrist_flex.pos": 43.997939,
+          "wrist_roll.pos": 98.88795,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 42.063209,
+          "shoulder_lift.pos": -17.67202,
+          "elbow_flex.pos": 2.241186,
+          "wrist_flex.pos": 43.911598,
+          "wrist_roll.pos": 99.08786,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 46.0488,
+          "shoulder_lift.pos": -18.487071,
+          "elbow_flex.pos": 3.09314,
+          "wrist_flex.pos": 43.825257,
+          "wrist_roll.pos": 99.287769,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 50.034391,
+          "shoulder_lift.pos": -19.302123,
+          "elbow_flex.pos": 3.945093,
+          "wrist_flex.pos": 43.738917,
+          "wrist_roll.pos": 99.487679,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 54.019983,
+          "shoulder_lift.pos": -20.117174,
+          "elbow_flex.pos": 4.797047,
+          "wrist_flex.pos": 43.652576,
+          "wrist_roll.pos": 99.687588,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 58.005574,
+          "shoulder_lift.pos": -20.932226,
+          "elbow_flex.pos": 5.649001,
+          "wrist_flex.pos": 43.566235,
+          "wrist_roll.pos": 99.887498,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 61.991165,
+          "shoulder_lift.pos": -21.747277,
+          "elbow_flex.pos": 6.500954,
+          "wrist_flex.pos": 43.479895,
+          "wrist_roll.pos": 100.087407,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 65.976756,
+          "shoulder_lift.pos": -22.562329,
+          "elbow_flex.pos": 7.352908,
+          "wrist_flex.pos": 43.393554,
+          "wrist_roll.pos": 100.287317,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 69.962348,
+          "shoulder_lift.pos": -23.37738,
+          "elbow_flex.pos": 8.204862,
+          "wrist_flex.pos": 43.307213,
+          "wrist_roll.pos": 100.487227,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 73.947939,
+          "shoulder_lift.pos": -24.192432,
+          "elbow_flex.pos": 9.056815,
+          "wrist_flex.pos": 43.220873,
+          "wrist_roll.pos": 100.687136,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 77.93353,
+          "shoulder_lift.pos": -25.007483,
+          "elbow_flex.pos": 9.908769,
+          "wrist_flex.pos": 43.134532,
+          "wrist_roll.pos": 100.887046,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 81.919121,
+          "shoulder_lift.pos": -25.822535,
+          "elbow_flex.pos": 10.760723,
+          "wrist_flex.pos": 43.048191,
+          "wrist_roll.pos": 101.086955,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 85.904713,
+          "shoulder_lift.pos": -26.637586,
+          "elbow_flex.pos": 11.612676,
+          "wrist_flex.pos": 42.961851,
+          "wrist_roll.pos": 101.286865,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 89.890304,
+          "shoulder_lift.pos": -27.452638,
+          "elbow_flex.pos": 12.46463,
+          "wrist_flex.pos": 42.87551,
+          "wrist_roll.pos": 101.486774,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 93.875895,
+          "shoulder_lift.pos": -28.26769,
+          "elbow_flex.pos": 13.316584,
+          "wrist_flex.pos": 42.789169,
+          "wrist_roll.pos": 101.686684,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 97.861486,
+          "shoulder_lift.pos": -29.082741,
+          "elbow_flex.pos": 14.168538,
+          "wrist_flex.pos": 42.702829,
+          "wrist_roll.pos": 101.886593,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 101.847078,
+          "shoulder_lift.pos": -29.897793,
+          "elbow_flex.pos": 15.020491,
+          "wrist_flex.pos": 42.616488,
+          "wrist_roll.pos": 102.086503,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 105.832669,
+          "shoulder_lift.pos": -30.712844,
+          "elbow_flex.pos": 15.872445,
+          "wrist_flex.pos": 42.530147,
+          "wrist_roll.pos": 102.286412,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "transfer",
+        "action": {
+          "shoulder_pan.pos": 109.81826,
+          "shoulder_lift.pos": -31.527896,
+          "elbow_flex.pos": 16.724399,
+          "wrist_flex.pos": 42.443807,
+          "wrist_roll.pos": 102.486322,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818391,
+          "shoulder_lift.pos": -27.541045,
+          "elbow_flex.pos": 19.436542,
+          "wrist_flex.pos": 40.37603,
+          "wrist_roll.pos": 100.871021,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818522,
+          "shoulder_lift.pos": -23.554195,
+          "elbow_flex.pos": 22.148685,
+          "wrist_flex.pos": 38.308254,
+          "wrist_roll.pos": 99.25572,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818652,
+          "shoulder_lift.pos": -19.567344,
+          "elbow_flex.pos": 24.860828,
+          "wrist_flex.pos": 36.240478,
+          "wrist_roll.pos": 97.640418,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818783,
+          "shoulder_lift.pos": -15.580494,
+          "elbow_flex.pos": 27.572972,
+          "wrist_flex.pos": 34.172701,
+          "wrist_roll.pos": 96.025117,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place_contact",
+        "action": {
+          "shoulder_pan.pos": 109.818914,
+          "shoulder_lift.pos": -11.593643,
+          "elbow_flex.pos": 30.285115,
+          "wrist_flex.pos": 32.104925,
+          "wrist_roll.pos": 94.409816,
+          "gripper.pos": 85
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818914,
+          "shoulder_lift.pos": -11.593643,
+          "elbow_flex.pos": 30.285115,
+          "wrist_flex.pos": 32.104925,
+          "wrist_roll.pos": 94.409816,
+          "gripper.pos": 72
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818914,
+          "shoulder_lift.pos": -11.593643,
+          "elbow_flex.pos": 30.285115,
+          "wrist_flex.pos": 32.104925,
+          "wrist_roll.pos": 94.409816,
+          "gripper.pos": 59
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818914,
+          "shoulder_lift.pos": -11.593643,
+          "elbow_flex.pos": 30.285115,
+          "wrist_flex.pos": 32.104925,
+          "wrist_roll.pos": 94.409816,
+          "gripper.pos": 46
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "place",
+        "action": {
+          "shoulder_pan.pos": 109.818914,
+          "shoulder_lift.pos": -11.593643,
+          "elbow_flex.pos": 30.285115,
+          "wrist_flex.pos": 32.104925,
+          "wrist_roll.pos": 94.409816,
+          "gripper.pos": 33
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "open_then_detach",
+        "action": {
+          "shoulder_pan.pos": 109.818914,
+          "shoulder_lift.pos": -11.593643,
+          "elbow_flex.pos": 30.285115,
+          "wrist_flex.pos": 32.104925,
+          "wrist_roll.pos": 94.409816,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.9
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.818165,
+          "shoulder_lift.pos": -12.524313,
+          "elbow_flex.pos": 27.153316,
+          "wrist_flex.pos": 35.984846,
+          "wrist_roll.pos": 94.24776,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.817416,
+          "shoulder_lift.pos": -13.454982,
+          "elbow_flex.pos": 24.021517,
+          "wrist_flex.pos": 39.864766,
+          "wrist_roll.pos": 94.085703,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.816667,
+          "shoulder_lift.pos": -14.385652,
+          "elbow_flex.pos": 20.889718,
+          "wrist_flex.pos": 43.744687,
+          "wrist_roll.pos": 93.923647,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "release_clearance",
+        "action": {
+          "shoulder_pan.pos": 109.815919,
+          "shoulder_lift.pos": -15.316322,
+          "elbow_flex.pos": 17.757919,
+          "wrist_flex.pos": 47.624608,
+          "wrist_roll.pos": 93.76159,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.816521,
+          "shoulder_lift.pos": -18.477318,
+          "elbow_flex.pos": 15.606136,
+          "wrist_flex.pos": 48.415374,
+          "wrist_roll.pos": 93.768381,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.817124,
+          "shoulder_lift.pos": -21.638315,
+          "elbow_flex.pos": 13.454352,
+          "wrist_flex.pos": 49.20614,
+          "wrist_roll.pos": 93.775172,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.817727,
+          "shoulder_lift.pos": -24.799312,
+          "elbow_flex.pos": 11.302569,
+          "wrist_flex.pos": 49.996907,
+          "wrist_roll.pos": 93.781962,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      },
+      {
+        "label": "retreat",
+        "action": {
+          "shoulder_pan.pos": 109.81833,
+          "shoulder_lift.pos": -27.960308,
+          "elbow_flex.pos": 9.150785,
+          "wrist_flex.pos": 50.787673,
+          "wrist_roll.pos": 93.788753,
+          "gripper.pos": 20
+        },
+        "hold_seconds": 0.5
+      }
+    ],
+    "gradingAuthority": "authoritative fixed-step plant, FK contact, object, fixture, and event state only",
+    "learnerGradingCalls": false,
+    "unsupported": [
+      "dynamics and controller emulation",
+      "physical transport/calibration/sensing",
+      "hardware certification and validation"
+    ],
+    "referenceExecution": {
+      "id": "physical-style-python-reference",
+      "actionCount": 182,
+      "source": "legacy reviewed kinematic reference compiled to public pinned action fields",
+      "taskOutcomeExpected": true
+    },
+    "officialPython": {
+      "importPath": "lerobot.robots.so_follower",
+      "robotClass": "SO101Follower",
+      "configClass": "SO101FollowerConfig",
+      "actionMethod": "send_action",
+      "observationMethod": "get_observation",
+      "synchronous": true,
+      "sourceRevision": "7e241bd630a3719a56157a497ce5d08f244784f1",
+      "browserBoundary": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
+    }
   }
 }

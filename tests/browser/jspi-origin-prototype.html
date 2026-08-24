@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RoboBuddy JSPI deployment-origin gate</title>
+  <style>
+    body { font: 16px/1.45 system-ui, sans-serif; margin: 2rem; color: #17202a; }
+    button { margin: 0 .35rem .5rem 0; padding: .55rem .8rem; }
+    pre { white-space: pre-wrap; padding: 1rem; background: #f3f5f7; border: 1px solid #ccd3da; }
+    [data-status="pass"] { color: #126b35; } [data-status="fail"] { color: #9b1c1c; }
+  </style>
+</head>
+<body>
+  <h1>JSPI deployment-origin gate</h1>
+  <p>Isolated proof only. It does not claim hardware or plant equivalence.</p>
+  <div>
+    <button id="run" type="button">Run</button>
+    <button id="pause" type="button">Pause</button>
+    <button id="resume" type="button">Resume</button>
+    <button id="stop" type="button">STOP</button>
+    <button id="reset" type="button">Reset</button>
+  </div>
+  <p id="status" role="status">Loading Pyodide...</p>
+  <pre id="result" data-complete="false"></pre>
+  <script type="module" src="./jspi-origin-prototype.js"></script>
+</body>
+</html>

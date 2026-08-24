@@ -36,20 +36,22 @@ export function renderCatalogDetails(container, task) {
       <h2>${escapeHtml(task.title)}</h2>
       <p>${escapeHtml(task.brief)}</p>
     </header>
-    <dl class="lab-definition-list">
-      <div><dt>Robot</dt><dd>${escapeHtml(robot)}</dd></div>
-      <div><dt>Migration</dt><dd>Class ${escapeHtml(task.migrationClass || "A")} successor to <code>${escapeHtml(task.supersedes || "legacy task")}</code></dd></div>
-      <div><dt>Learning objective</dt><dd>${escapeHtml(task.learningObjective || task.brief)}</dd></div>
-      <div><dt>API level</dt><dd>${escapeHtml(task.apiLevel || "guided")}</dd></div>
-      <div><dt>Evidence basis</dt><dd>${(task.provenanceLabels || []).map((id) => `<code>${escapeHtml(id)}</code>`).join(" ")}</dd></div>
-      <div><dt>Assistance</dt><dd>${escapeHtml(assistanceCopy(task.assistanceLevel))}</dd></div>
-      <div><dt>Supported fidelity</dt><dd>${escapeHtml(task.supportedFidelity || "Bounded kinematic simulation")}</dd></div>
-      <div><dt>Simulation limit</dt><dd>${escapeHtml(task.limitations)}</dd></div>
-    </dl>
-    <section class="lab-boundary" aria-label="Safety boundary">
-      <strong>Simulation boundary</strong>
-      <p>Robot-programming and procedural-technique practice only. No physical robot or real laboratory action is available.</p>
-    </section>
+    <div class="lab-detail__body" tabindex="0" aria-label="Selected task facts">
+      <dl class="lab-definition-list">
+        <div><dt>Robot</dt><dd>${escapeHtml(robot)}</dd></div>
+        <div><dt>Migration</dt><dd>Class ${escapeHtml(task.migrationClass || "A")} successor to <code>${escapeHtml(task.supersedes || "legacy task")}</code></dd></div>
+        <div><dt>Learning objective</dt><dd>${escapeHtml(task.learningObjective || task.brief)}</dd></div>
+        <div><dt>API level</dt><dd>${escapeHtml(task.apiLevel || "guided")}</dd></div>
+        <div><dt>Evidence basis</dt><dd>${(task.provenanceLabels || []).map((id) => `<code>${escapeHtml(id)}</code>`).join(" ")}</dd></div>
+        <div><dt>Assistance</dt><dd>${escapeHtml(assistanceCopy(task.assistanceLevel))}</dd></div>
+        <div><dt>Supported fidelity</dt><dd>${escapeHtml(task.supportedFidelity || "Bounded kinematic simulation")}</dd></div>
+        <div><dt>Simulation limit</dt><dd>${escapeHtml(task.limitations)}</dd></div>
+      </dl>
+      <section class="lab-boundary" aria-label="Safety boundary">
+        <strong>Simulation boundary</strong>
+        <p>Robot-programming and procedural-technique practice only. No physical robot or real laboratory action is available.</p>
+      </section>
+    </div>
     <div class="lab-detail__actions">
       <a class="lab-button lab-button--primary" href="${base}&language=blockly"><i data-lucide="puzzle" aria-hidden="true"></i>Open in Blockly</a>
       <a class="lab-button" href="${base}&language=python"><i data-lucide="square-code" aria-hidden="true"></i>Open in Python</a>
