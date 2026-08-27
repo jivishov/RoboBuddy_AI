@@ -1,0 +1,58 @@
+name: Apply validated advanced mission patch
+
+on:
+  push:
+    branches:
+      - codex/advanced-lab-missions
+    paths:
+      - ".github/workflows/apply-advanced-missions-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify validated patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/advanced-missions.patch.gz.b64.part* > /tmp/advanced-missions.patch.gz.b64
+          echo "12dc860eab65678a569988f4cf1c53cd58daf770f91db1eab668cb59f031cc55  /tmp/advanced-missions.patch.gz.b64" | sha256sum -c -
+          base64 --decode /tmp/advanced-missions.patch.gz.b64 > /tmp/advanced-missions.patch.gz
+          echo "2b18da827e298e426162cfc59d7a4f38371d6e3b3d8b21efe4ace5b76c259f4c  /tmp/advanced-missions.patch.gz" | sha256sum -c -
+          gzip --decompress --stdout /tmp/advanced-missions.patch.gz > /tmp/advanced-missions.patch
+          echo "bcfb16e861274a1459e391465929c5d211b250bac12d9117bee3ab457da4644a  /tmp/advanced-missions.patch" | sha256sum -c -
+          git apply --check /tmp/advanced-missions.patch
+          git apply --index /tmp/advanced-missions.patch
+
+      - name: Remove one-use staging material
+        shell: bash
+        run: |
+          rm -f .github/advanced-missions.patch.gz.b64.part*
+          rm -f .github/workflows/apply-advanced-missions-patch.yml
+          git add -A
+          git diff --cached --check
+
+      - name: Validate applied mission source
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run validate:v2
+          npm run test:v2:advanced-missions
+          npm run test:v2:physical-rest
+
+      - name: Commit validated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: add metrology SO-101 missions and OpenArm stack assembly"
+          git push origin HEAD:codex/advanced-lab-missions
