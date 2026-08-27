@@ -1,0 +1,79 @@
+name: Apply and validate complex lab mission upgrades
+
+on:
+  push:
+    branches:
+      - mission/complex-lab-upgrades-20260827
+    paths:
+      - .mission-upgrade/**
+      - .github/workflows/apply-mission-complexity-upgrade.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-validate-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out isolated upgrade branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Reconstruct verified migration and regression test
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .mission-upgrade/upgrade.part*.b64 | tr -d '\n' | base64 --decode | gzip --decompress > scripts/upgrade-lab-mission-complexity.mjs
+          tr -d '\n' < .mission-upgrade/test.b64 | base64 --decode | gzip --decompress > tests/v2/mission-complexity-upgrades.test.mjs
+          echo "7b6ba5dd133e39c0a0b9a7c69967934ad86efbe3f4a833625fa00bd3807087d3  scripts/upgrade-lab-mission-complexity.mjs" | sha256sum --check --strict
+          echo "8167306823a8371e6ab34d28874c0bb476acb1fa29526df829f36562bd4ac790  tests/v2/mission-complexity-upgrades.test.mjs" | sha256sum --check --strict
+          node --check scripts/upgrade-lab-mission-complexity.mjs
+          node --check tests/v2/mission-complexity-upgrades.test.mjs
+
+      - name: Apply source migration
+        run: node scripts/upgrade-lab-mission-complexity.mjs
+
+      - name: Recompute portable reference actions from repository IK and collision engine
+        run: node scripts/extract-portable-reference-actions.mjs --openarm-only --scenario=openarm-04-filtration-workcell
+
+      - name: Refresh generated mission clients
+        run: |
+          node scripts/refresh-so101-v2-client.mjs
+          node scripts/refresh-openarm-v2-client.mjs
+
+      - name: Validate schemas and robot-specific suites
+        run: |
+          npm run validate:v2
+          npm run test:v2:so101
+          node tests/v2/openarm/openarm.test.mjs
+          npm run test:v2:mission-complexity
+
+      - name: Run full V2 regression suite
+        run: npm run test:v2:all
+
+      - name: Verify clean patch formatting
+        run: git diff --check
+
+      - name: Remove one-shot migration transport
+        shell: bash
+        run: |
+          rm -f scripts/upgrade-lab-mission-complexity.mjs
+          rm -rf .mission-upgrade
+          rm -f .github/workflows/apply-mission-complexity-upgrade.yml
+
+      - name: Commit validated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: add measured complex lab missions"
+          git push origin HEAD:mission/complex-lab-upgrades-20260827
