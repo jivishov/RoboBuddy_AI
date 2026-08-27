@@ -54,6 +54,10 @@ jobs:
               'this.definition.objects.forEach((definition) => {',
               'this.definition.objects.forEach((item) => {',
           )
+          source = source.replace(
+              'patchRefinerGuards();',
+              '// Current maintenance scripts are guarded directly by the workflow at their actual file-loop boundaries.',
+          )
           path.write_text(source)
           PY
           node --check /tmp/upgrade-complex-lab-tasks.mjs
@@ -73,6 +77,51 @@ jobs:
           if-no-files-found: warn
           retention-days: 3
 
+      - name: Preserve bespoke tasks in maintenance refiners
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          so101_path = Path('scripts/refine-so101-v2-source.mjs')
+          so101 = so101_path.read_text()
+          if 'complex-task-preservation-v1' not in so101:
+              needle = '''  const definition = JSON.parse(await readFile(sourcePath, "utf8"));
+          definition.canonicalModel.sourceRevision = model.source.revision;'''
+              replacement = '''  const definition = JSON.parse(await readFile(sourcePath, "utf8"));
+          // complex-task-preservation-v1: retain bespoke physical missions and refresh only their stripped client copies.
+          if (definition.complexTask?.version) {
+            assertScenarioV2(definition, { expectedRobotId: "so101_follower" });
+            await writeFile(resolve(OUTPUT, name), `${JSON.stringify(stripValidationForClient(definition), null, 2)}\n`);
+            console.log(`${definition.id}: preserved bespoke complex physical mission`);
+            continue;
+          }
+          definition.canonicalModel.sourceRevision = model.source.revision;'''
+              if needle not in so101:
+                  raise SystemExit('SO-101 maintenance-loop anchor missing')
+              so101_path.write_text(so101.replace(needle, replacement, 1))
+
+          openarm_path = Path('scripts/refine-openarm-table-clearance.mjs')
+          openarm = openarm_path.read_text()
+          if 'complex-task-preservation-v1' not in openarm:
+              needle = '''  const definition = refine(JSON.parse(fs.readFileSync(sourcePath, "utf8")));
+          assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });'''
+              replacement = '''  const loadedDefinition = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
+          // complex-task-preservation-v1: retain bespoke stacked workcells and refresh only their stripped client copies.
+          if (loadedDefinition.complexTask?.version) {
+            assertScenarioV2(loadedDefinition, { expectedRobotId: "openarm_v2_bimanual" });
+            fs.writeFileSync(path.join(outputDir, name), `${JSON.stringify(stripValidationForClient(loadedDefinition), null, 2)}\n`);
+            console.log(`${loadedDefinition.id}: preserved bespoke complex physical mission`);
+            continue;
+          }
+          const definition = refine(loadedDefinition);
+          assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });'''
+              if needle not in openarm:
+                  raise SystemExit('OpenArm maintenance-loop anchor missing')
+              openarm_path.write_text(openarm.replace(needle, replacement, 1))
+          PY
+
       - name: Check modified JavaScript syntax
         shell: bash
         run: |
@@ -83,6 +132,8 @@ jobs:
           node --check scripts/portable-physical-rest-helpers.mjs
           node --check lab/v2/equipment-scene.js
           node --check lab/js/workbench-v2.js
+          node --check scripts/refine-so101-v2-source.mjs
+          node --check scripts/refine-openarm-table-clearance.mjs
           node --check tests/v2/complex-lab-tasks.test.mjs
           node --check tests/v2/so101/so101-family.test.mjs
           node --check tests/v2/openarm/openarm.test.mjs
