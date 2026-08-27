@@ -20,11 +20,11 @@ jobs:
           tar \
             --exclude='.git' \
             --exclude='node_modules' \
-            -czf robobuddy-so101-workbench.tar.gz .
+            -czf /tmp/robobuddy-so101-workbench.tar.gz .
       - name: Upload source bundle
         uses: actions/upload-artifact@v4
         with:
           name: robobuddy-so101-workbench
-          path: robobuddy-so101-workbench.tar.gz
+          path: /tmp/robobuddy-so101-workbench.tar.gz
           if-no-files-found: error
           retention-days: 1
