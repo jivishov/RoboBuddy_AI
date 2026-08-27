@@ -1,0 +1,25 @@
+name: Codex source snapshot
+
+on:
+  push:
+    branches:
+      - codex/task-diversification-20260827
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Archive repository source
+        run: tar --exclude=.git -czf robobuddy-source.tar.gz .
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: robobuddy-source-${{ github.sha }}
+          path: robobuddy-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
