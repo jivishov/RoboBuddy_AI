@@ -42,6 +42,21 @@ jobs:
             > /tmp/upgrade-complex-lab-tasks.mjs
           echo "85ef2cac6078ba2accf3f645880bea8233723cf05abec2321767f8186e8351b6  /tmp/upgrade-complex-lab-tasks.mjs" | sha256sum --check
           node --check /tmp/upgrade-complex-lab-tasks.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/upgrade-complex-lab-tasks.mjs')
+          source = path.read_text()
+          source = source.replace(
+              'const station = fixture.type === \\"configured_visible_bimanual_workcell\\" ? openArmWorkcell(fixture) : null;',
+              'const station = stationByFixtureId.get(fixture.id);',
+          )
+          source = source.replace(
+              'this.definition.objects.forEach((definition) => {',
+              'this.definition.objects.forEach((item) => {',
+          )
+          path.write_text(source)
+          PY
+          node --check /tmp/upgrade-complex-lab-tasks.mjs
 
       - name: Apply source transformation
         shell: bash
