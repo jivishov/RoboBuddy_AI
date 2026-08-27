@@ -84,42 +84,53 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          so101_path = Path('scripts/refine-so101-v2-source.mjs')
-          so101 = so101_path.read_text()
-          if 'complex-task-preservation-v1' not in so101:
-              needle = '''  const definition = JSON.parse(await readFile(sourcePath, "utf8"));
-          definition.canonicalModel.sourceRevision = model.source.revision;'''
-              replacement = '''  const definition = JSON.parse(await readFile(sourcePath, "utf8"));
-          // complex-task-preservation-v1: retain bespoke physical missions and refresh only their stripped client copies.
-          if (definition.complexTask?.version) {
-            assertScenarioV2(definition, { expectedRobotId: "so101_follower" });
-            await writeFile(resolve(OUTPUT, name), `${JSON.stringify(stripValidationForClient(definition), null, 2)}\n`);
-            console.log(`${definition.id}: preserved bespoke complex physical mission`);
-            continue;
-          }
-          definition.canonicalModel.sourceRevision = model.source.revision;'''
-              if needle not in so101:
-                  raise SystemExit('SO-101 maintenance-loop anchor missing')
-              so101_path.write_text(so101.replace(needle, replacement, 1))
+          def patch_once(path_string, marker, needle, replacement):
+              path = Path(path_string)
+              source = path.read_text()
+              if marker in source:
+                  return
+              if needle not in source:
+                  raise SystemExit(f'{path_string}: maintenance-loop anchor missing')
+              path.write_text(source.replace(needle, replacement, 1))
 
-          openarm_path = Path('scripts/refine-openarm-table-clearance.mjs')
-          openarm = openarm_path.read_text()
-          if 'complex-task-preservation-v1' not in openarm:
-              needle = '''  const definition = refine(JSON.parse(fs.readFileSync(sourcePath, "utf8")));
-          assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });'''
-              replacement = '''  const loadedDefinition = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
-          // complex-task-preservation-v1: retain bespoke stacked workcells and refresh only their stripped client copies.
-          if (loadedDefinition.complexTask?.version) {
-            assertScenarioV2(loadedDefinition, { expectedRobotId: "openarm_v2_bimanual" });
-            fs.writeFileSync(path.join(outputDir, name), `${JSON.stringify(stripValidationForClient(loadedDefinition), null, 2)}\n`);
-            console.log(`${loadedDefinition.id}: preserved bespoke complex physical mission`);
-            continue;
-          }
-          const definition = refine(loadedDefinition);
-          assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });'''
-              if needle not in openarm:
-                  raise SystemExit('OpenArm maintenance-loop anchor missing')
-              openarm_path.write_text(openarm.replace(needle, replacement, 1))
+          so101_needle = '  const definition = JSON.parse(await readFile(sourcePath, "utf8"));\n  definition.canonicalModel.sourceRevision = model.source.revision;'
+          so101_replacement = '\n'.join([
+              '  const definition = JSON.parse(await readFile(sourcePath, "utf8"));',
+              '  // complex-task-preservation-v1: retain bespoke physical missions and refresh only their stripped client copies.',
+              '  if (definition.complexTask?.version) {',
+              '    assertScenarioV2(definition, { expectedRobotId: "so101_follower" });',
+              '    await writeFile(resolve(OUTPUT, name), `${JSON.stringify(stripValidationForClient(definition), null, 2)}\\n`);',
+              '    console.log(`${definition.id}: preserved bespoke complex physical mission`);',
+              '    continue;',
+              '  }',
+              '  definition.canonicalModel.sourceRevision = model.source.revision;',
+          ])
+          patch_once(
+              'scripts/refine-so101-v2-source.mjs',
+              'complex-task-preservation-v1',
+              so101_needle,
+              so101_replacement,
+          )
+
+          openarm_needle = '  const definition = refine(JSON.parse(fs.readFileSync(sourcePath, "utf8")));\n  assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });'
+          openarm_replacement = '\n'.join([
+              '  const loadedDefinition = JSON.parse(fs.readFileSync(sourcePath, "utf8"));',
+              '  // complex-task-preservation-v1: retain bespoke stacked workcells and refresh only their stripped client copies.',
+              '  if (loadedDefinition.complexTask?.version) {',
+              '    assertScenarioV2(loadedDefinition, { expectedRobotId: "openarm_v2_bimanual" });',
+              '    fs.writeFileSync(path.join(outputDir, name), `${JSON.stringify(stripValidationForClient(loadedDefinition), null, 2)}\\n`);',
+              '    console.log(`${loadedDefinition.id}: preserved bespoke complex physical mission`);',
+              '    continue;',
+              '  }',
+              '  const definition = refine(loadedDefinition);',
+              '  assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });',
+          ])
+          patch_once(
+              'scripts/refine-openarm-table-clearance.mjs',
+              'complex-task-preservation-v1',
+              openarm_needle,
+              openarm_replacement,
+          )
           PY
 
       - name: Check modified JavaScript syntax
