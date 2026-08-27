@@ -51,6 +51,12 @@ jobs:
           for frame_id, position in positions.items():
               definition['frames'][frame_id]['positionMm'] = position
 
+          definition['frames']['capped_rinse_bottle_lift']['positionMm'] = [210, 180, -210]
+          definition['frames']['capped_rinse_bottle_lift']['semantic'] = (
+              'Collision-checked up-and-inward clearance move after the far-corner grasp. The capped bottle '
+              'remains upright while its base rises 95 mm above the work surface before the measured transfer lane.'
+          )
+
           definition['title'] = 'Measured Low-Barrier Sample Transfer'
           definition['brief'] = (
               'Move two capped, non-dispensing practice bottles through their numbered low-barrier lanes, '
