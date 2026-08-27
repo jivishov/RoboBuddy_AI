@@ -1,0 +1,123 @@
+name: Apply and validate complex physical lab tasks
+
+on:
+  push:
+    branches:
+      - feat/complex-physical-lab-tasks
+    paths:
+      - "scripts/.complex-lab-upgrade.b64.part-*"
+      - ".github/workflows/complex-lab-apply.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: complex-physical-lab-tasks
+  cancel-in-progress: false
+
+jobs:
+  apply-validate-and-commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Reconstruct and verify source transformation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat scripts/.complex-lab-upgrade.b64.part-* \
+            | base64 --decode \
+            | gzip --decompress \
+            > /tmp/upgrade-complex-lab-tasks.mjs
+          echo "85ef2cac6078ba2accf3f645880bea8233723cf05abec2321767f8186e8351b6  /tmp/upgrade-complex-lab-tasks.mjs" | sha256sum --check
+          node --check /tmp/upgrade-complex-lab-tasks.mjs
+
+      - name: Apply source transformation
+        run: node /tmp/upgrade-complex-lab-tasks.mjs
+
+      - name: Check modified JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check lab/v2/scenario-engine.js
+          node --check scripts/extract-portable-reference-actions.mjs
+          node --check lab/js/objects.js
+          node --check scripts/portable-physical-rest-helpers.mjs
+          node --check lab/v2/equipment-scene.js
+          node --check lab/js/workbench-v2.js
+          node --check tests/v2/complex-lab-tasks.test.mjs
+          node --check tests/v2/so101/so101-family.test.mjs
+          node --check tests/v2/openarm/openarm.test.mjs
+
+      - name: Regenerate physical public reference actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/extract-portable-reference-actions.mjs --scenario=so101-v2-06-quantitative-transfer
+          node scripts/extract-portable-reference-actions.mjs --scenario=so101-v2-08-burette-initial-reading
+          node scripts/extract-portable-reference-actions.mjs --scenario=openarm-10-gravimetric-workcell
+
+      - name: Refresh generated scenario catalog
+        run: node scripts/generate-lab-v2-catalog.mjs --refresh
+
+      - name: Run focused complex-task acceptance
+        run: npm run test:v2:complex-lab
+
+      - name: Run foundation and public Python compatibility tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:v2:foundation
+          npm run test:v2:python-compat
+          npm run test:v2:portable-workbench-ux
+
+      - name: Run physical-rest and apparatus regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:v2:physical-rest
+          npm run test:v2:apparatus-visuals
+          npm run test:v2:portable-references
+
+      - name: Run SO-101 and OpenArm family regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:v2:so101
+          node tests/v2/openarm/openarm.test.mjs
+          npm run test:v2:openarm-workbench-regression
+          npm run test:v2:openarm-surface-pinch
+
+      - name: Run full 50-scenario replay and schema validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:v2:all
+          npm run validate:v2
+          git diff --check
+
+      - name: Remove bootstrap payload and commit validated implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f scripts/.complex-lab-upgrade.b64.part-*
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No implementation changes to commit."
+            exit 1
+          fi
+          git commit -m "feat: add complex physical SO-101 and OpenArm lab tasks"
+          git push origin HEAD:feat/complex-physical-lab-tasks
