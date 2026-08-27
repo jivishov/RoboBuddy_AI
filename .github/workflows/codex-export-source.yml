@@ -1,0 +1,30 @@
+name: Codex temporary source export
+
+on:
+  push:
+    branches:
+      - codex/complex-lab-missions-20260826
+    paths:
+      - .github/workflows/codex-export-source.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Package complete source tree
+        shell: bash
+        run: tar --exclude=.git -czf robobuddy-source.tar.gz .
+
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: robobuddy-source-export
+          path: robobuddy-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
