@@ -19,13 +19,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tar --exclude=.git --exclude=robobuddy-source.tar.gz -czf robobuddy-source.tar.gz .
-          test -s robobuddy-source.tar.gz
+          archive="$RUNNER_TEMP/robobuddy-source.tar.gz"
+          tar --exclude=.git -czf "$archive" .
+          test -s "$archive"
 
       - name: Upload source workspace
         uses: actions/upload-artifact@v4
         with:
           name: robobuddy-source-${{ github.sha }}
-          path: robobuddy-source.tar.gz
+          path: ${{ runner.temp }}/robobuddy-source.tar.gz
           if-no-files-found: error
           retention-days: 1
