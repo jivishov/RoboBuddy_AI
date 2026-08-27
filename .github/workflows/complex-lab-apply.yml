@@ -45,8 +45,8 @@ jobs:
           positions = {
               'aliquot_bottle_shield_entry': [250, 207, 20],
               'aliquot_bottle_shield_exit': [285, 207, 115],
-              'capped_rinse_bottle_shield_entry': [55, 207, 95],
-              'capped_rinse_bottle_shield_exit': [5, 207, 205],
+              'capped_rinse_bottle_shield_entry': [260, 207, -20],
+              'capped_rinse_bottle_shield_exit': [180, 207, 190],
           }
           for frame_id, position in positions.items():
               definition['frames'][frame_id]['positionMm'] = position
@@ -73,10 +73,10 @@ jobs:
 
           shield = next(item for item in definition['fixtures'] if item['id'] == 'measured_splash_shield')
           shield['label'] = 'Two transparent 80 mm spill-tray dividers with millimetre clearance rulers'
-          shield['positionMm'] = [150, 40, 110]
+          shield['positionMm'] = [225, 40, 100]
           shield['description'] = (
-              'Two real freestanding transparent low dividers and broad lower rails create separate measured '
-              'transfer lanes away from the pickup approaches. Their configured dimensions participate in robot '
+              'Two real freestanding transparent low dividers and broad lower rails create measured transfer '
+              'lanes outside the fixed-base inner workspace. Their configured dimensions participate in robot '
               'and carried-payload collision checks. Printed rulers are visual planning references only and do '
               'not sense distance.'
           )
@@ -95,15 +95,15 @@ jobs:
               },
               {
                   'id': 'measured-shield-panel-rinse', 'type': 'box',
-                  'centerMm': [25, 40, 150], 'halfExtentsMm': [65, 40, 8],
+                  'centerMm': [180, 40, 130], 'halfExtentsMm': [90, 40, 8],
                   'planningRole': 'structural_obstacle',
-                  'provenance': 'C: configured 130 x 80 x 16 mm transparent rinse-lane divider'
+                  'provenance': 'C: configured 180 x 80 x 16 mm transparent constant-radius rinse-lane divider'
               },
               {
                   'id': 'measured-shield-lower-rail-rinse', 'type': 'box',
-                  'centerMm': [25, 8, 150], 'halfExtentsMm': [70, 8, 15],
+                  'centerMm': [180, 8, 130], 'halfExtentsMm': [95, 8, 15],
                   'planningRole': 'structural_obstacle',
-                  'provenance': 'C: configured broad lower rail for the rinse lane'
+                  'provenance': 'C: configured broad lower rail for the constant-radius rinse lane'
               },
           ]
 
@@ -120,13 +120,13 @@ jobs:
                   'label': 'aliquot-lane clearance height'
               },
               {
-                  'id': 'rinse-height-ruler', 'axis': 'y', 'originMm': [-52, 0, 140],
+                  'id': 'rinse-height-ruler', 'axis': 'y', 'originMm': [78, 0, 120],
                   'lengthMm': 160, 'stepMm': 10, 'labelEvery': 5,
                   'label': 'rinse-lane clearance height'
               },
               {
-                  'id': 'lane-position-ruler', 'axis': 'x', 'originMm': [-40, 88, 230],
-                  'lengthMm': 370, 'stepMm': 10, 'labelEvery': 5,
+                  'id': 'lane-position-ruler', 'axis': 'x', 'originMm': [70, 88, 230],
+                  'lengthMm': 260, 'stepMm': 10, 'labelEvery': 5,
                   'label': 'horizontal transfer-lane position'
               },
           ]
