@@ -1,0 +1,26 @@
+name: Export complex-lab feature branch
+
+on:
+  push:
+    branches:
+      - feature/complex-lab-missions-20260826
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+      - name: Build source archive
+        run: zip -q -r RoboBuddy_AI_feature.zip . -x '.git/*' 'RoboBuddy_AI_feature.zip'
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: robobuddy-feature-source
+          path: RoboBuddy_AI_feature.zip
+          if-no-files-found: error
+          retention-days: 1
