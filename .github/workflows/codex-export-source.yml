@@ -19,12 +19,12 @@ jobs:
 
       - name: Package complete source tree
         shell: bash
-        run: tar --exclude=.git -czf robobuddy-source.tar.gz .
+        run: git archive --format=tar.gz --output="$RUNNER_TEMP/robobuddy-source.tar.gz" HEAD
 
       - name: Upload source artifact
         uses: actions/upload-artifact@v4
         with:
           name: robobuddy-source-export
-          path: robobuddy-source.tar.gz
+          path: ${{ runner.temp }}/robobuddy-source.tar.gz
           if-no-files-found: error
           retention-days: 1
