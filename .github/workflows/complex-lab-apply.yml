@@ -43,60 +43,85 @@ jobs:
           definition = json.loads(path.read_text())
 
           positions = {
-              'aliquot_bottle_shield_entry': [120, 207, -100],
-              'aliquot_bottle_shield_exit': [180, 207, 20],
-              'capped_rinse_bottle_shield_entry': [180, 207, -100],
-              'capped_rinse_bottle_shield_exit': [120, 207, 20],
+              'aliquot_bottle_shield_entry': [250, 207, 20],
+              'aliquot_bottle_shield_exit': [285, 207, 115],
+              'capped_rinse_bottle_shield_entry': [55, 207, 95],
+              'capped_rinse_bottle_shield_exit': [5, 207, 205],
           }
           for frame_id, position in positions.items():
               definition['frames'][frame_id]['positionMm'] = position
 
           definition['title'] = 'Measured Low-Barrier Sample Transfer'
           definition['brief'] = (
-              'Move two capped, non-dispensing practice bottles through the numbered low-barrier corridor, '
-              'keep each vessel upright, and place both on their named receiving work surfaces. The transparent '
-              '80 mm divider, robot, payload, and other apparatus remain collision checked; no pouring, liquid '
-              'motion, sensing, or automatic measurement is claimed.'
+              'Move two capped, non-dispensing practice bottles through their numbered low-barrier lanes, '
+              'keep each vessel upright, and place both on their named receiving work surfaces. The two '
+              'transparent 80 mm dividers, robot, payload, and other apparatus remain collision checked; no '
+              'pouring, liquid motion, sensing, or automatic measurement is claimed.'
           )
           definition['migration']['redesignRationale'] = (
               'The legacy liquid transfer and dilution operation exceeds the no-fluid fidelity boundary. This '
-              'successor adds real obstacle-clearance planning over a low transparent spill-tray divider, '
+              'successor adds real obstacle-clearance planning over two low transparent spill-tray dividers, '
               'payload-fixture collision rejection, numerical clearance marks, and two ordered physical '
               'transfers without claiming unsupported dispensing or fluid behavior.'
           )
 
           shield = next(item for item in definition['fixtures'] if item['id'] == 'measured_splash_shield')
-          shield['label'] = 'Transparent 80 mm spill-tray divider with millimetre clearance rulers'
-          shield['positionMm'] = [150, 40, -40]
+          shield['label'] = 'Two transparent 80 mm spill-tray dividers with millimetre clearance rulers'
+          shield['positionMm'] = [150, 40, 110]
           shield['description'] = (
-              'A real freestanding transparent low divider and broad lower rail. Its configured dimensions '
-              'participate in robot and carried-payload collision checks. Printed rulers are visual planning '
-              'references only and do not sense distance.'
+              'Two real freestanding transparent low dividers and broad lower rails create separate measured '
+              'transfer lanes away from the pickup approaches. Their configured dimensions participate in robot '
+              'and carried-payload collision checks. Printed rulers are visual planning references only and do '
+              'not sense distance.'
           )
-          panel = next(item for item in shield['collisionProxies'] if item['id'] == 'measured-shield-panel')
-          panel['centerMm'] = [150, 40, -40]
-          panel['halfExtentsMm'] = [80, 40, 8]
-          panel['provenance'] = 'C: configured 160 x 80 x 16 mm transparent low-divider panel'
-          rail = next(item for item in shield['collisionProxies'] if item['id'] == 'measured-shield-lower-rail')
-          rail['centerMm'] = [150, 8, -40]
-          rail['halfExtentsMm'] = [85, 8, 15]
+          shield['collisionProxies'] = [
+              {
+                  'id': 'measured-shield-panel', 'type': 'box',
+                  'centerMm': [270, 40, 70], 'halfExtentsMm': [60, 40, 8],
+                  'planningRole': 'structural_obstacle',
+                  'provenance': 'C: configured 120 x 80 x 16 mm transparent aliquot-lane divider'
+              },
+              {
+                  'id': 'measured-shield-lower-rail', 'type': 'box',
+                  'centerMm': [270, 8, 70], 'halfExtentsMm': [65, 8, 15],
+                  'planningRole': 'structural_obstacle',
+                  'provenance': 'C: configured broad lower rail for the aliquot lane'
+              },
+              {
+                  'id': 'measured-shield-panel-rinse', 'type': 'box',
+                  'centerMm': [25, 40, 150], 'halfExtentsMm': [65, 40, 8],
+                  'planningRole': 'structural_obstacle',
+                  'provenance': 'C: configured 130 x 80 x 16 mm transparent rinse-lane divider'
+              },
+              {
+                  'id': 'measured-shield-lower-rail-rinse', 'type': 'box',
+                  'centerMm': [25, 8, 150], 'halfExtentsMm': [70, 8, 15],
+                  'planningRole': 'structural_obstacle',
+                  'provenance': 'C: configured broad lower rail for the rinse lane'
+              },
+          ]
 
           for frame_id in positions:
               definition['frames'][frame_id]['semantic'] = (
-                  'Numbered collision-checked checkpoint on one side of the 80 mm divider; the configured '
+                  'Numbered collision-checked checkpoint on one side of an 80 mm divider; the configured '
                   'capped-bottle base remains 42 mm above the divider top while the payload stays upright.'
               )
 
           definition['measurementGuides'] = [
               {
-                  'id': 'shield-height-ruler', 'axis': 'y', 'originMm': [58, 0, -50],
+                  'id': 'aliquot-height-ruler', 'axis': 'y', 'originMm': [198, 0, 60],
                   'lengthMm': 160, 'stepMm': 10, 'labelEvery': 5,
-                  'label': 'divider clearance height'
+                  'label': 'aliquot-lane clearance height'
               },
               {
-                  'id': 'shield-span-ruler', 'axis': 'x', 'originMm': [70, 88, -50],
+                  'id': 'rinse-height-ruler', 'axis': 'y', 'originMm': [-52, 0, 140],
                   'lengthMm': 160, 'stepMm': 10, 'labelEvery': 5,
-                  'label': 'horizontal gate position'
+                  'label': 'rinse-lane clearance height'
+              },
+              {
+                  'id': 'lane-position-ruler', 'axis': 'x', 'originMm': [-40, 88, 230],
+                  'lengthMm': 370, 'stepMm': 10, 'labelEvery': 5,
+                  'label': 'horizontal transfer-lane position'
               },
           ]
           path.write_text(json.dumps(definition, indent=2) + '\n')
