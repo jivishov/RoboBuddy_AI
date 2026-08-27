@@ -44,7 +44,19 @@ jobs:
           node --check /tmp/upgrade-complex-lab-tasks.mjs
 
       - name: Apply source transformation
-        run: node /tmp/upgrade-complex-lab-tasks.mjs
+        shell: bash
+        run: |
+          set -o pipefail
+          node /tmp/upgrade-complex-lab-tasks.mjs 2>&1 | tee /tmp/complex-lab-apply.log
+
+      - name: Upload source-application diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complex-lab-apply-diagnostics-${{ github.run_attempt }}
+          path: /tmp/complex-lab-apply.log
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Check modified JavaScript syntax
         shell: bash
