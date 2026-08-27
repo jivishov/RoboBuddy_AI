@@ -105,12 +105,7 @@ jobs:
               '  }',
               '  definition.canonicalModel.sourceRevision = model.source.revision;',
           ])
-          patch_once(
-              'scripts/refine-so101-v2-source.mjs',
-              'complex-task-preservation-v1',
-              so101_needle,
-              so101_replacement,
-          )
+          patch_once('scripts/refine-so101-v2-source.mjs', 'complex-task-preservation-v1', so101_needle, so101_replacement)
 
           openarm_needle = '  const definition = refine(JSON.parse(fs.readFileSync(sourcePath, "utf8")));\n  assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });'
           openarm_replacement = '\n'.join([
@@ -125,12 +120,7 @@ jobs:
               '  const definition = refine(loadedDefinition);',
               '  assertScenarioV2(definition, { expectedRobotId: "openarm_v2_bimanual" });',
           ])
-          patch_once(
-              'scripts/refine-openarm-table-clearance.mjs',
-              'complex-task-preservation-v1',
-              openarm_needle,
-              openarm_replacement,
-          )
+          patch_once('scripts/refine-openarm-table-clearance.mjs', 'complex-task-preservation-v1', openarm_needle, openarm_replacement)
           PY
 
       - name: Check modified JavaScript syntax
@@ -152,49 +142,83 @@ jobs:
       - name: Regenerate physical public reference actions
         shell: bash
         run: |
-          set -euo pipefail
-          node scripts/extract-portable-reference-actions.mjs --scenario=so101-v2-06-quantitative-transfer
-          node scripts/extract-portable-reference-actions.mjs --scenario=so101-v2-08-burette-initial-reading
-          node scripts/extract-portable-reference-actions.mjs --scenario=openarm-10-gravimetric-workcell
+          set -o pipefail
+          {
+            node scripts/extract-portable-reference-actions.mjs --scenario=so101-v2-06-quantitative-transfer
+            node scripts/extract-portable-reference-actions.mjs --scenario=so101-v2-08-burette-initial-reading
+            node scripts/extract-portable-reference-actions.mjs --scenario=openarm-10-gravimetric-workcell
+          } 2>&1 | tee /tmp/complex-lab-reference-actions.log
+
+      - name: Upload reference-action diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complex-lab-reference-diagnostics-${{ github.run_attempt }}
+          path: /tmp/complex-lab-reference-actions.log
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Refresh generated scenario catalog
-        run: node scripts/generate-lab-v2-catalog.mjs --refresh
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/generate-lab-v2-catalog.mjs --refresh 2>&1 | tee /tmp/complex-lab-catalog.log
 
       - name: Run focused complex-task acceptance
-        run: npm run test:v2:complex-lab
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:v2:complex-lab 2>&1 | tee /tmp/complex-lab-focused.log
 
       - name: Run foundation and public Python compatibility tests
         shell: bash
         run: |
-          set -euo pipefail
-          npm run test:v2:foundation
-          npm run test:v2:python-compat
-          npm run test:v2:portable-workbench-ux
+          set -o pipefail
+          {
+            npm run test:v2:foundation
+            npm run test:v2:python-compat
+            npm run test:v2:portable-workbench-ux
+          } 2>&1 | tee /tmp/complex-lab-foundation.log
 
       - name: Run physical-rest and apparatus regressions
         shell: bash
         run: |
-          set -euo pipefail
-          npm run test:v2:physical-rest
-          npm run test:v2:apparatus-visuals
-          npm run test:v2:portable-references
+          set -o pipefail
+          {
+            npm run test:v2:physical-rest
+            npm run test:v2:apparatus-visuals
+            npm run test:v2:portable-references
+          } 2>&1 | tee /tmp/complex-lab-physical.log
 
       - name: Run SO-101 and OpenArm family regressions
         shell: bash
         run: |
-          set -euo pipefail
-          npm run test:v2:so101
-          node tests/v2/openarm/openarm.test.mjs
-          npm run test:v2:openarm-workbench-regression
-          npm run test:v2:openarm-surface-pinch
+          set -o pipefail
+          {
+            npm run test:v2:so101
+            node tests/v2/openarm/openarm.test.mjs
+            npm run test:v2:openarm-workbench-regression
+            npm run test:v2:openarm-surface-pinch
+          } 2>&1 | tee /tmp/complex-lab-family.log
 
       - name: Run full 50-scenario replay and schema validation
         shell: bash
         run: |
-          set -euo pipefail
-          npm run test:v2:all
-          npm run validate:v2
-          git diff --check
+          set -o pipefail
+          {
+            npm run test:v2:all
+            npm run validate:v2
+            git diff --check
+          } 2>&1 | tee /tmp/complex-lab-full.log
+
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complex-lab-validation-diagnostics-${{ github.run_attempt }}
+          path: /tmp/complex-lab-*.log
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Remove bootstrap payload and commit validated implementation
         shell: bash
