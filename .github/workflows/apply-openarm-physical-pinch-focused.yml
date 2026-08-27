@@ -1,0 +1,70 @@
+name: Apply OpenArm physical pinch fix (focused validation)
+
+on:
+  push:
+    branches:
+      - fix/openarm-physical-pinch
+    paths:
+      - ".github/workflows/apply-openarm-physical-pinch-focused.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/openarm-pinch-payload/part* > /tmp/openarm-pinch-fix.patch.xz.b64
+          test "$(wc -c < /tmp/openarm-pinch-fix.patch.xz.b64)" -eq 69660
+          echo "117805b39addf1e73e403f5614364f1b3db693782e826207b4e1c71fab7141a8  /tmp/openarm-pinch-fix.patch.xz.b64" | sha256sum -c -
+          base64 --decode /tmp/openarm-pinch-fix.patch.xz.b64 > /tmp/openarm-pinch-fix.patch.xz
+          echo "b2e0966ef61e0e78eda12d447ec0df805bd5591434bd41a27a1e0c4c79c0486f  /tmp/openarm-pinch-fix.patch.xz" | sha256sum -c -
+          xz --decompress --stdout /tmp/openarm-pinch-fix.patch.xz > /tmp/openarm-pinch-fix.patch
+          echo "0a6fc2e1d79a5979309b1e7eb461151d043a0d3fc99d31cf83a159d859d3a221  /tmp/openarm-pinch-fix.patch" | sha256sum -c -
+          git apply --check /tmp/openarm-pinch-fix.patch
+          git apply --index /tmp/openarm-pinch-fix.patch
+
+      - name: Remove one-use staging material
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -r .github/openarm-pinch-payload
+          git rm -r --ignore-unmatch .github/openarm-pinch-patch
+          git rm -r --ignore-unmatch .github/openarm-pinch-payload4
+          git rm .github/workflows/apply-openarm-physical-pinch.yml
+          git rm .github/workflows/apply-openarm-physical-pinch-focused.yml
+          git add -A
+          git diff --cached --check
+
+      - name: Validate focused physical interaction and compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run validate:v2
+          npm run test:v2:advanced-missions
+          npm run test:v2:python-compat
+          node tests/v2/so101/so101-programmability.test.mjs
+          npm run test:v2:apparatus-visuals
+          npm run test:v2:portable-workbench-ux
+          npm run test:v2:openarm-workbench-regression
+          npm run test:v2:openarm-surface-pinch
+          npm run test:v2:openarm-pinch
+
+      - name: Commit and push validated fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix: enforce physical OpenArm flask pinch contact"
+          git push origin HEAD:fix/openarm-physical-pinch
