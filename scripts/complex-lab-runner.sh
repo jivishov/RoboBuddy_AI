@@ -32,18 +32,18 @@ required = [
         '// Maintenance guards are installed at the current scripts actual file-loop boundaries by this runner.',
         'outdated maintenance-guard hook',
     ),
-    # Configure a narrow, physically visible right-lane shield that clears the folded home pose.
-    # Both sealed payloads still cross the panel through distinct numbered overflight tracks.
-    ('positionMm: [160, 255, -118]', 'positionMm: [250, 255, 0]', 'aliquot near-side checkpoint'),
-    ('positionMm: [160, 255, -42]', 'positionMm: [250, 255, 100]', 'aliquot far-side checkpoint'),
-    ('positionMm: [280, 255, -118]', 'positionMm: [285, 255, 0]', 'rinse near-side checkpoint'),
-    ('positionMm: [280, 255, -42]', 'positionMm: [285, 255, 100]', 'rinse far-side checkpoint'),
-    ('positionMm: [220, 70, -80]', 'positionMm: [300, 70, 50]', 'shield fixture position'),
-    ('centerMm: [220, 70, -80], halfExtentsMm: [110, 70, 8]', 'centerMm: [300, 70, 50], halfExtentsMm: [70, 70, 8]', 'shield panel collision geometry'),
-    ('centerMm: [220, 8, -80], halfExtentsMm: [115, 8, 25]', 'centerMm: [300, 8, 50], halfExtentsMm: [75, 8, 15]', 'shield rail collision geometry'),
-    ('C: configured 220 x 140 x 16 mm transparent shield panel', 'C: configured 140 x 140 x 16 mm transparent shield panel', 'shield dimensions provenance'),
-    ('{ id: "shield-height-ruler", axis: "y", originMm: [102, 0, -90], lengthMm: 220', '{ id: "shield-height-ruler", axis: "y", originMm: [218, 0, 40], lengthMm: 220', 'shield height ruler position'),
-    ('{ id: "shield-span-ruler", axis: "x", originMm: [110, 148, -90], lengthMm: 220', '{ id: "shield-span-ruler", axis: "x", originMm: [230, 148, 40], lengthMm: 140', 'shield span ruler position'),
+    # Configure a physically visible 100 mm right-front clearance gate. The
+    # carried bottle bases remain 30 mm above its 140 mm top at both checkpoints.
+    ('positionMm: [160, 255, -118]', 'positionMm: [150, 255, 50]', 'aliquot near-side checkpoint'),
+    ('positionMm: [160, 255, -42]', 'positionMm: [150, 255, 150]', 'aliquot far-side checkpoint'),
+    ('positionMm: [280, 255, -118]', 'positionMm: [190, 255, 50]', 'rinse near-side checkpoint'),
+    ('positionMm: [280, 255, -42]', 'positionMm: [190, 255, 150]', 'rinse far-side checkpoint'),
+    ('positionMm: [220, 70, -80]', 'positionMm: [170, 70, 100]', 'shield fixture position'),
+    ('centerMm: [220, 70, -80], halfExtentsMm: [110, 70, 8]', 'centerMm: [170, 70, 100], halfExtentsMm: [50, 70, 8]', 'shield panel collision geometry'),
+    ('centerMm: [220, 8, -80], halfExtentsMm: [115, 8, 25]', 'centerMm: [170, 8, 100], halfExtentsMm: [55, 8, 15]', 'shield rail collision geometry'),
+    ('C: configured 220 x 140 x 16 mm transparent shield panel', 'C: configured 100 x 140 x 16 mm transparent shield panel', 'shield dimensions provenance'),
+    ('{ id: "shield-height-ruler", axis: "y", originMm: [102, 0, -90], lengthMm: 220', '{ id: "shield-height-ruler", axis: "y", originMm: [108, 0, 90], lengthMm: 220', 'shield height ruler position'),
+    ('{ id: "shield-span-ruler", axis: "x", originMm: [110, 148, -90], lengthMm: 220', '{ id: "shield-span-ruler", axis: "x", originMm: [120, 148, 90], lengthMm: 100', 'shield span ruler position'),
 ]
 
 for old, new, label in required:
