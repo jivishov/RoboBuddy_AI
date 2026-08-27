@@ -57,7 +57,54 @@ node --check "$TRANSFORM"
 node "$TRANSFORM"
 
 python3 - <<'PY'
+import json
 from pathlib import Path
+
+# The workflow's geometry postpatch creates a high inspection-transfer frame.
+# Keep it as a collision-checked waypoint, while the bottle's semantic and
+# physical rest frame remains the actual inspection-surface contact. This
+# changes no public robot command; it only preserves correct post-release state
+# for the later re-grasp.
+task8_path = Path('missions/lab-assistant/v2/definitions/so101/so101-v2-08-burette-initial-reading.json')
+task8 = json.loads(task8_path.read_text())
+first_call = task8['validation']['referenceExecutions'][0]['calls'][0]['args']
+first_call['waypointFrames'] = ['titrant_inspection_destination']
+first_call['destinationFrame'] = 'titrant_inspection_contact'
+first_call['placeFrame'] = 'titrant_inspection_contact'
+
+process = next(item for item in task8['processModels'] if item['id'] == 'burette_setup_ready')
+for predicate in process['prerequisites']:
+    if (
+        predicate.get('op') == 'event_exists'
+        and predicate.get('type') == 'DETACH_OBJECT'
+        and predicate.get('objectId') == 'titrant_bottle'
+        and predicate.get('frameId') == 'titrant_inspection_destination'
+    ):
+        predicate['frameId'] = 'titrant_inspection_contact'
+for goal in task8['goalPredicates']:
+    if (
+        goal.get('op') == 'event_exists'
+        and goal.get('type') == 'DETACH_OBJECT'
+        and goal.get('objectId') == 'titrant_bottle'
+        and goal.get('frameId') == 'titrant_inspection_destination'
+    ):
+        goal['frameId'] = 'titrant_inspection_contact'
+task8_path.write_text(json.dumps(task8, indent=2) + '\n')
+
+focused_test = Path('tests/v2/complex-lab-tasks.test.mjs')
+test_source = focused_test.read_text()
+old_assertions = (
+    'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.destinationFrame, "titrant_inspection_destination");\n'
+    'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.placeFrame, "titrant_inspection_contact");'
+)
+new_assertions = (
+    'assert.deepEqual(task8.validation.referenceExecutions[0].calls[0].args.waypointFrames, ["titrant_inspection_destination"]);\n'
+    'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.destinationFrame, "titrant_inspection_contact");\n'
+    'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.placeFrame, "titrant_inspection_contact");'
+)
+if old_assertions not in test_source:
+    raise SystemExit('tests/v2/complex-lab-tasks.test.mjs: inspection waypoint assertion anchor missing')
+focused_test.write_text(test_source.replace(old_assertions, new_assertions, 1))
 
 def patch_once(path_string, marker, needle, replacement):
     path = Path(path_string)
