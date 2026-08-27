@@ -34,4 +34,83 @@ jobs:
           node-version: "22"
 
       - name: Apply, validate, and commit the complex physical missions
-        run: bash scripts/complex-lab-runner.sh
+        run: |
+          cat > /tmp/complex-lab-route-postpatch.py <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('missions/lab-assistant/v2/definitions/so101/so101-v2-06-quantitative-transfer.json')
+          definition = json.loads(path.read_text())
+
+          positions = {
+              'aliquot_bottle_shield_entry': [120, 207, -100],
+              'aliquot_bottle_shield_exit': [180, 207, 20],
+              'capped_rinse_bottle_shield_entry': [180, 207, -100],
+              'capped_rinse_bottle_shield_exit': [120, 207, 20],
+          }
+          for frame_id, position in positions.items():
+              definition['frames'][frame_id]['positionMm'] = position
+
+          definition['title'] = 'Measured Low-Barrier Sample Transfer'
+          definition['brief'] = (
+              'Move two capped, non-dispensing practice bottles through the numbered low-barrier corridor, '
+              'keep each vessel upright, and place both on their named receiving work surfaces. The transparent '
+              '80 mm divider, robot, payload, and other apparatus remain collision checked; no pouring, liquid '
+              'motion, sensing, or automatic measurement is claimed.'
+          )
+          definition['migration']['redesignRationale'] = (
+              'The legacy liquid transfer and dilution operation exceeds the no-fluid fidelity boundary. This '
+              'successor adds real obstacle-clearance planning over a low transparent spill-tray divider, '
+              'payload-fixture collision rejection, numerical clearance marks, and two ordered physical '
+              'transfers without claiming unsupported dispensing or fluid behavior.'
+          )
+
+          shield = next(item for item in definition['fixtures'] if item['id'] == 'measured_splash_shield')
+          shield['label'] = 'Transparent 80 mm spill-tray divider with millimetre clearance rulers'
+          shield['positionMm'] = [150, 40, -40]
+          shield['description'] = (
+              'A real freestanding transparent low divider and broad lower rail. Its configured dimensions '
+              'participate in robot and carried-payload collision checks. Printed rulers are visual planning '
+              'references only and do not sense distance.'
+          )
+          panel = next(item for item in shield['collisionProxies'] if item['id'] == 'measured-shield-panel')
+          panel['centerMm'] = [150, 40, -40]
+          panel['halfExtentsMm'] = [80, 40, 8]
+          panel['provenance'] = 'C: configured 160 x 80 x 16 mm transparent low-divider panel'
+          rail = next(item for item in shield['collisionProxies'] if item['id'] == 'measured-shield-lower-rail')
+          rail['centerMm'] = [150, 8, -40]
+          rail['halfExtentsMm'] = [85, 8, 15]
+
+          for frame_id in positions:
+              definition['frames'][frame_id]['semantic'] = (
+                  'Numbered collision-checked checkpoint on one side of the 80 mm divider; the configured '
+                  'capped-bottle base remains 42 mm above the divider top while the payload stays upright.'
+              )
+
+          definition['measurementGuides'] = [
+              {
+                  'id': 'shield-height-ruler', 'axis': 'y', 'originMm': [58, 0, -50],
+                  'lengthMm': 160, 'stepMm': 10, 'labelEvery': 5,
+                  'label': 'divider clearance height'
+              },
+              {
+                  'id': 'shield-span-ruler', 'axis': 'x', 'originMm': [70, 88, -50],
+                  'lengthMm': 160, 'stepMm': 10, 'labelEvery': 5,
+                  'label': 'horizontal gate position'
+              },
+          ]
+          path.write_text(json.dumps(definition, indent=2) + '\n')
+          PY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/complex-lab-runner.sh')
+          source = path.read_text()
+          needle = 'node "$TRANSFORM"\n\npython3 - <<\'PY\'\nfrom pathlib import Path\n\ndef patch_once'
+          replacement = 'node "$TRANSFORM"\npython3 /tmp/complex-lab-route-postpatch.py\n\npython3 - <<\'PY\'\nfrom pathlib import Path\n\ndef patch_once'
+          if needle not in source:
+              raise SystemExit('complex-lab runner post-transform anchor missing')
+          path.write_text(source.replace(needle, replacement, 1))
+          PY
+
+          bash scripts/complex-lab-runner.sh
