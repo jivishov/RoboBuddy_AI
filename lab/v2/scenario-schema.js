@@ -1,5 +1,6 @@
 import { deepClone } from "./math.js?v=20260823-physical-fidelity-3";
 import { validatePhysicalRestDefinition } from "./physical-rest.js?v=20260823-physical-fidelity-3";
+import { validateMeasurementFixture, validateMeasurementPredicate } from "./measurement.js?v=20260827-complex-lab-1";
 
 export const SCENARIO_V2_SCHEMA = "robobuddy.lab-scenario.v2";
 export const PROVENANCE_LABELS = Object.freeze(["M", "F", "R", "C"]);
@@ -9,6 +10,14 @@ export const FRAME_ROLES = Object.freeze(["approach", "contact", "lift", "retrea
 function object(value) { return value && typeof value === "object" && !Array.isArray(value); }
 function nonEmpty(value) { return typeof value === "string" && value.trim().length > 0; }
 function finiteVector(value, length) { return Array.isArray(value) && value.length === length && value.every(Number.isFinite); }
+
+function validatePredicateTree(predicate, path, add) {
+  if (!object(predicate)) return;
+  const validation = validateMeasurementPredicate(predicate);
+  validation.errors.forEach((message) => add(false, path, message));
+  if (Array.isArray(predicate.predicates)) predicate.predicates.forEach((child, index) => validatePredicateTree(child, `${path}.predicates.${index}`, add));
+  if (object(predicate.predicate)) validatePredicateTree(predicate.predicate, `${path}.predicate`, add);
+}
 
 export function validateScenarioV2(definition, options = {}) {
   const errors = [];
@@ -40,7 +49,14 @@ export function validateScenarioV2(definition, options = {}) {
     add(roles.has("latch"), "frames", "G1 tasks require a latch frame");
   }
   ["fixtures", "objects", "grasps", "processModels", "goalPredicates", "prohibitedStates", "evidenceRequirements", "provenance"].forEach((key) => add(Array.isArray(definition[key]), key, "must be an array"));
-  (definition.fixtures || []).forEach((fixture, index) => add(fixture.visible === true, `fixtures.${index}.visible`, "fixture assumptions must be visible"));
+  (definition.fixtures || []).forEach((fixture, index) => {
+    add(fixture.visible === true, `fixtures.${index}.visible`, "fixture assumptions must be visible");
+    if (fixture.type === "configured_measurement_ruler") {
+      const measurement = validateMeasurementFixture(fixture);
+      measurement.errors.forEach((message) => add(false, `fixtures.${index}.measurement`, message));
+      add(fixture.presentationOnly === true, `fixtures.${index}.presentationOnly`, "measurement rulers must remain visible, non-colliding presentation aids");
+    }
+  });
   (definition.objects || []).forEach((item, index) => {
     add(nonEmpty(item.id), `objects.${index}.id`, "must be non-empty");
     add(nonEmpty(item.initialFrame) && Boolean(definition.frames?.[item.initialFrame]), `objects.${index}.initialFrame`, "must name an existing frame");
@@ -51,6 +67,11 @@ export function validateScenarioV2(definition, options = {}) {
     add(Array.isArray(process.prerequisites), `processModels.${index}.prerequisites`, "must declare prerequisites");
   });
   add((definition.goalPredicates || []).length > 0, "goalPredicates", "must contain observable outcome predicates");
+  (definition.goalPredicates || []).forEach((predicate, index) => validatePredicateTree(predicate, `goalPredicates.${index}`, add));
+  (definition.prohibitedStates || []).forEach((predicate, index) => validatePredicateTree(predicate, `prohibitedStates.${index}`, add));
+  (definition.processModels || []).forEach((process, processIndex) => (process.prerequisites || []).forEach((predicate, predicateIndex) => {
+    validatePredicateTree(predicate, `processModels.${processIndex}.prerequisites.${predicateIndex}`, add);
+  }));
   const portablePython = definition.api?.runtime === "robobuddy.portable-python.v1";
   add(portablePython || (definition.evidenceRequirements || []).length > 0, "evidenceRequirements", "must require learner evidence unless hidden authoritative portable-Python grading is declared");
   if (portablePython) {
@@ -62,6 +83,7 @@ export function validateScenarioV2(definition, options = {}) {
       add(requirement.learnerCallable === false, `hiddenGradingRequirements.${index}.learnerCallable`, "must not expose a learner-callable grading path");
       add(requirement.authority === "plant/events", `hiddenGradingRequirements.${index}.authority`, "must name authoritative plant/events state");
       add(object(requirement.availableWhen) || object(requirement.requiresEvent), `hiddenGradingRequirements.${index}`, "must be gated by an authoritative predicate or event");
+      if (object(requirement.availableWhen)) validatePredicateTree(requirement.availableWhen, `hiddenGradingRequirements.${index}.availableWhen`, add);
     });
   }
   if (["so101_follower", "lekiwi_sim", "openarm_v2_bimanual"].includes(definition.robotId)) {
@@ -73,7 +95,10 @@ export function validateScenarioV2(definition, options = {}) {
     add(nonEmpty(requirement.label || requirement.prompt), `evidenceRequirements.${index}.label`, "must provide a visible label or prompt");
     if (requirement.minLength !== undefined) add(Number.isInteger(requirement.minLength) && requirement.minLength > 0, `evidenceRequirements.${index}.minLength`, "must be a positive integer");
     if (requirement.allowedValues !== undefined) add(Array.isArray(requirement.allowedValues) && requirement.allowedValues.length > 0, `evidenceRequirements.${index}.allowedValues`, "must be a non-empty array");
-    if (requirement.availableWhen !== undefined) add(object(requirement.availableWhen), `evidenceRequirements.${index}.availableWhen`, "must be an observable predicate");
+    if (requirement.availableWhen !== undefined) {
+      add(object(requirement.availableWhen), `evidenceRequirements.${index}.availableWhen`, "must be an observable predicate");
+      if (object(requirement.availableWhen)) validatePredicateTree(requirement.availableWhen, `evidenceRequirements.${index}.availableWhen`, add);
+    }
     if (requirement.requiresEvent !== undefined) add(object(requirement.requiresEvent), `evidenceRequirements.${index}.requiresEvent`, "must be an event match object");
   });
   (definition.provenance || []).forEach((entry, index) => {

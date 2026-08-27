@@ -10,6 +10,7 @@ await import("../tests/v2/portable-workbench-ux.test.mjs");
 await import("../tests/v2/portable-physical-rest.test.mjs");
 await import("../tests/v2/portable-apparatus-visuals.test.mjs");
 await import("../tests/v2/openarm/openarm-surface-pinch-regression.test.mjs");
+await import("../tests/v2/complex-lab-missions.test.mjs");
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFINITIONS = resolve(ROOT, "missions", "lab-assistant", "v2", "definitions");

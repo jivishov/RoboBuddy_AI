@@ -25,7 +25,9 @@ Each evidence requirement must include a visible `label` or `prompt` and must be
 
 ## Predicate contract
 
-Supported predicates are `equal`, `not_equal`, `truthy`, `object_at`, `attached_to`, `process_state`, `frame_visited`, `event`, `evidence`, `all`, `any`, and `not`. Grading is outcome/evidence based; source/reference call order is not graded.
+The frozen foundation predicates are `equal`, `not_equal`, `truthy`, `object_at`, `attached_to`, `process_state`, `frame_visited`, `event`, `evidence`, `all`, `any`, and `not`.
+
+An authorized additive measured-workcell extension dated 2026-08-27 adds `event_before`, `object_axis_coordinate`, `object_axis_distance`, `object_planar_distance`, and `object_planar_offset`. These operators read only the authoritative event log and plant object poses. Visible `configured_measurement_ruler` fixtures are `presentationOnly`, have no collision authority, and do not alter IK, path planning, stable-rest validation, or public robot action fields. Grading remains outcome/evidence based; source/reference call order is not graded except where a mission explicitly declares an observable `event_before` safety or sequencing requirement.
 
 ## Execution-call contract
 

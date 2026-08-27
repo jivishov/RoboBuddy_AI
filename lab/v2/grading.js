@@ -1,3 +1,12 @@
+import {
+  boundedMeasurement,
+  eventOccursBefore,
+  objectAxisCoordinateMm,
+  objectAxisDistanceMm,
+  objectPlanarDistanceMm,
+  objectPlanarOffsetMm,
+} from "./measurement.js?v=20260827-complex-lab-1";
+
 function valueAt(state, path) {
   return String(path || "").split(".").filter(Boolean).reduce((value, key) => value?.[key], state);
 }
@@ -16,6 +25,27 @@ export function evaluatePredicate(state, predicate) {
   if (op === "process_state") return state.processes?.[predicate.processId]?.state === predicate.value;
   if (op === "frame_visited") return (state.visitedFrames || []).includes(predicate.frameId);
   if (op === "event") return eventIndex(state.eventLog || [], predicate.match || {}) >= 0;
+  if (op === "event_before") return eventOccursBefore(state.eventLog || [], predicate.before || {}, predicate.after || {});
+  if (op === "object_axis_coordinate") return boundedMeasurement(
+    objectAxisCoordinateMm(state, predicate.objectId, predicate.axis, predicate.originMm || [0, 0, 0]),
+    predicate.minMm,
+    predicate.maxMm,
+  );
+  if (op === "object_axis_distance") return boundedMeasurement(
+    objectAxisDistanceMm(state, predicate.objectA, predicate.objectB, predicate.axis),
+    predicate.minMm,
+    predicate.maxMm,
+  );
+  if (op === "object_planar_distance") return boundedMeasurement(
+    objectPlanarDistanceMm(state, predicate.objectA, predicate.objectB, predicate.plane || "xz"),
+    predicate.minMm,
+    predicate.maxMm,
+  );
+  if (op === "object_planar_offset") return boundedMeasurement(
+    objectPlanarOffsetMm(state, predicate.objectId, predicate.originMm, predicate.plane || "xz"),
+    predicate.minMm,
+    predicate.maxMm,
+  );
   if (op === "evidence") return (state.evidence || []).some((entry) => entry.requirementId === predicate.requirementId && String(entry.value || "").trim());
   if (op === "all") return (predicate.predicates || []).every((item) => evaluatePredicate(state, item));
   if (op === "any") return (predicate.predicates || []).some((item) => evaluatePredicate(state, item));
@@ -37,6 +67,15 @@ export function describePredicate(predicate) {
     const details = Object.entries(predicate.match || {}).map(([key, item]) => `${key}=${item}`).join(", ");
     return `event ${details || "matching the configured condition"} must occur`;
   }
+  if (predicate.op === "event_before") {
+    const before = Object.entries(predicate.before || {}).map(([key, item]) => `${key}=${item}`).join(", ");
+    const after = Object.entries(predicate.after || {}).map(([key, item]) => `${key}=${item}`).join(", ");
+    return `event ${before || "first condition"} must occur before event ${after || "second condition"}`;
+  }
+  if (predicate.op === "object_axis_coordinate") return `${predicate.objectId} ${predicate.axis}-coordinate from the configured ruler datum must remain within ${predicate.minMm ?? "-infinity"} to ${predicate.maxMm ?? "infinity"} mm`;
+  if (predicate.op === "object_axis_distance") return `${predicate.objectA} and ${predicate.objectB} must remain ${predicate.minMm ?? 0} to ${predicate.maxMm ?? "infinity"} mm apart on the ${predicate.axis}-axis`;
+  if (predicate.op === "object_planar_distance") return `${predicate.objectA} and ${predicate.objectB} must remain ${predicate.minMm ?? 0} to ${predicate.maxMm ?? "infinity"} mm apart in the ${predicate.plane || "xz"} plane`;
+  if (predicate.op === "object_planar_offset") return `${predicate.objectId} must remain ${predicate.minMm ?? 0} to ${predicate.maxMm ?? "infinity"} mm from the configured datum in the ${predicate.plane || "xz"} plane`;
   if (predicate.op === "evidence") return `evidence ${predicate.requirementId} must be recorded`;
   if (predicate.op === "all") return `all of: ${(predicate.predicates || []).map(describePredicate).join("; ")}`;
   if (predicate.op === "any") return `at least one of: ${(predicate.predicates || []).map(describePredicate).join("; ")}`;

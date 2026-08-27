@@ -3,6 +3,7 @@ export * from "./blockly-api.js";
 export * from "./collision.js";
 export * from "./grading.js";
 export * from "./kinematics.js";
+export * from "./measurement.js";
 export * from "./planner.js";
 export * from "./portable-robot-plant.js";
 export * from "./python-compatibility-catalog.js";

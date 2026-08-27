@@ -10,6 +10,7 @@ import {
   loadRobotModel,
   methodAvailable,
   modelClaim,
+  validateMeasurementFixture,
   validateProxyEnclosure,
   validateScenarioV2
 } from "../../../lab/v2/index.js";
@@ -92,12 +93,22 @@ for (const definition of definitions) {
   assert.equal(definition.canonicalModel.sourceRevision, model.source.revision);
   assert.deepEqual(definition.modelClaim, canonicalClaim);
   assert.equal(definition.navigation.fixedBase, true);
-  assert.equal(definition.fixtures.length, definition.objects.length * 2 + 1, `${definition.id}: mount plus pickup and destination fixtures`);
+  const measurementFixtures = definition.fixtures.filter((fixture) => fixture.type === "configured_measurement_ruler");
+  const physicalFixtures = definition.fixtures.filter((fixture) => fixture.type !== "configured_measurement_ruler");
+  assert.equal(physicalFixtures.length, definition.objects.length * 2 + 1, `${definition.id}: mount plus pickup and destination fixtures`);
   assert.ok(definition.fixtures.every((fixture) => fixture.visible === true && fixture.configured === true));
-  assert.ok(definition.fixtures.every((fixture) => (
+  assert.ok(physicalFixtures.every((fixture) => (
     fixture.collisionProxy?.type === "box"
     || fixture.collisionProxies?.every((proxy) => proxy.type === "box")
   )));
+  measurementFixtures.forEach((fixture) => {
+    assert.equal(validateMeasurementFixture(fixture).ok, true, `${definition.id}/${fixture.id}: bounded visible ruler`);
+    assert.equal(fixture.presentationOnly, true);
+    assert.equal(fixture.collisionProxy, undefined);
+    assert.equal(fixture.collisionProxies, undefined);
+  });
+  if ([6, 8, 9].includes(definition.rank)) assert.equal(measurementFixtures.length, 2, `${definition.id}: complex measured mission needs two visible rulers`);
+  else assert.equal(measurementFixtures.length, 0, `${definition.id}: untouched mission must not gain decorative measurement fixtures`);
   const mount = definition.fixtures.find((fixture) => fixture.id === "so101_base_mount");
   assert.equal(mount?.collisionProxy?.planningRole, "robot_mount_contact", `${definition.id}: only the narrow fixed-base mounting contact is exempted`);
   assert.equal(mount.collisionProxy.centerMm[1] + mount.collisionProxy.halfExtentsMm[1], 0, `${definition.id}: visible mounting plate top aligns to robot root plane`);
@@ -214,7 +225,7 @@ for (const definition of definitions) {
     assert.equal(process.contactGated, true);
     assert.ok(definition.frames[process.contactFrame], `${definition.id}/${process.id}: process contact frame`);
     assert.ok(definition.fixtures.some((fixture) => fixture.id === process.fixtureId), `${definition.id}/${process.id}: process fixture`);
-    assert.deepEqual(new Set(process.prerequisites.map((item) => item.objectId)), new Set(definition.objects.slice(0, -1).map((item) => item.id)));
+    assert.deepEqual(new Set(process.prerequisites.filter((item) => item.op === "object_at").map((item) => item.objectId)), new Set(definition.objects.slice(0, -1).map((item) => item.id)));
     definition.objects.slice(0, -1).forEach((object) => {
       assert.ok(process.prerequisites.some((item) => item.op === "object_at" && item.objectId === object.id && item.frameId === `${object.id}_destination`), `${definition.id}/${process.id}: prior placement prerequisite for ${object.id}`);
     });

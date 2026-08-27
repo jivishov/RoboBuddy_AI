@@ -337,6 +337,7 @@ let observedSamples = 0;
 let minimumObservedSeparationMm = Infinity;
 
 for (const definition of definitions) {
+  const supportedStackMission = definition.id === "openarm-04-filtration-workcell";
   const clientDefinition = clientDefinitions.find((item) => item.id === definition.id);
   const validation = validateScenarioV2(definition);
   assert.equal(validation.ok, true, `${definition.id}: ${JSON.stringify(validation.errors)}`);
@@ -352,7 +353,11 @@ for (const definition of definitions) {
   assert.deepEqual(definition.coordination.acceptedSafeOrderings, ["left_then_right", "right_then_left"]);
   assert.equal(definition.coordination.minimumConfiguredEffectorSeparationMm, 300);
   assert.equal(definition.coordination.presentation?.objectAnchor, "authoritative_world_pose", `${definition.id}: renderer must consume the plant-owned object pose`);
-  assert.equal(definition.coordination.presentation?.supportFoundation, "floor_anchored_table", `${definition.id}: apparatus must resolve to the visible floor-anchored worktables`);
+  assert.equal(
+    definition.coordination.presentation?.supportFoundation,
+    supportedStackMission ? "floor_anchored_tables_with_visible_hotplate_and_ring_stand" : "floor_anchored_table",
+    `${definition.id}: apparatus must resolve to its visible floor-anchored support foundation`,
+  );
 
   assert.deepEqual(definition.modelClaim, canonicalClaim, `${definition.id}: exact canonical model claim`);
   assert.ok(definition.modelClaim.unsupportedPhysics.some((item) => item.includes("controller dynamics")));
@@ -377,17 +382,46 @@ for (const definition of definitions) {
   assert.deepEqual(fixture.contactFrames, ["left_place_contact", "right_place_contact"]);
   const supportedFrames = new Set(definition.fixtures.map((item) => item.supportsFrame).filter(Boolean));
   assert.deepEqual([...supportedFrames], [], `${definition.id}: no synthetic per-object support fixtures may remain`);
-  assert.equal(definition.fixtures.length, 1, `${definition.id}: only the real bimanual workcell fixture should remain`);
+  if (supportedStackMission) {
+    assert.equal(definition.fixtures.length, 5, `${definition.id}: workcell, two physical support fixtures, and two presentation-only rulers are required`);
+    assert.deepEqual(
+      definition.fixtures.map((item) => item.type),
+      ["configured_visible_bimanual_workcell", "configured_heater_platform", "configured_ring_stand_support", "configured_measurement_ruler", "configured_measurement_ruler"],
+    );
+    const physicalSupports = definition.fixtures.slice(1, 3).flatMap((item) => item.collisionProxies || [])
+      .filter((proxy) => proxy.physicalSupportSurface);
+    assert.deepEqual(physicalSupports.map((proxy) => [proxy.id, proxy.centerMm[1] + proxy.halfExtentsMm[1]]), [
+      ["left-heater-top", 342],
+      ["right-gauze-top", 388],
+    ]);
+    definition.fixtures.slice(3).forEach((rulerFixture) => {
+      assert.equal(rulerFixture.presentationOnly, true);
+      assert.equal(rulerFixture.measurement.axis, "y");
+      assert.equal(rulerFixture.measurement.units, "mm");
+    });
+  } else {
+    assert.equal(definition.fixtures.length, 1, `${definition.id}: only the real bimanual workcell fixture should remain`);
+  }
   const workcellLayout = openArmWorkcellLayout({ collisionProxies: fixture.collisionProxies });
   assert.equal(workcellLayout.valid, true, `${definition.id}: real workcell structure is invalid`);
   assert.equal(workcellLayout.worktopTopY, 320);
   assert.match(definition.coordination.tableClearance.authority, /authoritative fixed-step plant/);
-  assert.deepEqual(definition.coordination.tableClearance.forbiddenReachabilityAids, ["transport trays", "proxy carriers", "registration pins", "thin rods", "pedestals", "hidden supports", "tilted resting payloads"]);
+  assert.deepEqual(
+    definition.coordination.tableClearance.forbiddenReachabilityAids,
+    supportedStackMission
+      ? ["transport trays", "proxy carriers", "registration pins", "synthetic reachability rods", "hidden supports", "tilted resting payloads"]
+      : ["transport trays", "proxy carriers", "registration pins", "thin rods", "pedestals", "hidden supports", "tilted resting payloads"],
+  );
   for (const side of ["left", "right"]) {
     const object = definition.objects.find((item) => (item.allowedEffectors || item.compatibleEffectors || []).includes(side));
     const gripHeight = Number(object.physicalRest.gripSocketMm[1]);
     assert.ok(Math.abs(definition.frames[`${side}_contact`].positionMm[1] - workcellLayout.worktopTopY - gripHeight) < 1e-6, `${definition.id}: ${side} pickup must target the direct apparatus grip socket`);
-    assert.ok(Math.abs(definition.frames[`${side}_place_contact`].positionMm[1] - workcellLayout.worktopTopY - gripHeight) <= 3, `${definition.id}: ${side} placement must target the direct apparatus grip socket within the physical release tolerance`);
+    const finalPose = Object.entries(object.physicalRest.poses).find(([frameId]) => frameId !== object.initialFrame)?.[1];
+    const destinationSurface = definition.fixtures.flatMap((item) => item.collisionProxies || [])
+      .find((proxy) => proxy.id === finalPose?.surfaceId);
+    assert.ok(destinationSurface?.physicalSupportSurface, `${definition.id}: ${side} destination must resolve to a real support surface`);
+    const destinationTopY = Number(destinationSurface.centerMm[1]) + Number(destinationSurface.halfExtentsMm[1]);
+    assert.ok(Math.abs(definition.frames[`${side}_place_contact`].positionMm[1] - destinationTopY - gripHeight) <= 3, `${definition.id}: ${side} placement must target the supported apparatus grip socket within the physical release tolerance`);
   }
   definition.objects.forEach((object) => {
     assert.equal(object.visual.directHandling, true);
@@ -398,25 +432,35 @@ for (const definition of definitions) {
     assert.equal(object.visual.footprintMm.length, 2);
     assert.ok(object.visual.footprintMm.every((value) => Number(value) > 0));
     assert.equal(object.physicalRest.localUp[1], 1);
-    assert.ok(Object.values(object.physicalRest.poses).every((pose) => /-worktop$/.test(pose.surfaceId)));
+    Object.values(object.physicalRest.poses).forEach((pose) => {
+      const surface = definition.fixtures.flatMap((item) => item.collisionProxies || []).find((proxy) => proxy.id === pose.surfaceId);
+      assert.ok(surface?.physicalSupportSurface, `${definition.id}/${object.id}: ${pose.surfaceId} must be a declared physical support surface`);
+    });
   });
+  const homeFixtureObstacles = definition.fixtures.flatMap((item) => (item.collisionProxies || [])
+    .map((proxy) => ({ id: `${item.id}:${proxy.id}`, ...proxy })));
   const homeFixtureCheck = stateCollisionReport(
     model,
     home,
-    fixture.collisionProxies.map((proxy) => ({ id: `${fixture.id}:${proxy.id}`, ...proxy })),
+    homeFixtureObstacles,
     { basePose: { positionMm: [0,0,0], rotationDeg: [0,0,0] } }
   );
   assert.equal(homeFixtureCheck.ok, true, `${definition.id}: visible workcell intersects the robot at rest`);
 
   assert.equal(definition.objects.every((object) => object.visible && object.visual?.type), true);
-  assert.equal(definition.objects.every((object) => object.initialState?.contentsSimulation === "not modeled"), true);
+  assert.equal(
+    definition.objects.every((object) => supportedStackMission
+      ? object.initialState?.contentsSimulation === "empty; no liquid modeled"
+      : object.initialState?.contentsSimulation === "not modeled"),
+    true,
+  );
   assert.equal(definition.grasps.length, 2);
   assert.equal(definition.grasps[0].effector, "left");
   assert.equal(definition.grasps[1].effector, "right");
 
   const process = definition.processModels[0];
   assert.equal(process.discrete && process.contactGated, true);
-  assert.equal(process.prerequisites.length, 12, `${definition.id}: process needs state, contact, attach, place, detach, and retreat prerequisites`);
+  assert.equal(process.prerequisites.length, supportedStackMission ? 14 : 12, `${definition.id}: process needs state, contact, attach, place, detach, retreat, and any source-owned support measurements`);
 
   for (const side of ["left","right"]) {
     for (const suffix of ["approach","contact","lift","handoff","place_contact","retreat"]) {
@@ -440,9 +484,20 @@ for (const definition of definitions) {
     const transferDistance = Math.hypot(handoff[0] - contact[0], handoff[2] - contact[2]);
     assert.ok(transferDistance >= 90 && transferDistance <= 130, `${definition.id}: transfer distance must remain short and direct`);
     assert.ok(Math.hypot(placeContact[0] - handoff[0], placeContact[2] - handoff[2]) <= 5, `${definition.id}: calibrated placement must descend nearly vertically from transfer clearance`);
-    assert.ok(Math.abs(handoff[1] - placeContact[1] - 120) <= 3, `${definition.id}: placement descent must remain within 3 mm of the configured 120 mm clearance`);
+    const finalPose = Object.entries(object.physicalRest.poses).find(([frameId]) => frameId !== object.initialFrame)?.[1];
+    const destinationSurface = definition.fixtures.flatMap((item) => item.collisionProxies || [])
+      .find((proxy) => proxy.id === finalPose?.surfaceId);
+    const destinationTopY = Number(destinationSurface.centerMm[1]) + Number(destinationSurface.halfExtentsMm[1]);
+    const expectedPlacementDescent = 120 - (destinationTopY - workcellLayout.worktopTopY);
+    assert.ok(Math.abs(handoff[1] - placeContact[1] - expectedPlacementDescent) <= 3, `${definition.id}: placement descent must preserve the 120 mm carried clearance relative to the real destination support`);
     assert.equal(definition.frames[`${side}_place_contact`].coincidentWith, undefined, `${definition.id}: distinct transfer and place frames collapsed`);
-    assert.deepEqual(retreat, handoff, `${definition.id}: retreat must reverse the vertical placement descent`);
+    if (supportedStackMission) {
+      assert.equal(retreat[0], handoff[0], `${definition.id}: ${side} retreat stays above the support centerline`);
+      assert.equal(retreat[2], handoff[2], `${definition.id}: ${side} retreat rises vertically clear of the released vessel`);
+      assert.equal(retreat[1] - handoff[1], 25, `${definition.id}: ${side} retreat must finish 25 mm above the carried-clearance frame`);
+    } else {
+      assert.deepEqual(retreat, handoff, `${definition.id}: retreat must reverse the vertical placement descent`);
+    }
     assert.equal(definition.frames[`${side}_retreat`].coincidentWith, undefined, `${definition.id}: retreat must not masquerade as home`);
   }
   for (const suffix of ["approach","contact","lift","handoff","place_contact","retreat"]) {

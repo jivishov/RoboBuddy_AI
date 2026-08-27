@@ -2,8 +2,8 @@
   "schema": "robobuddy.lab-scenario.v2",
   "schemaVersion": 2,
   "id": "so101-v2-08-burette-initial-reading",
-  "title": "Titration Glassware Setup Queue",
-  "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
+  "title": "Burette Receiver Clearance Calibration",
+  "brief": "Program the SO-101 to park a capped titrant bottle outside the receiver exclusion zone, then place an empty beaker beneath a visible burette-centre datum within a 35 mm planar tolerance. The sequence uses the existing direct grasps, IK, collision checks, stable releases, and retreats; burette filling, dispensing, meniscus reading, and liquid behavior are not modeled.",
   "robotId": "so101_follower",
   "rank": 8,
   "supersedes": "so101-08-burette-initial-reading",
@@ -11,8 +11,8 @@
   "legacyClassification": "C",
   "migration": {
     "class": "C",
-    "legacyLearningObjective": "Program the ordered capped titrant bottle setup preparation and distinguish a configured setup-ready cue from a measurement.",
-    "redesignRationale": "Conditioning, filling, and reading a capped titrant bottle would imply unsupported fluid and measurement fidelity. The robot role is redesigned as ordered dry-practice setup staging."
+    "legacyLearningObjective": "Program the ordered titrant-bottle and receiver setup, use visible horizontal and vertical millimetre datums to verify clearance, and distinguish setup geometry from a burette reading.",
+    "redesignRationale": "The validated SO-101 model can physically stage capped glassware, but burette filling, valve control, meniscus reading, and fluid metrology are unsupported and cannot be validated by this model. The successor converts the task into an instrument-clearance calibration with an ordered bottle parking step and a ruler-checked receiver-centering step."
   },
   "canonicalModel": {
     "id": "so101_follower",
@@ -397,12 +397,62 @@
         }
       ],
       "sourceBackedHolder": true
+    },
+    {
+      "id": "burette_vertical_ruler",
+      "type": "configured_measurement_ruler",
+      "label": "Vertical burette-centre height datum",
+      "visible": true,
+      "configured": true,
+      "presentationOnly": true,
+      "collisionAuthority": "none; visual measurement aid only",
+      "measurement": {
+        "units": "mm",
+        "minorTickMm": 10,
+        "majorTickMm": 50,
+        "labelEveryMm": 100,
+        "widthMm": 24,
+        "axis": "y",
+        "originMm": [
+          -72,
+          0,
+          250
+        ],
+        "lengthMm": 300,
+        "direction": 1,
+        "startValueMm": 0
+      }
+    },
+    {
+      "id": "burette_x_ruler",
+      "type": "configured_measurement_ruler",
+      "label": "Receiver-centering ruler",
+      "visible": true,
+      "configured": true,
+      "presentationOnly": true,
+      "collisionAuthority": "none; visual measurement aid only",
+      "measurement": {
+        "units": "mm",
+        "minorTickMm": 10,
+        "majorTickMm": 50,
+        "labelEveryMm": 100,
+        "widthMm": 28,
+        "axis": "x",
+        "originMm": [
+          -100,
+          3,
+          300
+        ],
+        "lengthMm": 500,
+        "direction": 1,
+        "startValueMm": -100
+      }
     }
   ],
   "objects": [
     {
       "id": "titrant_bottle",
-      "label": "Capped reagent bottle",
+      "label": "Capped titrant bottle",
       "initialFrame": "titrant_bottle_contact",
       "transportable": true,
       "visible": true,
@@ -426,7 +476,8 @@
         "heightMm": 110,
         "directHandling": true,
         "containerFree": true,
-        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly."
+        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly.",
+        "label": "Capped titrant bottle"
       },
       "configuredGripInterface": "direct body pinch; opposing rendered finger contact with the intended apparatus itself.",
       "attachmentInterface": "direct_apparatus_grip",
@@ -593,7 +644,7 @@
     },
     {
       "id": "titration_beaker",
-      "label": "Empty beaker",
+      "label": "Empty titration receiver beaker",
       "initialFrame": "titration_beaker_contact",
       "transportable": true,
       "visible": true,
@@ -617,7 +668,8 @@
         "heightMm": 80,
         "directHandling": true,
         "containerFree": true,
-        "approximation": "C: configured empty beaker renderer envelope (74 x 80 x 74 mm); the opposing gripper fingers contact this apparatus directly."
+        "approximation": "C: configured empty beaker renderer envelope (74 x 80 x 74 mm); the opposing gripper fingers contact this apparatus directly.",
+        "label": "Empty titration receiver beaker"
       },
       "configuredGripInterface": "direct rim wall pinch; opposing rendered finger contact with the intended apparatus itself.",
       "attachmentInterface": "direct_apparatus_grip",
@@ -835,7 +887,7 @@
   "processModels": [
     {
       "id": "burette_setup_ready",
-      "label": "Configured discrete station state",
+      "label": "Commit the dry burette-receiver clearance layout after the ordered beaker placement.",
       "discrete": true,
       "contactGated": true,
       "initialState": "not_ready",
@@ -845,6 +897,59 @@
           "op": "object_at",
           "objectId": "titrant_bottle",
           "frameId": "titrant_bottle_destination"
+        },
+        {
+          "id": "titrant_parked_before_receiver_pickup",
+          "label": "The capped titrant bottle must be parked before the receiver-beaker pickup begins.",
+          "op": "event_before",
+          "before": {
+            "type": "DETACH_OBJECT",
+            "objectId": "titrant_bottle",
+            "frameId": "titrant_bottle_destination"
+          },
+          "after": {
+            "type": "CONTACT",
+            "objectId": "titration_beaker",
+            "frameId": "titration_beaker_contact"
+          }
+        },
+        {
+          "id": "receiver_centered_on_burette_datum",
+          "label": "The beaker centre must finish within 35 mm of the configured burette centreline datum.",
+          "op": "object_planar_offset",
+          "objectId": "titration_beaker",
+          "originMm": [
+            0,
+            0,
+            250
+          ],
+          "plane": "xz",
+          "minMm": 0,
+          "maxMm": 35
+        },
+        {
+          "id": "titrant_bottle_outside_receiver_zone",
+          "label": "The capped titrant bottle must remain 315–345 mm from the receiver centreline.",
+          "op": "object_planar_offset",
+          "objectId": "titrant_bottle",
+          "originMm": [
+            0,
+            0,
+            250
+          ],
+          "plane": "xz",
+          "minMm": 315,
+          "maxMm": 345
+        },
+        {
+          "id": "titration_workcell_spacing",
+          "label": "The final bottle-to-beaker centre spacing must remain 339–365 mm.",
+          "op": "object_planar_distance",
+          "objectA": "titrant_bottle",
+          "objectB": "titration_beaker",
+          "plane": "xz",
+          "minMm": 339,
+          "maxMm": 365
         }
       ],
       "fixtureId": "titration_beaker_destination_slot",
@@ -920,6 +1025,59 @@
       "op": "process_state",
       "processId": "burette_setup_ready",
       "value": "ready"
+    },
+    {
+      "id": "titrant_parked_before_receiver_pickup",
+      "label": "The capped titrant bottle must be parked before the receiver-beaker pickup begins.",
+      "op": "event_before",
+      "before": {
+        "type": "DETACH_OBJECT",
+        "objectId": "titrant_bottle",
+        "frameId": "titrant_bottle_destination"
+      },
+      "after": {
+        "type": "CONTACT",
+        "objectId": "titration_beaker",
+        "frameId": "titration_beaker_contact"
+      }
+    },
+    {
+      "id": "receiver_centered_on_burette_datum",
+      "label": "The beaker centre must finish within 35 mm of the configured burette centreline datum.",
+      "op": "object_planar_offset",
+      "objectId": "titration_beaker",
+      "originMm": [
+        0,
+        0,
+        250
+      ],
+      "plane": "xz",
+      "minMm": 0,
+      "maxMm": 35
+    },
+    {
+      "id": "titrant_bottle_outside_receiver_zone",
+      "label": "The capped titrant bottle must remain 315–345 mm from the receiver centreline.",
+      "op": "object_planar_offset",
+      "objectId": "titrant_bottle",
+      "originMm": [
+        0,
+        0,
+        250
+      ],
+      "plane": "xz",
+      "minMm": 315,
+      "maxMm": 345
+    },
+    {
+      "id": "titration_workcell_spacing",
+      "label": "The final bottle-to-beaker centre spacing must remain 339–365 mm.",
+      "op": "object_planar_distance",
+      "objectA": "titrant_bottle",
+      "objectB": "titration_beaker",
+      "plane": "xz",
+      "minMm": 339,
+      "maxMm": 365
     }
   ],
   "prohibitedStates": [
@@ -968,6 +1126,10 @@
     {
       "label": "R",
       "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
+    },
+    {
+      "label": "C",
+      "claim": "C: the visible burette-centre and ruler datums, 35 mm receiver tolerance, bottle exclusion distance, and final spacing band are configured educational geometry. The plant grades live object poses and event order; no burette reading or fluid response is inferred."
     }
   ],
   "modelClaim": {
@@ -1379,10 +1541,10 @@
   "hiddenGradingRequirements": [
     {
       "id": "completion_observation",
-      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
+      "label": "Confirm bottle-first ordering, receiver centering, exclusion-zone clearance, stable seating, and clear retreats.",
       "kind": "learner-recorded",
       "allowedValues": [
-        "Visible destination seating confirmed with the robot clear."
+        "Dry burette-receiver clearance layout confirmed from plant state."
       ],
       "availableWhen": {
         "op": "all",
@@ -1396,6 +1558,59 @@
             "op": "object_at",
             "objectId": "titration_beaker",
             "frameId": "titration_beaker_destination"
+          },
+          {
+            "id": "titrant_parked_before_receiver_pickup",
+            "label": "The capped titrant bottle must be parked before the receiver-beaker pickup begins.",
+            "op": "event_before",
+            "before": {
+              "type": "DETACH_OBJECT",
+              "objectId": "titrant_bottle",
+              "frameId": "titrant_bottle_destination"
+            },
+            "after": {
+              "type": "CONTACT",
+              "objectId": "titration_beaker",
+              "frameId": "titration_beaker_contact"
+            }
+          },
+          {
+            "id": "receiver_centered_on_burette_datum",
+            "label": "The beaker centre must finish within 35 mm of the configured burette centreline datum.",
+            "op": "object_planar_offset",
+            "objectId": "titration_beaker",
+            "originMm": [
+              0,
+              0,
+              250
+            ],
+            "plane": "xz",
+            "minMm": 0,
+            "maxMm": 35
+          },
+          {
+            "id": "titrant_bottle_outside_receiver_zone",
+            "label": "The capped titrant bottle must remain 315–345 mm from the receiver centreline.",
+            "op": "object_planar_offset",
+            "objectId": "titrant_bottle",
+            "originMm": [
+              0,
+              0,
+              250
+            ],
+            "plane": "xz",
+            "minMm": 315,
+            "maxMm": 345
+          },
+          {
+            "id": "titration_workcell_spacing",
+            "label": "The final bottle-to-beaker centre spacing must remain 339–365 mm.",
+            "op": "object_planar_distance",
+            "objectA": "titrant_bottle",
+            "objectB": "titration_beaker",
+            "plane": "xz",
+            "minMm": 339,
+            "maxMm": 365
           },
           {
             "op": "frame_visited",
@@ -3638,6 +3853,19 @@
       "sourceRevision": "7e241bd630a3719a56157a497ce5d08f244784f1",
       "browserBoundary": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
     }
+  },
+  "complexityUpgrade": {
+    "version": "2026-08-27",
+    "class": "instrument_clearance_calibration",
+    "preservedMotionGeometry": true,
+    "preservedPublicPythonActionFields": true,
+    "physicalHardwareValidated": false,
+    "unsupported": [
+      "burette filling",
+      "stopcock actuation",
+      "meniscus reading",
+      "liquid dispensing"
+    ]
   },
   "validationAvailable": true
 }

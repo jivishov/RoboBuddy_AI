@@ -79,6 +79,15 @@ const PROFILES = Object.freeze({
     gripInterface: "direct rim wall pinch", supportKind: "upright_beaker_on_real_work_surface",
     claim: configuredClaim("empty beaker", "74 x 80 x 74 mm"),
   }),
+  small_beaker: profile({
+    type: "beaker", variant: "small_50_ml", directLabel: "Empty 50 mL beaker", heightMm: 60,
+    footprintMm: [50, 50], gripSocketMm: [0, 43, 0], centerOfMassLocalMm: [0, 28, 0],
+    geometry: {
+      footprintShape: "ellipse", centerLocalMm: [0, 30, 0], halfExtentsMm: [25, 30, 25],
+    },
+    gripInterface: "direct opposed upper-wall pinch", supportKind: "upright_beaker_on_real_work_surface",
+    claim: configuredClaim("empty 50 mL practice beaker", "50 x 60 x 50 mm"),
+  }),
   flask: profile({
     type: "flask", variant: "erlenmeyer", directLabel: "Empty Erlenmeyer flask", heightMm: 114,
     footprintMm: [80, 80], gripSocketMm: [0, 96, 0], centerOfMassLocalMm: [0, 42, 0],

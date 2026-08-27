@@ -2,8 +2,8 @@
   "schema": "robobuddy.lab-scenario.v2",
   "schemaVersion": 2,
   "id": "so101-v2-06-quantitative-transfer",
-  "title": "Transfer Bottle and Rinse Station Readiness",
-  "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Capped reagent bottle on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
+  "title": "Measured Two-Bottle Transfer Workcell",
+  "brief": "Program an ordered, collision-checked SO-101 sequence that parks a capped stock bottle and capped rinse bottle at ruler-defined coordinates, verifies their final centre-to-centre spacing, releases each object on a real work surface, and retreats clear. No pouring, liquid motion, mass transfer, or force sensing is simulated.",
   "robotId": "so101_follower",
   "rank": 6,
   "supersedes": "so101-06-quantitative-transfer",
@@ -11,8 +11,8 @@
   "legacyClassification": "C",
   "migration": {
     "class": "C",
-    "legacyLearningObjective": "Program the configured capped aliquot bottle-transfer and rinse preparation sequence while distinguishing robot staging from unsupported liquid behavior.",
-    "redesignRationale": "The v1 liquid transfer and rinse actions exceed the kinematic, no-fluid fidelity boundary. The robot role is redesigned as sealed-tool staging while the transfer objective remains a visible procedural-readiness sequence."
+    "legacyLearningObjective": "Program an ordered capped stock-and-rinse bottle staging sequence, use visible millimetre datums to verify the final layout, and distinguish physical robot handling from unsupported liquid transfer.",
+    "redesignRationale": "The single-arm SO-101 cannot safely reproduce a quantitative liquid transfer because fluid, payload, and force behavior are unsupported and cannot be validated by this model. The successor preserves the transfer-workcell reasoning as a measured two-object placement sequence with real collision-checked grasps, ordered release events, and ruler-verifiable geometry."
   },
   "canonicalModel": {
     "id": "so101_follower",
@@ -397,12 +397,62 @@
         }
       ],
       "sourceBackedHolder": true
+    },
+    {
+      "id": "transfer_x_ruler",
+      "type": "configured_measurement_ruler",
+      "label": "Horizontal transfer-workcell ruler",
+      "visible": true,
+      "configured": true,
+      "presentationOnly": true,
+      "collisionAuthority": "none; visual measurement aid only",
+      "measurement": {
+        "units": "mm",
+        "minorTickMm": 10,
+        "majorTickMm": 50,
+        "labelEveryMm": 100,
+        "widthMm": 28,
+        "axis": "x",
+        "originMm": [
+          -100,
+          3,
+          310
+        ],
+        "lengthMm": 500,
+        "direction": 1,
+        "startValueMm": -100
+      }
+    },
+    {
+      "id": "transfer_z_ruler",
+      "type": "configured_measurement_ruler",
+      "label": "Depth ruler for destination verification",
+      "visible": true,
+      "configured": true,
+      "presentationOnly": true,
+      "collisionAuthority": "none; visual measurement aid only",
+      "measurement": {
+        "units": "mm",
+        "minorTickMm": 10,
+        "majorTickMm": 50,
+        "labelEveryMm": 100,
+        "widthMm": 28,
+        "axis": "z",
+        "originMm": [
+          360,
+          3,
+          50
+        ],
+        "lengthMm": 300,
+        "direction": 1,
+        "startValueMm": 50
+      }
     }
   ],
   "objects": [
     {
       "id": "aliquot_bottle",
-      "label": "Capped reagent bottle",
+      "label": "Capped stock-solution bottle",
       "initialFrame": "aliquot_bottle_contact",
       "transportable": true,
       "visible": true,
@@ -426,7 +476,8 @@
         "heightMm": 110,
         "directHandling": true,
         "containerFree": true,
-        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly."
+        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly.",
+        "label": "Capped stock-solution bottle"
       },
       "configuredGripInterface": "direct body pinch; opposing rendered finger contact with the intended apparatus itself.",
       "attachmentInterface": "direct_apparatus_grip",
@@ -593,7 +644,7 @@
     },
     {
       "id": "capped_rinse_bottle",
-      "label": "Capped reagent bottle",
+      "label": "Capped rinse-water bottle",
       "initialFrame": "capped_rinse_bottle_contact",
       "transportable": true,
       "visible": true,
@@ -617,7 +668,8 @@
         "heightMm": 110,
         "directHandling": true,
         "containerFree": true,
-        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly."
+        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly.",
+        "label": "Capped rinse-water bottle"
       },
       "configuredGripInterface": "direct body pinch; opposing rendered finger contact with the intended apparatus itself.",
       "attachmentInterface": "direct_apparatus_grip",
@@ -890,7 +942,7 @@
   "processModels": [
     {
       "id": "transfer_station_ready",
-      "label": "Configured discrete station state",
+      "label": "Commit the measured transfer-workcell layout after the ordered second placement.",
       "discrete": true,
       "contactGated": true,
       "initialState": "not_ready",
@@ -900,6 +952,59 @@
           "op": "object_at",
           "objectId": "aliquot_bottle",
           "frameId": "aliquot_bottle_destination"
+        },
+        {
+          "id": "stock_release_before_rinse_pickup",
+          "label": "The stock bottle must be released before the rinse-bottle pickup begins.",
+          "op": "event_before",
+          "before": {
+            "type": "DETACH_OBJECT",
+            "objectId": "aliquot_bottle",
+            "frameId": "aliquot_bottle_destination"
+          },
+          "after": {
+            "type": "CONTACT",
+            "objectId": "capped_rinse_bottle",
+            "frameId": "capped_rinse_bottle_contact"
+          }
+        },
+        {
+          "id": "measured_bottle_spacing",
+          "label": "The final bottle centres must be 348–374 mm apart in the horizontal work plane.",
+          "op": "object_planar_distance",
+          "objectA": "aliquot_bottle",
+          "objectB": "capped_rinse_bottle",
+          "plane": "xz",
+          "minMm": 348,
+          "maxMm": 374
+        },
+        {
+          "id": "stock_x_coordinate",
+          "label": "The stock-bottle centre must align with the +295 to +320 mm ruler band.",
+          "op": "object_axis_coordinate",
+          "objectId": "aliquot_bottle",
+          "axis": "x",
+          "originMm": [
+            0,
+            0,
+            0
+          ],
+          "minMm": 295,
+          "maxMm": 320
+        },
+        {
+          "id": "rinse_x_coordinate",
+          "label": "The rinse-bottle centre must align with the −46 to −21 mm ruler band.",
+          "op": "object_axis_coordinate",
+          "objectId": "capped_rinse_bottle",
+          "axis": "x",
+          "originMm": [
+            0,
+            0,
+            0
+          ],
+          "minMm": -46,
+          "maxMm": -21
         }
       ],
       "fixtureId": "capped_rinse_bottle_destination_slot",
@@ -975,6 +1080,59 @@
       "op": "process_state",
       "processId": "transfer_station_ready",
       "value": "ready"
+    },
+    {
+      "id": "stock_release_before_rinse_pickup",
+      "label": "The stock bottle must be released before the rinse-bottle pickup begins.",
+      "op": "event_before",
+      "before": {
+        "type": "DETACH_OBJECT",
+        "objectId": "aliquot_bottle",
+        "frameId": "aliquot_bottle_destination"
+      },
+      "after": {
+        "type": "CONTACT",
+        "objectId": "capped_rinse_bottle",
+        "frameId": "capped_rinse_bottle_contact"
+      }
+    },
+    {
+      "id": "measured_bottle_spacing",
+      "label": "The final bottle centres must be 348–374 mm apart in the horizontal work plane.",
+      "op": "object_planar_distance",
+      "objectA": "aliquot_bottle",
+      "objectB": "capped_rinse_bottle",
+      "plane": "xz",
+      "minMm": 348,
+      "maxMm": 374
+    },
+    {
+      "id": "stock_x_coordinate",
+      "label": "The stock-bottle centre must align with the +295 to +320 mm ruler band.",
+      "op": "object_axis_coordinate",
+      "objectId": "aliquot_bottle",
+      "axis": "x",
+      "originMm": [
+        0,
+        0,
+        0
+      ],
+      "minMm": 295,
+      "maxMm": 320
+    },
+    {
+      "id": "rinse_x_coordinate",
+      "label": "The rinse-bottle centre must align with the −46 to −21 mm ruler band.",
+      "op": "object_axis_coordinate",
+      "objectId": "capped_rinse_bottle",
+      "axis": "x",
+      "originMm": [
+        0,
+        0,
+        0
+      ],
+      "minMm": -46,
+      "maxMm": -21
     }
   ],
   "prohibitedStates": [
@@ -1023,6 +1181,10 @@
     {
       "label": "R",
       "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
+    },
+    {
+      "label": "C",
+      "claim": "C: millimetre rulers, coordinate bands, and spacing tolerances are configured educational measurement datums. Grading reads authoritative plant object poses and event order; the rulers are visible non-colliding aids and do not replace IK, collision checking, stable-support validation, or the public SO-101 action interface."
     }
   ],
   "modelClaim": {
@@ -1434,10 +1596,10 @@
   "hiddenGradingRequirements": [
     {
       "id": "completion_observation",
-      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
+      "label": "Confirm the ruler-defined two-bottle layout, ordered release sequence, stable seating, and clear retreats.",
       "kind": "learner-recorded",
       "allowedValues": [
-        "Visible destination seating confirmed with the robot clear."
+        "Measured two-bottle layout and ordered release confirmed from plant state."
       ],
       "availableWhen": {
         "op": "all",
@@ -1451,6 +1613,59 @@
             "op": "object_at",
             "objectId": "capped_rinse_bottle",
             "frameId": "capped_rinse_bottle_destination"
+          },
+          {
+            "id": "stock_release_before_rinse_pickup",
+            "label": "The stock bottle must be released before the rinse-bottle pickup begins.",
+            "op": "event_before",
+            "before": {
+              "type": "DETACH_OBJECT",
+              "objectId": "aliquot_bottle",
+              "frameId": "aliquot_bottle_destination"
+            },
+            "after": {
+              "type": "CONTACT",
+              "objectId": "capped_rinse_bottle",
+              "frameId": "capped_rinse_bottle_contact"
+            }
+          },
+          {
+            "id": "measured_bottle_spacing",
+            "label": "The final bottle centres must be 348–374 mm apart in the horizontal work plane.",
+            "op": "object_planar_distance",
+            "objectA": "aliquot_bottle",
+            "objectB": "capped_rinse_bottle",
+            "plane": "xz",
+            "minMm": 348,
+            "maxMm": 374
+          },
+          {
+            "id": "stock_x_coordinate",
+            "label": "The stock-bottle centre must align with the +295 to +320 mm ruler band.",
+            "op": "object_axis_coordinate",
+            "objectId": "aliquot_bottle",
+            "axis": "x",
+            "originMm": [
+              0,
+              0,
+              0
+            ],
+            "minMm": 295,
+            "maxMm": 320
+          },
+          {
+            "id": "rinse_x_coordinate",
+            "label": "The rinse-bottle centre must align with the −46 to −21 mm ruler band.",
+            "op": "object_axis_coordinate",
+            "objectId": "capped_rinse_bottle",
+            "axis": "x",
+            "originMm": [
+              0,
+              0,
+              0
+            ],
+            "minMm": -46,
+            "maxMm": -21
           },
           {
             "op": "frame_visited",
@@ -3849,6 +4064,19 @@
       "sourceRevision": "7e241bd630a3719a56157a497ce5d08f244784f1",
       "browserBoundary": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
     }
+  },
+  "complexityUpgrade": {
+    "version": "2026-08-27",
+    "class": "measured_multi_object_sequence",
+    "preservedMotionGeometry": true,
+    "preservedPublicPythonActionFields": true,
+    "physicalHardwareValidated": false,
+    "unsupported": [
+      "liquid transfer",
+      "pouring",
+      "mass measurement",
+      "force sensing"
+    ]
   },
   "validationAvailable": true
 }

@@ -10,4 +10,18 @@ The combined catalog is generated once, after all five robot-family branches are
 node scripts\generate-lab-v2-catalog.mjs
 ```
 
-The generator refuses a second run when `generated/build-metadata.json` exists unless a maintainer explicitly removes that generated output in a later authorized remediation.
+The generator refuses a second run when `generated/build-metadata.json` exists unless a maintainer explicitly performs a reviewed refresh:
+
+```powershell
+node scripts\generate-lab-v2-catalog.mjs --refresh
+```
+
+## Measured workcell missions
+
+A `configured_measurement_ruler` is a visible, `presentationOnly` millimetre reference. It has no collision authority and may not be used as a support, reachability aid, or hidden physics object. Authoritative grading reads the plant's final object poses and event log through the bounded predicates `object_axis_coordinate`, `object_axis_distance`, `object_planar_distance`, `object_planar_offset`, and `event_before`. This keeps measurement outcomes deterministic while preserving the robot family's existing joint-action API, IK, collision checking, stable-rest checks, release semantics, and fixed-step replay.
+
+The reviewed SO-101/OpenArm upgrade is reproducible as one ordered command; OpenArm reference actions must be re-solved after the source geometry is authored and before client scenarios are regenerated:
+
+```powershell
+npm run upgrade:v2:complex-lab
+```

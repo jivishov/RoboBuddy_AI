@@ -65,6 +65,12 @@ function referenceCallsForCurrentDefinition(current, legacy) {
     });
   }
   if (!currentCalls.length) return legacyCalls;
+  // Portable missions generated before semantic validation calls existed can
+  // legitimately acquire a new source-owned transport trace during a reviewed
+  // mission redesign. In that case there is no legacy call sequence to merge;
+  // use the current bounded calls verbatim and let the extractor re-solve every
+  // waypoint against the current fixtures, IK limits, and collision model.
+  if (!legacyCalls.length) return structuredClone(currentCalls);
   if (currentCalls.length !== legacyCalls.length) {
     throw new Error(`${current.id}: current and legacy reference call counts differ (${currentCalls.length} !== ${legacyCalls.length}).`);
   }

@@ -66,7 +66,69 @@ function frameMarker(id, frame, options = {}) {
   return group;
 }
 
+
+function measurementRuler(fixture) {
+  const configured = fixture.measurement || {};
+  const axis = String(configured.axis || "x").toLowerCase();
+  const axisIndex = { x: 0, y: 1, z: 2 }[axis];
+  const origin = Array.isArray(configured.originMm) ? configured.originMm.map(Number) : [0, 0, 0];
+  const length = Math.max(10, Number(configured.lengthMm) || 500);
+  const direction = Number(configured.direction) < 0 ? -1 : 1;
+  const minor = Math.max(2, Number(configured.minorTickMm) || 10);
+  const major = Math.max(minor, Number(configured.majorTickMm) || 50);
+  const labelEvery = Math.max(major, Number(configured.labelEveryMm) || 100);
+  const width = Math.max(14, Number(configured.widthMm) || 28);
+  const startValue = Number(configured.startValueMm) || 0;
+  const group = new THREE.Group();
+  group.name = `scenario-v2-measurement-ruler-${fixture.id}`;
+  group.userData.absolutePosition = true;
+  group.userData.fixedFixture = true;
+  group.userData.presentationOnly = true;
+  group.userData.measurement = { ...configured };
+  group.position.set(...origin);
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xf2e8be, roughness: 0.82, metalness: 0.02 });
+  const tickMaterial = new THREE.MeshBasicMaterial({ color: 0x263238 });
+  const bodySize = axis === "x" ? [length, 2, width] : axis === "z" ? [width, 2, length] : [width, length, 2];
+  const body = new THREE.Mesh(new THREE.BoxGeometry(...bodySize), bodyMaterial);
+  const bodyOffset = direction * length / 2;
+  if (axisIndex !== undefined) body.position.setComponent(axisIndex, bodyOffset);
+  body.name = `${group.name}-body`;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const count = Math.min(250, Math.floor(length / minor));
+  for (let index = 0; index <= count; index += 1) {
+    const distance = Math.min(length, index * minor);
+    const majorTick = Math.abs(distance / major - Math.round(distance / major)) < 1e-6;
+    const labelTick = Math.abs(distance / labelEvery - Math.round(distance / labelEvery)) < 1e-6;
+    const tickLength = majorTick ? width * 0.82 : width * 0.48;
+    const tickSize = axis === "x" ? [1.2, 2.4, tickLength] : axis === "z" ? [tickLength, 2.4, 1.2] : [tickLength, 1.2, 2.4];
+    const tick = new THREE.Mesh(new THREE.BoxGeometry(...tickSize), tickMaterial);
+    const coordinate = direction * distance;
+    tick.position.set(0, 0, 0);
+    tick.position.setComponent(axisIndex, coordinate);
+    if (axis !== "y") tick.position.y = 2.2;
+    tick.name = `${group.name}-tick-${distance}`;
+    group.add(tick);
+    if (labelTick) {
+      const value = startValue + direction * distance;
+      const label = labelSprite(`${Math.round(value)} ${configured.units || "mm"}`, "#263238");
+      label.scale.set(54, 12, 1);
+      if (axis === "x") label.position.set(coordinate, 16, width * 0.72);
+      else if (axis === "z") label.position.set(width * 0.72, 16, coordinate);
+      else label.position.set(width * 0.95, coordinate, 4);
+      label.name = `${group.name}-label-${distance}`;
+      group.add(label);
+    }
+  }
+  return group;
+}
+
 function fixtureProxy(fixture) {
+  if (fixture.type === "configured_measurement_ruler") return measurementRuler(fixture);
+  if (fixture.type === "configured_heater_platform") return configuredHeaterPlatform(fixture);
+  if (fixture.type === "configured_ring_stand_support") return configuredRingStandSupport(fixture);
   if (fixture.presentationOnly === true) {
     const group = new THREE.Group();
     group.name = `scenario-v2-fixture-${fixture.id}`;
@@ -180,6 +242,104 @@ function boxMesh(size, position, material, name) {
   mesh.receiveShadow = true;
   mesh.name = name;
   return mesh;
+}
+
+function configuredHeaterPlatform(fixture) {
+  const proxies = new Map((fixture.collisionProxies || []).map((proxy) => [proxy.id, proxy]));
+  const bodyProxy = proxies.get("left-heater-body");
+  const topProxy = proxies.get("left-heater-top");
+  const controlProxy = proxies.get("left-heater-control-face");
+  if (!bodyProxy || !topProxy || !controlProxy) return fixtureProxy({ ...fixture, type: "configured_fixture_fallback" });
+  const group = new THREE.Group();
+  group.name = `scenario-v2-fixture-${fixture.id}`;
+  group.userData.fixedFixture = true;
+  group.userData.absolutePosition = true;
+  group.userData.fixtureIds = [fixture.id];
+  group.userData.supportSurfaceId = topProxy.id;
+  group.userData.unpowered = true;
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x343f42, roughness: 0.58, metalness: 0.3 });
+  const topMaterial = new THREE.MeshStandardMaterial({ color: 0xe7e1d0, roughness: 0.4, metalness: 0.05 });
+  const controlMaterial = new THREE.MeshStandardMaterial({ color: 0x20292c, roughness: 0.5, metalness: 0.18 });
+  group.add(boxMesh(bodyProxy.halfExtentsMm.map((value) => Number(value) * 2), bodyProxy.centerMm, bodyMaterial, `${group.name}-body`));
+  group.add(boxMesh(topProxy.halfExtentsMm.map((value) => Number(value) * 2), topProxy.centerMm, topMaterial, `${group.name}-ceramic-top`));
+  group.add(boxMesh(controlProxy.halfExtentsMm.map((value) => Number(value) * 2), controlProxy.centerMm, controlMaterial, `${group.name}-control-face`));
+
+  const knobMaterial = new THREE.MeshStandardMaterial({ color: 0xc6cfcd, roughness: 0.35, metalness: 0.55 });
+  for (const offsetX of [-24, 24]) {
+    const knob = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 6, 24), knobMaterial);
+    knob.rotation.x = Math.PI / 2;
+    knob.position.set(Number(controlProxy.centerMm[0]) + offsetX, Number(controlProxy.centerMm[1]), Number(controlProxy.centerMm[2]) - Number(controlProxy.halfExtentsMm[2]) - 3);
+    knob.name = `${group.name}-control-knob-${offsetX < 0 ? "left" : "right"}`;
+    knob.castShadow = true;
+    group.add(knob);
+  }
+  const statusLabel = labelSprite("UNPOWERED", "#344449");
+  statusLabel.scale.set(72, 15, 1);
+  statusLabel.position.set(Number(controlProxy.centerMm[0]), Number(controlProxy.centerMm[1]) + 23, Number(controlProxy.centerMm[2]) - 12);
+  group.add(statusLabel);
+  group.userData.activeMaterials = [bodyMaterial, topMaterial];
+  return group;
+}
+
+function configuredRingStandSupport(fixture) {
+  const proxies = new Map((fixture.collisionProxies || []).map((proxy) => [proxy.id, proxy]));
+  const baseProxy = proxies.get("right-ring-stand-base");
+  const rodProxy = proxies.get("right-ring-stand-rod");
+  const xArmProxy = proxies.get("right-ring-clamp-x-arm");
+  const zArmProxy = proxies.get("right-ring-clamp-z-arm");
+  const gauzeProxy = proxies.get("right-gauze-top");
+  if (!baseProxy || !rodProxy || !xArmProxy || !zArmProxy || !gauzeProxy) return fixtureProxy({ ...fixture, type: "configured_fixture_fallback" });
+  const group = new THREE.Group();
+  group.name = `scenario-v2-fixture-${fixture.id}`;
+  group.userData.fixedFixture = true;
+  group.userData.absolutePosition = true;
+  group.userData.fixtureIds = [fixture.id];
+  group.userData.supportSurfaceId = gauzeProxy.id;
+  group.userData.sourceBackedHolder = true;
+
+  const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x2e393c, roughness: 0.52, metalness: 0.35 });
+  const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x89979a, roughness: 0.32, metalness: 0.68 });
+  const gauzeMaterial = new THREE.MeshStandardMaterial({ color: 0xb7c0bd, roughness: 0.42, metalness: 0.48, transparent: true, opacity: 0.68 });
+  group.add(boxMesh(baseProxy.halfExtentsMm.map((value) => Number(value) * 2), baseProxy.centerMm, baseMaterial, `${group.name}-base`));
+
+  const rod = new THREE.Mesh(
+    new THREE.CylinderGeometry(Math.max(3, Number(rodProxy.halfExtentsMm[0])), Math.max(3, Number(rodProxy.halfExtentsMm[0])), Number(rodProxy.halfExtentsMm[1]) * 2, 24),
+    metalMaterial,
+  );
+  rod.position.set(...rodProxy.centerMm);
+  rod.name = `${group.name}-rod`;
+  rod.castShadow = true;
+  group.add(rod);
+  for (const proxy of [xArmProxy, zArmProxy]) {
+    group.add(boxMesh(proxy.halfExtentsMm.map((value) => Number(value) * 2), proxy.centerMm, metalMaterial, `${group.name}-${proxy.id}`));
+  }
+
+  const gauze = boxMesh(gauzeProxy.halfExtentsMm.map((value) => Number(value) * 2), gauzeProxy.centerMm, gauzeMaterial, `${group.name}-gauze`);
+  group.add(gauze);
+  const supportTopY = Number(gauzeProxy.centerMm[1]) + Number(gauzeProxy.halfExtentsMm[1]) + 0.8;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(44, 2.2, 12, 64), metalMaterial);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.set(Number(gauzeProxy.centerMm[0]), supportTopY, Number(gauzeProxy.centerMm[2]));
+  ring.name = `${group.name}-support-ring`;
+  group.add(ring);
+  const gridPoints = [];
+  for (let offset = -40; offset <= 40; offset += 10) {
+    gridPoints.push(
+      new THREE.Vector3(Number(gauzeProxy.centerMm[0]) + offset, supportTopY, Number(gauzeProxy.centerMm[2]) - 40),
+      new THREE.Vector3(Number(gauzeProxy.centerMm[0]) + offset, supportTopY, Number(gauzeProxy.centerMm[2]) + 40),
+      new THREE.Vector3(Number(gauzeProxy.centerMm[0]) - 40, supportTopY, Number(gauzeProxy.centerMm[2]) + offset),
+      new THREE.Vector3(Number(gauzeProxy.centerMm[0]) + 40, supportTopY, Number(gauzeProxy.centerMm[2]) + offset),
+    );
+  }
+  const grid = new THREE.LineSegments(
+    new THREE.BufferGeometry().setFromPoints(gridPoints),
+    new THREE.LineBasicMaterial({ color: 0x4f5c60, transparent: true, opacity: 0.82 }),
+  );
+  grid.name = `${group.name}-wire-grid`;
+  group.add(grid);
+  group.userData.activeMaterials = [baseMaterial, metalMaterial, gauzeMaterial];
+  return group;
 }
 
 function openArmWorkcell(fixture) {

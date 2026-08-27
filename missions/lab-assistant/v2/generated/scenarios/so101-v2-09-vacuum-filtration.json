@@ -2,8 +2,8 @@
   "schema": "robobuddy.lab-scenario.v2",
   "schemaVersion": 2,
   "id": "so101-v2-09-vacuum-filtration",
-  "title": "Vacuum Filtration Glassware Staging",
-  "brief": "Directly grasp, transfer, and stably place Capped reagent bottle and Empty beaker on the named real work-surface zones; no unmodeled laboratory operation or measurement is simulated.",
+  "title": "Vacuum Workcell Keep-Clear Preflight",
+  "brief": "Program a dry, ordered SO-101 preflight: park the capped wash bottle on the supply side, then place the empty spill-control beaker on the receiver side while keeping the ruler-marked vacuum-hose corridor clear. Existing direct grasps, atomic action fields, IK, collision checks, stable support, release, and retreat behavior remain authoritative. Vacuum, hose coupling, filtration, pressure, and liquids are not simulated.",
   "robotId": "so101_follower",
   "rank": 9,
   "supersedes": "so101-09-vacuum-filtration",
@@ -11,8 +11,8 @@
   "legacyClassification": "C",
   "migration": {
     "class": "C",
-    "legacyLearningObjective": "Program the filtration-station preparation order while preserving sequence reasoning and excluding unsupported vacuum and fluid behavior.",
-    "redesignRationale": "Vacuum behavior, slurry transfer, and precipitate washing are outside the kinematic model. The robot role is redesigned as sealed-component staging with an observable readiness gate."
+    "legacyLearningObjective": "Program an ordered vacuum-workcell preflight, preserve a ruler-defined hose corridor, and distinguish dry equipment staging from unsupported vacuum and filtration behavior.",
+    "redesignRationale": "A single SO-101 follower arm can safely stage dry sealed items, but vacuum-hose coupling, pressure integrity, slurry transfer, and liquid filtration are unsupported and cannot be validated by this model. The successor becomes a measured keep-clear preflight with ordered placement and corridor geometry that maps directly to real arm actions."
   },
   "canonicalModel": {
     "id": "so101_follower",
@@ -397,12 +397,62 @@
         }
       ],
       "sourceBackedHolder": true
+    },
+    {
+      "id": "vacuum_corridor_left_ruler",
+      "type": "configured_measurement_ruler",
+      "label": "Vacuum-hose corridor left datum",
+      "visible": true,
+      "configured": true,
+      "presentationOnly": true,
+      "collisionAuthority": "none; visual measurement aid only",
+      "measurement": {
+        "units": "mm",
+        "minorTickMm": 10,
+        "majorTickMm": 50,
+        "labelEveryMm": 100,
+        "widthMm": 20,
+        "axis": "z",
+        "originMm": [
+          125,
+          3,
+          70
+        ],
+        "lengthMm": 260,
+        "direction": 1,
+        "startValueMm": 70
+      }
+    },
+    {
+      "id": "vacuum_corridor_right_ruler",
+      "type": "configured_measurement_ruler",
+      "label": "Vacuum-hose corridor right datum",
+      "visible": true,
+      "configured": true,
+      "presentationOnly": true,
+      "collisionAuthority": "none; visual measurement aid only",
+      "measurement": {
+        "units": "mm",
+        "minorTickMm": 10,
+        "majorTickMm": 50,
+        "labelEveryMm": 100,
+        "widthMm": 20,
+        "axis": "z",
+        "originMm": [
+          155,
+          3,
+          70
+        ],
+        "lengthMm": 260,
+        "direction": 1,
+        "startValueMm": 70
+      }
     }
   ],
   "objects": [
     {
       "id": "filtration_reagent_bottle",
-      "label": "Capped reagent bottle",
+      "label": "Capped filtration wash bottle",
       "initialFrame": "filtration_reagent_bottle_contact",
       "transportable": true,
       "visible": true,
@@ -426,7 +476,8 @@
         "heightMm": 110,
         "directHandling": true,
         "containerFree": true,
-        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly."
+        "approximation": "C: configured capped reagent bottle renderer envelope (64 x 110 x 52 mm); the opposing gripper fingers contact this apparatus directly.",
+        "label": "Capped filtration wash bottle"
       },
       "configuredGripInterface": "direct body pinch; opposing rendered finger contact with the intended apparatus itself.",
       "attachmentInterface": "direct_apparatus_grip",
@@ -593,7 +644,7 @@
     },
     {
       "id": "filtration_beaker",
-      "label": "Empty beaker",
+      "label": "Empty spill-control beaker",
       "initialFrame": "filtration_beaker_contact",
       "transportable": true,
       "visible": true,
@@ -617,7 +668,8 @@
         "heightMm": 80,
         "directHandling": true,
         "containerFree": true,
-        "approximation": "C: configured empty beaker renderer envelope (74 x 80 x 74 mm); the opposing gripper fingers contact this apparatus directly."
+        "approximation": "C: configured empty beaker renderer envelope (74 x 80 x 74 mm); the opposing gripper fingers contact this apparatus directly.",
+        "label": "Empty spill-control beaker"
       },
       "configuredGripInterface": "direct rim wall pinch; opposing rendered finger contact with the intended apparatus itself.",
       "attachmentInterface": "direct_apparatus_grip",
@@ -835,7 +887,7 @@
   "processModels": [
     {
       "id": "filtration_station_ready",
-      "label": "Configured discrete station state",
+      "label": "Commit the dry vacuum-workcell preflight only after the hose corridor remains clear.",
       "discrete": true,
       "contactGated": true,
       "initialState": "not_ready",
@@ -845,6 +897,59 @@
           "op": "object_at",
           "objectId": "filtration_reagent_bottle",
           "frameId": "filtration_reagent_bottle_destination"
+        },
+        {
+          "id": "wash_bottle_release_before_beaker_pickup",
+          "label": "The capped wash bottle must be released before the beaker pickup begins.",
+          "op": "event_before",
+          "before": {
+            "type": "DETACH_OBJECT",
+            "objectId": "filtration_reagent_bottle",
+            "frameId": "filtration_reagent_bottle_destination"
+          },
+          "after": {
+            "type": "CONTACT",
+            "objectId": "filtration_beaker",
+            "frameId": "filtration_beaker_contact"
+          }
+        },
+        {
+          "id": "wash_bottle_supply_side",
+          "label": "The wash-bottle centre must remain 150–180 mm on the supply side of the hose-corridor centreline.",
+          "op": "object_axis_coordinate",
+          "objectId": "filtration_reagent_bottle",
+          "axis": "x",
+          "originMm": [
+            140,
+            0,
+            0
+          ],
+          "minMm": 150,
+          "maxMm": 180
+        },
+        {
+          "id": "beaker_receiver_side",
+          "label": "The beaker centre must remain 150–176 mm on the receiver side of the hose-corridor centreline.",
+          "op": "object_axis_coordinate",
+          "objectId": "filtration_beaker",
+          "axis": "x",
+          "originMm": [
+            140,
+            0,
+            0
+          ],
+          "minMm": -176,
+          "maxMm": -150
+        },
+        {
+          "id": "vacuum_preflight_spacing",
+          "label": "The final dry-preflight objects must remain 339–365 mm apart in the work plane.",
+          "op": "object_planar_distance",
+          "objectA": "filtration_reagent_bottle",
+          "objectB": "filtration_beaker",
+          "plane": "xz",
+          "minMm": 339,
+          "maxMm": 365
         }
       ],
       "fixtureId": "filtration_beaker_destination_slot",
@@ -868,49 +973,49 @@
     },
     {
       "id": "filtration_reagent_bottle_approach_visited",
-      "label": "Approach frame visited for Sealed empty filter flask apparatus",
+      "label": "Approach frame visited for capped filtration wash bottle",
       "op": "frame_visited",
       "frameId": "filtration_reagent_bottle_approach"
     },
     {
       "id": "filtration_reagent_bottle_contact_visited",
-      "label": "Contact frame visited for Sealed empty filter flask apparatus",
+      "label": "Contact frame visited for capped filtration wash bottle",
       "op": "frame_visited",
       "frameId": "filtration_reagent_bottle_contact"
     },
     {
       "id": "filtration_reagent_bottle_lift_visited",
-      "label": "Lift frame visited for Sealed empty filter flask apparatus",
+      "label": "Lift frame visited for capped filtration wash bottle",
       "op": "frame_visited",
       "frameId": "filtration_reagent_bottle_lift"
     },
     {
       "id": "filtration_reagent_bottle_retreat_visited",
-      "label": "Retreat frame visited for Sealed empty filter flask apparatus",
+      "label": "Retreat frame visited for capped filtration wash bottle",
       "op": "frame_visited",
       "frameId": "filtration_reagent_bottle_retreat"
     },
     {
       "id": "filtration_beaker_approach_visited",
-      "label": "Approach frame visited for Sealed capped rinse bottle apparatus",
+      "label": "Approach frame visited for empty spill-control beaker",
       "op": "frame_visited",
       "frameId": "filtration_beaker_approach"
     },
     {
       "id": "filtration_beaker_contact_visited",
-      "label": "Contact frame visited for Sealed capped rinse bottle apparatus",
+      "label": "Contact frame visited for empty spill-control beaker",
       "op": "frame_visited",
       "frameId": "filtration_beaker_contact"
     },
     {
       "id": "filtration_beaker_lift_visited",
-      "label": "Lift frame visited for Sealed capped rinse bottle apparatus",
+      "label": "Lift frame visited for empty spill-control beaker",
       "op": "frame_visited",
       "frameId": "filtration_beaker_lift"
     },
     {
       "id": "filtration_beaker_retreat_visited",
-      "label": "Retreat frame visited for Sealed capped rinse bottle apparatus",
+      "label": "Retreat frame visited for empty spill-control beaker",
       "op": "frame_visited",
       "frameId": "filtration_beaker_retreat"
     },
@@ -920,6 +1025,59 @@
       "op": "process_state",
       "processId": "filtration_station_ready",
       "value": "ready"
+    },
+    {
+      "id": "wash_bottle_release_before_beaker_pickup",
+      "label": "The capped wash bottle must be released before the beaker pickup begins.",
+      "op": "event_before",
+      "before": {
+        "type": "DETACH_OBJECT",
+        "objectId": "filtration_reagent_bottle",
+        "frameId": "filtration_reagent_bottle_destination"
+      },
+      "after": {
+        "type": "CONTACT",
+        "objectId": "filtration_beaker",
+        "frameId": "filtration_beaker_contact"
+      }
+    },
+    {
+      "id": "wash_bottle_supply_side",
+      "label": "The wash-bottle centre must remain 150–180 mm on the supply side of the hose-corridor centreline.",
+      "op": "object_axis_coordinate",
+      "objectId": "filtration_reagent_bottle",
+      "axis": "x",
+      "originMm": [
+        140,
+        0,
+        0
+      ],
+      "minMm": 150,
+      "maxMm": 180
+    },
+    {
+      "id": "beaker_receiver_side",
+      "label": "The beaker centre must remain 150–176 mm on the receiver side of the hose-corridor centreline.",
+      "op": "object_axis_coordinate",
+      "objectId": "filtration_beaker",
+      "axis": "x",
+      "originMm": [
+        140,
+        0,
+        0
+      ],
+      "minMm": -176,
+      "maxMm": -150
+    },
+    {
+      "id": "vacuum_preflight_spacing",
+      "label": "The final dry-preflight objects must remain 339–365 mm apart in the work plane.",
+      "op": "object_planar_distance",
+      "objectA": "filtration_reagent_bottle",
+      "objectB": "filtration_beaker",
+      "plane": "xz",
+      "minMm": 339,
+      "maxMm": 365
     }
   ],
   "prohibitedStates": [
@@ -968,6 +1126,10 @@
     {
       "label": "R",
       "claim": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
+    },
+    {
+      "label": "C",
+      "claim": "C: the two visible corridor rulers, ±150 mm side-clearance bands, and object-spacing tolerance are configured educational geometry. They grade authoritative object poses and event order while remaining non-colliding presentation aids; vacuum pressure, hose attachment, and liquid filtration remain explicitly unsupported."
     }
   ],
   "modelClaim": {
@@ -1379,10 +1541,10 @@
   "hiddenGradingRequirements": [
     {
       "id": "completion_observation",
-      "label": "After the gated final placement contact, select the visible seating-and-clearance observation.",
+      "label": "Confirm the supply/receiver-side coordinates, clear hose corridor, bottle-first order, stable seating, and clear retreats.",
       "kind": "learner-recorded",
       "allowedValues": [
-        "Visible destination seating confirmed with the robot clear."
+        "Dry vacuum-workcell keep-clear preflight confirmed from plant state."
       ],
       "availableWhen": {
         "op": "all",
@@ -1396,6 +1558,59 @@
             "op": "object_at",
             "objectId": "filtration_beaker",
             "frameId": "filtration_beaker_destination"
+          },
+          {
+            "id": "wash_bottle_release_before_beaker_pickup",
+            "label": "The capped wash bottle must be released before the beaker pickup begins.",
+            "op": "event_before",
+            "before": {
+              "type": "DETACH_OBJECT",
+              "objectId": "filtration_reagent_bottle",
+              "frameId": "filtration_reagent_bottle_destination"
+            },
+            "after": {
+              "type": "CONTACT",
+              "objectId": "filtration_beaker",
+              "frameId": "filtration_beaker_contact"
+            }
+          },
+          {
+            "id": "wash_bottle_supply_side",
+            "label": "The wash-bottle centre must remain 150–180 mm on the supply side of the hose-corridor centreline.",
+            "op": "object_axis_coordinate",
+            "objectId": "filtration_reagent_bottle",
+            "axis": "x",
+            "originMm": [
+              140,
+              0,
+              0
+            ],
+            "minMm": 150,
+            "maxMm": 180
+          },
+          {
+            "id": "beaker_receiver_side",
+            "label": "The beaker centre must remain 150–176 mm on the receiver side of the hose-corridor centreline.",
+            "op": "object_axis_coordinate",
+            "objectId": "filtration_beaker",
+            "axis": "x",
+            "originMm": [
+              140,
+              0,
+              0
+            ],
+            "minMm": -176,
+            "maxMm": -150
+          },
+          {
+            "id": "vacuum_preflight_spacing",
+            "label": "The final dry-preflight objects must remain 339–365 mm apart in the work plane.",
+            "op": "object_planar_distance",
+            "objectA": "filtration_reagent_bottle",
+            "objectB": "filtration_beaker",
+            "plane": "xz",
+            "minMm": 339,
+            "maxMm": 365
           },
           {
             "op": "frame_visited",
@@ -3638,6 +3853,19 @@
       "sourceRevision": "7e241bd630a3719a56157a497ce5d08f244784f1",
       "browserBoundary": "API-compatible browser simulation with reference-calibrated kinematics. Hardware validation pending."
     }
+  },
+  "complexityUpgrade": {
+    "version": "2026-08-27",
+    "class": "measured_keep_clear_preflight",
+    "preservedMotionGeometry": true,
+    "preservedPublicPythonActionFields": true,
+    "physicalHardwareValidated": false,
+    "unsupported": [
+      "vacuum pressure",
+      "hose coupling",
+      "filtration",
+      "fluid transfer"
+    ]
   },
   "validationAvailable": true
 }
