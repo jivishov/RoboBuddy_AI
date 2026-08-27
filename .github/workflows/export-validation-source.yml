@@ -1,0 +1,24 @@
+name: Export validation source
+
+on:
+  push:
+    branches:
+      - codex/advanced-lab-missions
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Upload complete validation source
+        uses: actions/upload-artifact@v4
+        with:
+          name: robobuddy-validation-source
+          path: .
+          include-hidden-files: true
+          retention-days: 1
