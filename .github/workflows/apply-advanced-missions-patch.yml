@@ -23,7 +23,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          wc -c .github/advanced-missions.patch.gz.b64.part*
+          sha256sum .github/advanced-missions.patch.gz.b64.part*
           cat .github/advanced-missions.patch.gz.b64.part* > /tmp/advanced-missions.patch.gz.b64
+          sha256sum /tmp/advanced-missions.patch.gz.b64
           echo "12dc860eab65678a569988f4cf1c53cd58daf770f91db1eab668cb59f031cc55  /tmp/advanced-missions.patch.gz.b64" | sha256sum -c -
           base64 --decode /tmp/advanced-missions.patch.gz.b64 > /tmp/advanced-missions.patch.gz
           echo "2b18da827e298e426162cfc59d7a4f38371d6e3b3d8b21efe4ace5b76c259f4c  /tmp/advanced-missions.patch.gz" | sha256sum -c -
