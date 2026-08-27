@@ -68,6 +68,40 @@ def patch_once(path_string, marker, needle, replacement):
         raise SystemExit(f'{path_string}: maintenance-loop anchor missing')
     path.write_text(source.replace(needle, replacement, 1))
 
+# The original transformation anchor occurs first in generic transport(). Move
+# the declaration into so101Transport(), where waypoint planning and grading use it.
+engine_path = Path('lab/v2/scenario-engine.js')
+engine = engine_path.read_text()
+waypoint_block = '''    const placeFrame = placeResolution.frameId;
+    const waypointFrames = Array.isArray(args.waypointFrames)
+      ? args.waypointFrames.filter((frameId) => typeof frameId === "string" && frameId.length > 0)
+      : [];
+    waypointFrames.forEach((frameId) => this.frame(frameId));
+    if (args.processId) {'''
+plain_block = '''    const placeFrame = placeResolution.frameId;
+    if (args.processId) {'''
+so101_start = engine.find('  async so101Transport(args) {')
+if so101_start < 0:
+    raise SystemExit('lab/v2/scenario-engine.js: so101Transport anchor missing')
+first_waypoint = engine.find(waypoint_block)
+if first_waypoint >= 0 and first_waypoint < so101_start:
+    engine = engine[:first_waypoint] + plain_block + engine[first_waypoint + len(waypoint_block):]
+    so101_start = engine.find('  async so101Transport(args) {')
+if 'complex-lab-so101-waypoint-scope-v1' not in engine:
+    insertion = engine.find(plain_block, so101_start)
+    if insertion < 0:
+        raise SystemExit('lab/v2/scenario-engine.js: SO-101 place-frame scope anchor missing')
+    scoped = '''    const placeFrame = placeResolution.frameId;
+    // complex-lab-so101-waypoint-scope-v1: authored Cartesian checkpoints are
+    // planning inputs compiled to ordinary public SOFollower position actions.
+    const waypointFrames = Array.isArray(args.waypointFrames)
+      ? args.waypointFrames.filter((frameId) => typeof frameId === "string" && frameId.length > 0)
+      : [];
+    waypointFrames.forEach((frameId) => this.frame(frameId));
+    if (args.processId) {'''
+    engine = engine[:insertion] + scoped + engine[insertion + len(plain_block):]
+engine_path.write_text(engine)
+
 so101_needle = '  const definition = JSON.parse(await readFile(sourcePath, "utf8"));\n  definition.canonicalModel.sourceRevision = model.source.revision;'
 so101_replacement = '\n'.join([
     '  const definition = JSON.parse(await readFile(sourcePath, "utf8"));',
