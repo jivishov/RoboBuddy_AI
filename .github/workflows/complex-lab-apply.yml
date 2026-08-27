@@ -134,6 +134,11 @@ jobs:
 
           task8_path = Path('missions/lab-assistant/v2/definitions/so101/so101-v2-08-burette-initial-reading.json')
           task8 = json.loads(task8_path.read_text())
+          task8['frames']['titration_beaker_lift']['positionMm'] = [210, 175, -210]
+          task8['frames']['titration_beaker_lift']['semantic'] = (
+              'Collision-checked up-and-inward clearance move after the far-corner beaker grasp. The empty beaker '
+              'rises away from the work surface before crossing toward its receiving zone.'
+          )
           task8['frames']['titrant_inspection_destination'] = {
               'positionMm': [315, 185, -70],
               'role': 'destination',
