@@ -39,8 +39,8 @@ jobs:
           import json
           from pathlib import Path
 
-          path = Path('missions/lab-assistant/v2/definitions/so101/so101-v2-06-quantitative-transfer.json')
-          definition = json.loads(path.read_text())
+          task6_path = Path('missions/lab-assistant/v2/definitions/so101/so101-v2-06-quantitative-transfer.json')
+          task6 = json.loads(task6_path.read_text())
 
           positions = {
               'aliquot_bottle_shield_entry': [250, 207, 20],
@@ -49,29 +49,29 @@ jobs:
               'capped_rinse_bottle_shield_exit': [180, 207, 190],
           }
           for frame_id, position in positions.items():
-              definition['frames'][frame_id]['positionMm'] = position
+              task6['frames'][frame_id]['positionMm'] = position
 
-          definition['frames']['capped_rinse_bottle_lift']['positionMm'] = [210, 180, -210]
-          definition['frames']['capped_rinse_bottle_lift']['semantic'] = (
+          task6['frames']['capped_rinse_bottle_lift']['positionMm'] = [210, 180, -210]
+          task6['frames']['capped_rinse_bottle_lift']['semantic'] = (
               'Collision-checked up-and-inward clearance move after the far-corner grasp. The capped bottle '
               'remains upright while its base rises 95 mm above the work surface before the measured transfer lane.'
           )
 
-          definition['title'] = 'Measured Low-Barrier Sample Transfer'
-          definition['brief'] = (
+          task6['title'] = 'Measured Low-Barrier Sample Transfer'
+          task6['brief'] = (
               'Move two capped, non-dispensing practice bottles through their numbered low-barrier lanes, '
               'keep each vessel upright, and place both on their named receiving work surfaces. The two '
               'transparent 80 mm dividers, robot, payload, and other apparatus remain collision checked; no '
               'pouring, liquid motion, sensing, or automatic measurement is claimed.'
           )
-          definition['migration']['redesignRationale'] = (
+          task6['migration']['redesignRationale'] = (
               'The legacy liquid transfer and dilution operation exceeds the no-fluid fidelity boundary. This '
               'successor adds real obstacle-clearance planning over two low transparent spill-tray dividers, '
               'payload-fixture collision rejection, numerical clearance marks, and two ordered physical '
               'transfers without claiming unsupported dispensing or fluid behavior.'
           )
 
-          shield = next(item for item in definition['fixtures'] if item['id'] == 'measured_splash_shield')
+          shield = next(item for item in task6['fixtures'] if item['id'] == 'measured_splash_shield')
           shield['label'] = 'Two transparent 80 mm spill-tray dividers with millimetre clearance rulers'
           shield['positionMm'] = [244, 40, -35]
           shield['description'] = (
@@ -108,12 +108,12 @@ jobs:
           ]
 
           for frame_id in positions:
-              definition['frames'][frame_id]['semantic'] = (
+              task6['frames'][frame_id]['semantic'] = (
                   'Numbered collision-checked checkpoint on one side of an 80 mm divider; the configured '
                   'capped-bottle base remains 42 mm above the divider top while the payload stays upright.'
               )
 
-          definition['measurementGuides'] = [
+          task6['measurementGuides'] = [
               {
                   'id': 'aliquot-height-ruler', 'axis': 'y', 'originMm': [198, 0, 60],
                   'lengthMm': 160, 'stepMm': 10, 'labelEvery': 5,
@@ -130,7 +130,56 @@ jobs:
                   'label': 'horizontal transfer-lane position'
               },
           ]
-          path.write_text(json.dumps(definition, indent=2) + '\n')
+          task6_path.write_text(json.dumps(task6, indent=2) + '\n')
+
+          task8_path = Path('missions/lab-assistant/v2/definitions/so101/so101-v2-08-burette-initial-reading.json')
+          task8 = json.loads(task8_path.read_text())
+          task8['frames']['titrant_inspection_destination'] = {
+              'positionMm': [315, 185, -70],
+              'role': 'destination',
+              'chainId': 'default',
+              'tolerance': {'positionMm': 4},
+              'semantic': (
+                  'High transfer frame above the intermediate inspection work surface. The capped bottle remains '
+                  'upright and above adjacent apparatus until a separate local placement descent begins.'
+              ),
+          }
+          bottle = next(item for item in task8['objects'] if item['id'] == 'titrant_bottle')
+          inspection_pose = dict(bottle['physicalRest']['poses']['titrant_inspection_contact'])
+          inspection_pose['graspFrameId'] = 'titrant_inspection_contact'
+          bottle['physicalRest']['poses']['titrant_inspection_destination'] = inspection_pose
+
+          calls = task8['validation']['referenceExecutions'][0]['calls']
+          calls[0]['args']['destinationFrame'] = 'titrant_inspection_destination'
+          calls[0]['args']['placeFrame'] = 'titrant_inspection_contact'
+
+          process = next(item for item in task8['processModels'] if item['id'] == 'burette_setup_ready')
+          for predicate in process['prerequisites']:
+              if (
+                  predicate.get('op') == 'event_exists'
+                  and predicate.get('type') == 'DETACH_OBJECT'
+                  and predicate.get('objectId') == 'titrant_bottle'
+                  and predicate.get('frameId') == 'titrant_inspection_contact'
+              ):
+                  predicate['frameId'] = 'titrant_inspection_destination'
+          for goal in task8['goalPredicates']:
+              if (
+                  goal.get('op') == 'event_exists'
+                  and goal.get('type') == 'DETACH_OBJECT'
+                  and goal.get('objectId') == 'titrant_bottle'
+                  and goal.get('frameId') == 'titrant_inspection_contact'
+              ):
+                  goal['frameId'] = 'titrant_inspection_destination'
+          task8_path.write_text(json.dumps(task8, indent=2) + '\n')
+
+          focused_test = Path('tests/v2/complex-lab-tasks.test.mjs')
+          test_source = focused_test.read_text()
+          test_source = test_source.replace(
+              'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.destinationFrame, "titrant_inspection_contact");',
+              'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.destinationFrame, "titrant_inspection_destination");\n'
+              'assert.equal(task8.validation.referenceExecutions[0].calls[0].args.placeFrame, "titrant_inspection_contact");'
+          )
+          focused_test.write_text(test_source)
           PY
 
           python3 - <<'PY'
