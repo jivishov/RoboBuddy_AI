@@ -1,0 +1,31 @@
+name: Export Mission Upgrade Workspace
+
+on:
+  push:
+    branches:
+      - mission-upgrades-so101-openarm-20260827
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+
+      - name: Package source workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --exclude=.git --exclude=robobuddy-source.tar.gz -czf robobuddy-source.tar.gz .
+          test -s robobuddy-source.tar.gz
+
+      - name: Upload source workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: robobuddy-source-${{ github.sha }}
+          path: robobuddy-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
